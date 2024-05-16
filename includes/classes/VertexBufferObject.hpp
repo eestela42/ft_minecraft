@@ -4,14 +4,16 @@
 #include <glad/glad.h>
 #include <classes/vertexData.hpp>
 
-class VertexBufferObject {
+class VertexBufferObject
+{
 public:
-    VertexBufferObject(t_vertexData& vertexData);
+	VertexBufferObject(t_vertexData &vertexData);
 
 	void Bind();
 	void DeleteBuffers();
-    int GetSize() const;
+	int GetSize() const;
+
 private:
-    unsigned int index;
-    int verticesSize;
+	unsigned int index;
+	int verticesSize;
 };

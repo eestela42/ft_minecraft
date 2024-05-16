@@ -17,7 +17,6 @@ void main()
 {
 	// vertexID = gl_VertexID;
     // gl_Position = matrix * (vec4(pos.x, pos.y, pos.z, 1.0));
-	
 	TexCoord = textPos;
 	out_face = faceID;
 	// TexCoord = vec2(pos.x, pos.y);

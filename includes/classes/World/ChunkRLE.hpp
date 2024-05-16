@@ -62,7 +62,6 @@ private:
 
 	void CreateFaceRLERegular(int oreientation, std::vector<int> &vData, std::vector<u_int> &iData,
 							  int x, int y, int z, int offset, u_char type);
-
 };
 
 #endif

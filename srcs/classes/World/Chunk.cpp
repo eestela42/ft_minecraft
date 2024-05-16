@@ -2,19 +2,20 @@
 #include <classes/World/PerlinNoise.hpp>
 #include <classes/World/ChunkGenerator.hpp>
 
-
-std::vector<std::vector<Chunk*>> Chunk::loadedChunks;
+std::vector<std::vector<Chunk *>> Chunk::loadedChunks;
 u_int Chunk::idCount = 0;
 
-Chunk::Chunk() : posX(0), posY(0){}
+Chunk::Chunk() : posX(0), posY(0) {}
 
-Chunk::Chunk(int posX, int posY) : posX(posX), posY(posY) {
+Chunk::Chunk(int posX, int posY) : posX(posX), posY(posY)
+{
 	idCount++;
 	id = idCount;
 	loadChunk();
 }
 
-void Chunk::PublicGenerate() {
+void Chunk::PublicGenerate()
+{
 	if (PROFILER_ON)
 		Profiler::StartTracking("Chunk::PublicGenerate()");
 	isGenerated = true;
@@ -27,39 +28,48 @@ void Chunk::PublicGenerate() {
 		Profiler::StopTracking("Chunk::PublicGenerate()");
 }
 
-
-void	Chunk::loadChunk() {
+void Chunk::loadChunk()
+{
 	int size = loadedChunks.size();
-	if (size) {
+	if (size)
+	{
 		loadedChunks[(posX % size + size) % size][(posY % size + size) % size] = this;
 	}
 	UpdateNeighbors();
-	for (int i = 0; i < 4; i++) {
-		if (neighborChunks[i]) {
+	for (int i = 0; i < 4; i++)
+	{
+		if (neighborChunks[i])
+		{
 			neighborChunks[i]->UpdateNeighbors();
 		}
 	}
 }
 
-void	Chunk::UnloadChunk() {
+void Chunk::UnloadChunk()
+{
 	int size = loadedChunks.size();
-	if (size) {
+	if (size)
+	{
 		loadedChunks[(posX % size + size) % size][(posY % size + size) % size] = NULL;
 	}
-	for (int i = 0; i < 4; i++) {
-		if (neighborChunks[i]) {
+	for (int i = 0; i < 4; i++)
+	{
+		if (neighborChunks[i])
+		{
 			neighborChunks[i]->UpdateNeighbors();
 		}
 	}
 }
 
-void	Chunk::setRenderDistance(int renderDistance) {
-	if (renderDistance == loadedChunks.size()) {
-		return ;
+void Chunk::setRenderDistance(int renderDistance)
+{
+	if (renderDistance == loadedChunks.size())
+	{
+		return;
 	}
-	std::vector<std::vector<Chunk*>> oldChunks = loadedChunks;
+	std::vector<std::vector<Chunk *>> oldChunks = loadedChunks;
 
-	loadedChunks.assign(renderDistance * 2 + 1, std::vector<Chunk*>());
+	loadedChunks.assign(renderDistance * 2 + 1, std::vector<Chunk *>());
 	for (int x = 0; x < renderDistance * 2 + 1; x++)
 	{
 		loadedChunks[x].resize(renderDistance * 2 + 1, nullptr);
@@ -67,35 +77,44 @@ void	Chunk::setRenderDistance(int renderDistance) {
 			loadedChunks[x][y] = NULL;
 	}
 
-	if (renderDistance > oldChunks.size()) {
-		for (std::vector<std::vector<Chunk*>>::iterator iterator = oldChunks.begin(); iterator != oldChunks.end(); iterator++) {
-			for (std::vector<Chunk*>::iterator iterator2 = iterator->begin(); iterator2 != iterator->end(); iterator2++) {
+	if (renderDistance > oldChunks.size())
+	{
+		for (std::vector<std::vector<Chunk *>>::iterator iterator = oldChunks.begin(); iterator != oldChunks.end(); iterator++)
+		{
+			for (std::vector<Chunk *>::iterator iterator2 = iterator->begin(); iterator2 != iterator->end(); iterator2++)
+			{
 				(*iterator2)->loadChunk();
 			}
 		}
 	}
 }
 
-const std::vector<std::vector<Chunk*>> &Chunk::GetLoadedChunks() {
+const std::vector<std::vector<Chunk *>> &Chunk::GetLoadedChunks()
+{
 	return loadedChunks;
 }
 
-bool Chunk::IsRealNeighbor(int chunkX, int chunkY) {
-	if ((std::abs(chunkX - posX) == 1 && chunkY == posY) || (std::abs(chunkY - posY) == 1 && chunkX == posX)) {
+bool Chunk::IsRealNeighbor(int chunkX, int chunkY)
+{
+	if ((std::abs(chunkX - posX) == 1 && chunkY == posY) || (std::abs(chunkY - posY) == 1 && chunkX == posX))
+	{
 		return true;
 	}
 	return false;
 }
 
-Chunk *Chunk::GetNeighbor(int x, int y) {
+Chunk *Chunk::GetNeighbor(int x, int y)
+{
 	int size = loadedChunks.size();
 	return loadedChunks[(x % size + size) % size][(y % size + size) % size];
 }
 
-void Chunk::UpdateNeighbors() {
+void Chunk::UpdateNeighbors()
+{
 	neighborChunks[0] = GetNeighbor(posX, posY + 1);
 	u_int neighborID = (neighborChunks[0]) ? neighborChunks[0]->id : 0;
-	if (neighborID != neighborChunksID[0]) {
+	if (neighborID != neighborChunksID[0])
+	{
 		isCompiled = false;
 		didUpdate = true;
 	}
@@ -103,7 +122,8 @@ void Chunk::UpdateNeighbors() {
 
 	neighborChunks[1] = GetNeighbor(posX + 1, posY);
 	neighborID = (neighborChunks[1]) ? neighborChunks[1]->id : 0;
-	if (neighborID != neighborChunksID[1]){
+	if (neighborID != neighborChunksID[1])
+	{
 		isCompiled = false;
 		didUpdate = true;
 	}
@@ -111,7 +131,8 @@ void Chunk::UpdateNeighbors() {
 
 	neighborChunks[2] = GetNeighbor(posX, posY - 1);
 	neighborID = (neighborChunks[2]) ? neighborChunks[2]->id : 0;
-	if (neighborID != neighborChunksID[2]){
+	if (neighborID != neighborChunksID[2])
+	{
 		isCompiled = false;
 		didUpdate = true;
 	}
@@ -119,21 +140,27 @@ void Chunk::UpdateNeighbors() {
 
 	neighborChunks[3] = GetNeighbor(posX - 1, posY);
 	neighborID = (neighborChunks[3]) ? neighborChunks[3]->id : 0;
-	if (neighborID != neighborChunksID[3]){
+	if (neighborID != neighborChunksID[3])
+	{
 		isCompiled = false;
 		didUpdate = true;
 	}
 	neighborChunksID[3] = neighborID;
 }
 
-void Chunk::SetReady(bool isRecursive) {
-	if (!isGenerated) {
+void Chunk::SetReady(bool isRecursive)
+{
+	if (!isGenerated)
+	{
 		PublicGenerate();
 	}
-	if (!isRecursive && !isCompiled) {
+	if (!isRecursive && !isCompiled)
+	{
 		isCompiled = true;
-		for (int i = 0; i < 4; i++) {
-			if (neighborChunks[i]) {
+		for (int i = 0; i < 4; i++)
+		{
+			if (neighborChunks[i])
+			{
 				neighborChunks[i]->SetReady(true);
 			}
 		}
@@ -146,19 +173,23 @@ void Chunk::SetReady(bool isRecursive) {
 	}
 }
 
-bool Chunk::IsGenerated() {
+bool Chunk::IsGenerated()
+{
 	return isGenerated;
 }
 
-bool Chunk::DidUpdate() {
+bool Chunk::DidUpdate()
+{
 	return didUpdate;
 }
 
-int Chunk::GetX() {
+int Chunk::GetX()
+{
 	return posX;
 }
 
-int Chunk::GetY() {
+int Chunk::GetY()
+{
 	return posY;
 }
 
@@ -169,24 +200,27 @@ void Chunk::MakeDirty()
 	didUpdate = true;
 }
 
-t_vertexData &Chunk::GetVertexData() {
+t_vertexData &Chunk::GetVertexData()
+{
 	SetReady(false);
 	didUpdate = false;
 	return dataStruct;
 }
 
-std::vector<u_int>&		Chunk::GetShapeAssemblyData() {
+std::vector<u_int> &Chunk::GetShapeAssemblyData()
+{
 	SetReady(false);
 	didUpdate = false;
 	return shapeAssemblyData;
 }
 
-Chunk::~Chunk() {
+Chunk::~Chunk()
+{
 	UnloadChunk();
-	if (data && (void*)data != (void*)"") {
+	if (data && (void *)data != (void *)"")
+	{
 		std::cout << "Deleting data" << std::endl;
 		free(data);
 		std::cout << "----Deleting data" << std::endl;
 	}
-
 }

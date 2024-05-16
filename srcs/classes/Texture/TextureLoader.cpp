@@ -2,7 +2,7 @@
 
 bool TextureLoader::isReady = false;
 
-static GLenum	channelColor(int nrChannels)
+static GLenum channelColor(int nrChannels)
 {
 	switch (nrChannels)
 	{

@@ -1,7 +1,9 @@
 #include <classes/World/ChunkInstantiator.hpp>
 
-bool isInCircle(long int x, long int y, long int radius, long int circleX, long int circleY) {
-	if ((x - circleX) * (x - circleX) + (y - circleY) * (y - circleY) <= radius * radius) {
+bool isInCircle(long int x, long int y, long int radius, long int circleX, long int circleY)
+{
+	if ((x - circleX) * (x - circleX) + (y - circleY) * (y - circleY) <= radius * radius)
+	{
 		return true;
 	}
 	return false;
@@ -11,20 +13,17 @@ ChunkInstantiator::~ChunkInstantiator()
 {
 	const std::vector<std::vector<Chunk *>> &loadedChunks = Chunk::GetLoadedChunks();
 
-	for (unsigned long i = 0; i  < loadedChunks.size(); i++)
+	for (unsigned long i = 0; i < loadedChunks.size(); i++)
 	{
 		for (unsigned long y = 0; y < loadedChunks[i].size(); y++)
 		{
 			delete loadedChunks[i][y];
 		}
 	}
-
-	
 }
 
-
-ChunkInstantiator::ChunkInstantiator(VertexArrayObjectHandler *vertexArrayObjectHandler, int renderDistance, ShaderHandler *shaderHandler) {
-
+ChunkInstantiator::ChunkInstantiator(VertexArrayObjectHandler *vertexArrayObjectHandler, int renderDistance, ShaderHandler *shaderHandler)
+{
 	// updateGen("generation");
 
 	this->shaderHandler = shaderHandler;
@@ -36,9 +35,9 @@ ChunkInstantiator::ChunkInstantiator(VertexArrayObjectHandler *vertexArrayObject
 	this->vertexArrayObjectHandler = vertexArrayObjectHandler;
 	this->renderDistance = renderDistance;
 	// int chunkLoadingSize = Chunk::GetLoadedChunks().size();
-	std::vector<Chunk*> chunks;
+	std::vector<Chunk *> chunks;
 
-	//get an random long int 
+	// get an random long int
 
 	std::srand(std::time(0));
 	long int seed;
@@ -48,42 +47,44 @@ ChunkInstantiator::ChunkInstantiator(VertexArrayObjectHandler *vertexArrayObject
 	std::cout << "seed " << seed << std::endl;
 	ChunkGenerator::initNoise(seed);
 
+	showChunkDebug &&std::cout << "Chunk generation started " << std::endl;
+	for (int x = -renderDistance; x <= renderDistance; x++)
+	{ // Creating chunks
+		for (int y = -renderDistance; y <= renderDistance; y++)
+		{
+			if (isInCircle(x, y, renderDistance, 0, 0))
+			{
+				showChunkDebug &&std::cout << "Generating chunk " << x << " " << y << std::endl;
+				Chunk *chunk = new ChunkRLE(x, y);
+				chunk->PublicGenerate();
 
-	showChunkDebug && std::cout << "Chunk generation started " << std::endl;
-	for (int x = -renderDistance; x <= renderDistance; x++) { //Creating chunks
-	for (int y = -renderDistance; y <= renderDistance; y++) {
-		if (isInCircle(x, y, renderDistance, 0, 0)) {
-			showChunkDebug && std::cout << "Generating chunk " << x << " " << y << std::endl;
-			Chunk* chunk = new ChunkRLE(x, y);
-			chunk->PublicGenerate();
-
-
-			chunks.push_back(chunk);
-
+				chunks.push_back(chunk);
+			}
 		}
-	}}
-	showChunkDebug && std::cout << "Chunk are generated " << std::endl;
+	}
+	showChunkDebug &&std::cout << "Chunk are generated " << std::endl;
 
-	showChunkDebug && std::cout << "Chunk compilation started " << std::endl;
-	for (auto const& x : chunks)
+	showChunkDebug &&std::cout << "Chunk compilation started " << std::endl;
+	for (auto const &x : chunks)
 	{
-		showChunkDebug && std::cout << "compil " << x->GetX() << " " << x->GetY() << std::endl;
+		showChunkDebug &&std::cout << "compil " << x->GetX() << " " << x->GetY() << std::endl;
 		VertexArrayObject *VAO = new VertexArrayObject(new VertexBufferObject(x->GetVertexData()), new ElementBufferObject(x->GetShapeAssemblyData()), shader);
 		VAO->posX = x->GetX();
 		VAO->posY = x->GetY();
 		chunkMap[x] = vertexArrayObjectHandler->AddVAO(VAO);
-		showChunkDebug && std::cout << "END compil " << x->GetX() << " " << x->GetY() << std::endl;
+		showChunkDebug &&std::cout << "END compil " << x->GetX() << " " << x->GetY() << std::endl;
 	}
-	showChunkDebug && std::cout << "Chunk are compiled " << std::endl;
+	showChunkDebug &&std::cout << "Chunk are compiled " << std::endl;
 }
 
-void ChunkInstantiator::Update(glm::vec3 playerPos, std::chrono::milliseconds timeBudget) {
+void ChunkInstantiator::Update(glm::vec3 playerPos, std::chrono::milliseconds timeBudget)
+{
 	std::chrono::_V2::system_clock::time_point start = std::chrono::high_resolution_clock::now();
 	Shader *shader = shaderHandler->GetShader(ChunkRLE::shaderName);
 	const std::vector<std::vector<Chunk *>> &loadedChunks = Chunk::GetLoadedChunks();
 	int size = loadedChunks.size();
 
-	playerPos.x /= Chunk::sizeX;//ChunkSize
+	playerPos.x /= Chunk::sizeX; // ChunkSize
 	playerPos.z /= Chunk::sizeY;
 
 	int oldPlayerChunkPosX = playerChunkPosX;
@@ -91,10 +92,14 @@ void ChunkInstantiator::Update(glm::vec3 playerPos, std::chrono::milliseconds ti
 	playerChunkPosX = playerPos.x;
 	playerChunkPosY = playerPos.z;
 
-	if (playerChunkPosX != oldPlayerChunkPosX || playerChunkPosY != oldPlayerChunkPosY) {
-		for (int x = oldPlayerChunkPosX - renderDistance; x <= oldPlayerChunkPosX + renderDistance; x++) { //Deleting chunks
-			for (int y = oldPlayerChunkPosY - renderDistance; y <= oldPlayerChunkPosY + renderDistance; y++) {
-				if (loadedChunks[(x % size + size) % size][(y % size + size) % size] && !isInCircle(x, y, renderDistance, playerChunkPosX, playerChunkPosY)) {
+	if (playerChunkPosX != oldPlayerChunkPosX || playerChunkPosY != oldPlayerChunkPosY)
+	{
+		for (int x = oldPlayerChunkPosX - renderDistance; x <= oldPlayerChunkPosX + renderDistance; x++)
+		{ // Deleting chunks
+			for (int y = oldPlayerChunkPosY - renderDistance; y <= oldPlayerChunkPosY + renderDistance; y++)
+			{
+				if (loadedChunks[(x % size + size) % size][(y % size + size) % size] && !isInCircle(x, y, renderDistance, playerChunkPosX, playerChunkPosY))
+				{
 					generationQueueMap.erase(std::pair(x, y));
 					compilationQueueMap.erase(std::pair(x, y));
 					updateQueueMap.erase(std::pair(x, y));
@@ -104,11 +109,15 @@ void ChunkInstantiator::Update(glm::vec3 playerPos, std::chrono::milliseconds ti
 				}
 			}
 		}
-		for (int x = playerChunkPosX - renderDistance; x <= playerChunkPosX + renderDistance; x++) { //Creating chunks
-			for (int y = playerChunkPosY - renderDistance; y <= playerChunkPosY + renderDistance; y++) {
-				if (isInCircle(x, y, renderDistance, playerChunkPosX, playerChunkPosY) && !isInCircle(x, y, renderDistance, oldPlayerChunkPosX, oldPlayerChunkPosY)) {
-					if (generationQueueMap.find(std::pair(x, y)) == generationQueueMap.end()) {
-						Chunk* chunk = new ChunkRLE(x, y);
+		for (int x = playerChunkPosX - renderDistance; x <= playerChunkPosX + renderDistance; x++)
+		{ // Creating chunks
+			for (int y = playerChunkPosY - renderDistance; y <= playerChunkPosY + renderDistance; y++)
+			{
+				if (isInCircle(x, y, renderDistance, playerChunkPosX, playerChunkPosY) && !isInCircle(x, y, renderDistance, oldPlayerChunkPosX, oldPlayerChunkPosY))
+				{
+					if (generationQueueMap.find(std::pair(x, y)) == generationQueueMap.end())
+					{
+						Chunk *chunk = new ChunkRLE(x, y);
 						generationQueueMap[std::pair(x, y)] = chunk;
 						compilationQueueMap[std::pair(x, y)] = chunk;
 					}
@@ -116,32 +125,36 @@ void ChunkInstantiator::Update(glm::vec3 playerPos, std::chrono::milliseconds ti
 			}
 		}
 	}
-	std::vector<std::pair<int,int>> toErase;
-	
+	std::vector<std::pair<int, int>> toErase;
 
-	for (auto const& pos : generationQueueMap)
+	for (auto const &pos : generationQueueMap)
 	{
-		if (std::chrono::high_resolution_clock::now() - start > timeBudget) {
-			for (auto const& erase : toErase) {
+		if (std::chrono::high_resolution_clock::now() - start > timeBudget)
+		{
+			for (auto const &erase : toErase)
+			{
 				generationQueueMap.erase(erase);
 			}
-			return ;
+			return;
 		}
 		pos.second->PublicGenerate();
 		toErase.push_back(pos.first);
 	}
-	for (auto const& erase : toErase) {
+	for (auto const &erase : toErase)
+	{
 		generationQueueMap.erase(erase);
 	}
 
 	toErase.clear();
-	for (auto const& pos : compilationQueueMap)
+	for (auto const &pos : compilationQueueMap)
 	{
-		if (std::chrono::high_resolution_clock::now() - start > timeBudget) {
-			for (auto const& erase : toErase) {
+		if (std::chrono::high_resolution_clock::now() - start > timeBudget)
+		{
+			for (auto const &erase : toErase)
+			{
 				compilationQueueMap.erase(erase);
 			}
-			return ;
+			return;
 		}
 		VertexArrayObject *VAO = new VertexArrayObject(new VertexBufferObject(pos.second->GetVertexData()), new ElementBufferObject(pos.second->GetShapeAssemblyData()), shader);
 		VAO->posX = pos.second->GetX();
@@ -149,26 +162,32 @@ void ChunkInstantiator::Update(glm::vec3 playerPos, std::chrono::milliseconds ti
 		chunkMap[pos.second] = vertexArrayObjectHandler->AddVAO(VAO);
 		toErase.push_back(pos.first);
 	}
-	for (auto const& erase : toErase) {
+	for (auto const &erase : toErase)
+	{
 		compilationQueueMap.erase(erase);
 	}
 
-	for (auto const& x : chunkMap)
+	for (auto const &x : chunkMap)
 	{
-		if (x.first->DidUpdate()) {
-			if (updateQueueMap.find(std::pair(x.first->GetX(), x.first->GetY())) == generationQueueMap.end()) {
+		if (x.first->DidUpdate())
+		{
+			if (updateQueueMap.find(std::pair(x.first->GetX(), x.first->GetY())) == generationQueueMap.end())
+			{
 				updateQueueMap[std::pair(x.first->GetX(), x.first->GetY())] = x.first;
 			}
 		}
 	}
 
 	toErase.clear();
-	for (auto const& pos : updateQueueMap) {
-		if (std::chrono::high_resolution_clock::now() - start > timeBudget) {
-			for (auto const& erase : toErase) {
+	for (auto const &pos : updateQueueMap)
+	{
+		if (std::chrono::high_resolution_clock::now() - start > timeBudget)
+		{
+			for (auto const &erase : toErase)
+			{
 				updateQueueMap.erase(erase);
 			}
-			return ;
+			return;
 		}
 		vertexArrayObjectHandler->RemoveVAO(chunkMap[pos.second]);
 		chunkMap.erase(pos.second);
@@ -178,7 +197,8 @@ void ChunkInstantiator::Update(glm::vec3 playerPos, std::chrono::milliseconds ti
 		chunkMap[pos.second] = vertexArrayObjectHandler->AddVAO(VAO);
 		toErase.push_back(pos.first);
 	}
-	for (auto const& erase : toErase) {
+	for (auto const &erase : toErase)
+	{
 		updateQueueMap.erase(erase);
 	}
 }
