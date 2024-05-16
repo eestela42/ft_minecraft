@@ -8,11 +8,6 @@ Game::~Game()
 	for (size_t i = 0; i < ChunkGenerator::noiseList.size(); i++)
 		delete ChunkGenerator::noiseList[i];
 
-	for (auto x : ChunkGenerator::modifMap)
-	{
-		delete x.second;
-	}
-
 	delete crossHair;
 	delete skyBox;
 	delete instantiator;

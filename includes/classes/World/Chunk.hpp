@@ -28,7 +28,6 @@ private:
 	void loadChunk();
 	void UnloadChunk();
 	virtual void CompileData() = 0;
-	virtual void Generate() = 0;
 
 	virtual void updateFromRaw(u_char *rawData) = 0;
 

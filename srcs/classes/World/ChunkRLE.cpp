@@ -18,6 +18,7 @@ ChunkRLE::ChunkRLE(int posX, int posY) : Chunk(posX, posY)
 	this->rubans_id = new u_int[Chunk::sizeZ];
 }
 
+
 bool ChunkRLE::isFilled(int x, int y, int z)
 {
 	if (!IsGenerated())
@@ -241,7 +242,8 @@ void ChunkRLE::makeTopBotFaces(std::vector<std::vector<std::vector<u_int>>> &too
 			u_int longY = 1;
 			for (u_int px = x + 1; px < sizeX; px++)
 			{
-				if (map[px + y * Chunk::sizeX] != 0 || tool[px][y][t_height] != lowest || tool[x][y][t_face_type] != tool[px][y][t_face_type] || tool[x][y][t_block_type] != tool[px][y][t_block_type] || tool[px][y][t_height] != tool[x][y][height])
+				if (map[px + y * Chunk::sizeX] != 0 || tool[px][y][t_height] != lowest || tool[x][y][t_face_type] != tool[px][y][t_face_type]\
+				|| tool[x][y][t_block_type] != tool[px][y][t_block_type] || tool[px][y][t_height] != tool[x][y][t_height])
 					break;
 				longX++;
 
@@ -310,12 +312,12 @@ void ChunkRLE::makeTopBotFaces(std::vector<std::vector<std::vector<u_int>>> &too
 
 			if (tool[x][y][t_face_type] == 5)
 			{
-				CreateFaceRLE(tool[x][y][t_face_type], vertexData, shapeAssemblyData, x, y, tool[x][y][height] + ruban[tool[x][y][ruban_pos] + 1] - 1, vertexData.size(), tool[x][y][block_type], longX, longY);
+				CreateFaceRLE(tool[x][y][t_face_type], vertexData, shapeAssemblyData, x, y, tool[x][y][t_height] + ruban[tool[x][y][t_ruban_pos] + 1] - 1, vertexData.size(), tool[x][y][t_block_type], longX, longY);
 				tool[x][y][t_face_type] = 0;
-				tool[x][y][height] += ruban[tool[x][y][ruban_pos] + 1];
-				tool[x][y][ruban_pos] += 2;
-				if (tool[x][y][ruban_pos] < rubans->size())
-					tool[x][y][block_type] = ruban[tool[x][y][ruban_pos]];
+				tool[x][y][t_height] += ruban[tool[x][y][t_ruban_pos] + 1];
+				tool[x][y][t_ruban_pos] += 2;
+				if (tool[x][y][t_ruban_pos] < rubans->size())
+					tool[x][y][t_block_type] = ruban[tool[x][y][t_ruban_pos]];
 				continue;
 			}
 		}

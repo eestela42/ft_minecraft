@@ -17,5 +17,4 @@ private:
 	void CreateCube(u_char faces, int x, int y, int z, int offsetX, int offsetY);
 
 	void CompileData() override;
-	void Generate() override;
 };
