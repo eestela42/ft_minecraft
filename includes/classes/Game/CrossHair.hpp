@@ -14,25 +14,20 @@
 
 class CrossHair
 {
-	public:
-		CrossHair(Shader *CrossHairShader);
-		~CrossHair();
-
-		void drawCrossHair(glm::mat4 matrix, glm::vec3 pos);
-		
-		std::vector<unsigned int> indices = {0, 1, 2};
-		Shader *shader;
-
+	private:
+		t_vertexData *skyVertData;
 		VertexArrayObject* VAO;
 		std::vector<float> vertices;
 		std::vector<u_int> shape;
 		std::vector<Texture> texture;
+		Shader *shader;
 
+	public:
+		CrossHair(Shader *CrossHairShader);
+		~CrossHair();
 		void	draw();
 		
 
-	private:
-		t_vertexData *skyVertData;
 	
 };
 

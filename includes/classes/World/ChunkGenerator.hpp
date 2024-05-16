@@ -76,13 +76,11 @@ class ChunkGenerator
 
 	static int seed;
 
-	static std::map<position, std::vector<u_char>*> modifMap;
 
 	std::default_random_engine engine;
 
 		~ChunkGenerator();
 		ChunkGenerator();
-		ChunkGenerator(u_int seed);
 		
 		static void initNoise(u_int seed);
 

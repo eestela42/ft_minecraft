@@ -34,6 +34,7 @@ class Shader
 		void SetFloat(const std::string &name, float value) const;
 		void SetFloat4(const std::string &name, float value1, float value2, float value3, float value4) const;
 		void Setmat4(const std::string &name, glm::mat4 value) const;
+		//we need all set functions for the uniforms
 
 		std::vector<t_vertexAttribute> &GetVertexAttributes();
 		static Shader *GetActiveShader();

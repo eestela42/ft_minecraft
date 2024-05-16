@@ -5,23 +5,15 @@ CrossHair::CrossHair(Shader *CrossHairShader)
 	this->shader = CrossHairShader;
 
 	vertices = {
-		
 		-0.001f, -0.045f, 
 		-0.001f, 0.045f,
 		0.001f, 0.045f,
 		0.001f, -0.045f,
 	
-	
-	-0.025f, -0.002f, 
+		-0.025f, -0.002f, 
 		-0.025f, 0.002f,
 		0.025f, 0.002f,
 		0.025f, -0.002f,
-
-		// -0.05f, 0.001f,
-		// -0.05f, -0.001f,
-		//  0.05f, -0.001f,
-		//  0.05f, 0.001f,
-
 		};
 
 	shape = {
@@ -31,11 +23,11 @@ CrossHair::CrossHair(Shader *CrossHairShader)
 		6,7,4
 		};
 
-		skyVertData = new t_vertexData();
-		skyVertData->data = (u_char*)vertices.data();
-		skyVertData->size = vertices.size() * sizeof(float);
+	skyVertData = new t_vertexData();
+	skyVertData->data = (u_char*)vertices.data();
+	skyVertData->size = vertices.size() * sizeof(float);
 
-		VAO = new VertexArrayObject(new VertexBufferObject(*skyVertData), new ElementBufferObject(shape), shader);
+	VAO = new VertexArrayObject(new VertexBufferObject(*skyVertData), new ElementBufferObject(shape), shader);
 }
 
 CrossHair::~CrossHair()

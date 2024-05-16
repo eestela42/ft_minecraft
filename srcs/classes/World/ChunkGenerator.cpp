@@ -2,7 +2,6 @@
 
 
 std::vector<PerlinNoise*> 		ChunkGenerator::noiseList;
-std::map<position, std::vector<u_char>*> ChunkGenerator::modifMap;
 int ChunkGenerator::seed;
 
 #define GEN_NOISE3D true
@@ -38,14 +37,8 @@ void ChunkGenerator::initNoise(u_int seed)
 }
 
 ChunkGenerator::ChunkGenerator()
-{
-	
-}
+{}
 
-ChunkGenerator::ChunkGenerator(__attribute__((unused)) u_int seed)
-{
-	
-}
 
 void ChunkGenerator::generateTree(int x, int y, int z) {
 	int tronc = z - 1;
@@ -268,12 +261,6 @@ int ChunkGenerator::gen3DCave(int hill_height, int pos, int &z)
 			data[pos + z] = AIR;
 			continue ;
 		}
-		// double spag_factor = noiseList[0]->Octave3D(0.0256 * p_x, 0.0295 * p_y, z * 0.039, 1, 0.5);
-		// if ((spag_factor > 0.41  && spag_factor < 0.44)) {
-		// 	data[pos + z] = AIR;
-		// 	continue ;
-		// }
-		
 	}
 	return 0;
 }
@@ -307,16 +294,6 @@ u_char		*ChunkGenerator::generator(Chunk &chunk) {
 		
 		int z = genBedrock(data, x, y);
 
-
-		// data[x * sizeZ + y * sizeX * sizeZ + z++] = STONE;
-		// data[x * sizeZ + y * sizeX * sizeZ + z++] = AIR;
-		// data[x * sizeZ + y * sizeX * sizeZ + z++] = STONE;
-
-		
-
-
-
-		
 		genUnderLayer(pos, z);
 
 		genOverLayer(pos, z);
@@ -334,17 +311,5 @@ u_char		*ChunkGenerator::generator(Chunk &chunk) {
 	}
 	}
 
-	if (modifMap.find(position(posX, posY)) == modifMap.end())
-	{
-		return data;
-	}
-
-		
-	std::vector<u_char> *modif = modifMap[position(posX, posY)];
-	for (int i = 0; i < modif->size(); i+=4)
-	{
-		data[(*modif)[i] * sizeZ + (*modif)[i + 1] * sizeX * sizeZ + (*modif)[i + 2]] = (*modif)[i + 3];
-	}
-	
 	return data;
 }
