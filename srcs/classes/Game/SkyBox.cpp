@@ -44,7 +44,8 @@ float skyboxVertices[] = {
 	1.0f, -1.0f, -1.0f,
 	1.0f, -1.0f, -1.0f,
 	-1.0f, -1.0f, 1.0f,
-	1.0f, -1.0f, 1.0f};
+	1.0f, -1.0f, 1.0f
+	};
 
 unsigned int loadCubemap(std::vector<std::string> faces)
 {
