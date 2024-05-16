@@ -1,24 +1,22 @@
-# ifndef TEXTUREARRAY_HPP
-# define TEXTUREARRAY_HPP
+#ifndef TEXTUREARRAY_HPP
+#define TEXTUREARRAY_HPP
 
 #include <iostream>
 
 class TextureArray
 {
-    public:
-        TextureArray();
-        TextureArray(u_int id, int width, int height, int nrChannels, int depth);
-        TextureArray(const TextureArray &other);
+public:
+	TextureArray();
+	TextureArray(u_int id, int width, int height, int nrChannels, int depth);
+	TextureArray(const TextureArray &other);
 
-        ~TextureArray();
+	~TextureArray();
 
-        unsigned int id;
-        int width;
-        int height;
-        int nrChannels;
-        int depth;
+	unsigned int id;
+	int width;
+	int height;
+	int nrChannels;
+	std::size_t depth;
 };
 
-
-
-# endif
+#endif

@@ -1,5 +1,5 @@
-# ft_vox
-C++ OpenGL voxel with advanced procedural generation
+# ft_minecraft
+C++ OpenGL voxel game engine with advanced procedural generation
 
 Features / Goals :
 - C++ with openGL, glad, GLFW and glm

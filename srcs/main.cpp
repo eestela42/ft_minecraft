@@ -8,14 +8,17 @@ int main()
 
 	if (PROFILER_ON)
 		Profiler::StartTracking("Game Constructor");
+
 	Game *game = new Game();
+
 	if (PROFILER_ON)
 		Profiler::StopTracking("Game Constructor");
-	
+
 	game->StartLoop();
 
 	if (PROFILER_ON)
 		Profiler::LogData();
+
 	delete game;
 
 	return 0;

@@ -5,17 +5,17 @@
 
 class Texture
 {
-    public:
-		Texture();
-        Texture(u_int id, int width, int height, int nrChannels);
-		Texture(const Texture &other);
+public:
+	Texture();
+	Texture(u_int id, int width, int height, int nrChannels);
+	Texture(const Texture &other);
 
-        ~Texture();
+	~Texture();
 
-        unsigned int id;
-        int width;
-        int height;
-        int nrChannels;
+	unsigned int id;
+	int width;
+	int height;
+	int nrChannels;
 };
 
 #endif
