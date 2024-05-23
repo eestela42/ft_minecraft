@@ -18,10 +18,9 @@ void Chunk::PublicGenerate()
 {
 	if (PROFILER_ON)
 		Profiler::StartTracking("Chunk::PublicGenerate()");
-	isGenerated = true;
 	ChunkGenerator generator;
-
 	updateFromRaw(generator.generator(*this));
+	isGenerated = true;
 
 	isCompiled = false;
 	if (PROFILER_ON)
@@ -212,6 +211,18 @@ std::vector<u_int> &Chunk::GetShapeAssemblyData()
 	SetReady(false);
 	didUpdate = false;
 	return shapeAssemblyData;
+}
+
+bool Chunk::allNeighborsGenerated()
+{
+	for (int i = 0; i < 4; i++)
+	{
+		if (neighborChunks[i] && !neighborChunks[i]->IsGenerated())
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 Chunk::~Chunk()

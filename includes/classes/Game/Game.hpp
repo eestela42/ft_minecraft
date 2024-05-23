@@ -19,7 +19,7 @@
 #include <classes/Game/SkyBox.hpp>
 #include <classes/Game/CrossHair.hpp>
 
-
+#include <mutex>
 
 class Game : I_Input
 {
@@ -30,13 +30,18 @@ class Game : I_Input
 		VertexArrayObjectHandler *vertexArrayObjectHandler;
 		ChunkInstantiator *instantiator;
 
+		std::mutex stableMutex;
+		std::vector<VertexArrayObject*> *stableState;
+
 		void Loop();
-	private:
+
 		static glm::vec3 const cameraUp;
-		int renderDistance = 25;
+		int renderDistance = 15;
 		int chunkLoadingSize = renderDistance * 2 + 1;
 		const float speed = 0.35f;
 		const float sensitivity = 0.05f;
+
+		std::mutex cameraMutex;
 
 		float yaw = -90;
 		float pitch = 0;

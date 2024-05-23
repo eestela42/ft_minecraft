@@ -3,3 +3,5 @@ ft_minecraft
 objects-dependances
 *.log
 *.mdb
+tmp
+txt

@@ -131,3 +131,17 @@ VertexArrayObject *VertexArrayObjectHandler::GetVAO(u_int VAO)
 {
 	return (vaoMap[VAO]);
 }
+
+void VertexArrayObjectHandler::pushBackToAdd(t_vaoData data)
+{
+	mutex_toAdd.lock();
+	toAdd.push_back(data);
+	mutex_toAdd.unlock();
+}
+
+void VertexArrayObjectHandler::pushBackToDelete(u_int data)
+{
+	mutex_toDelete.lock();
+	toDelete.push_back(data);
+	mutex_toDelete.unlock();
+}

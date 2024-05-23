@@ -66,6 +66,7 @@ public:
 	virtual void MakeDirty() final;
 	virtual int GetX() final;
 	virtual int GetY() final;
+	bool allNeighborsGenerated();
 
 	virtual ~Chunk();
 };

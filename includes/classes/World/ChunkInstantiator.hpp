@@ -7,6 +7,7 @@
 #include <classes/ShaderHandler.hpp>
 #include <unordered_map>
 #include <chrono>
+#include <mutex>
 
 struct pair_hash
 {
@@ -22,7 +23,6 @@ struct pair_hash
 class ChunkInstantiator
 {
 private:
-	std::unordered_map<Chunk *, u_int> chunkMap;
 	std::unordered_map<std::pair<int, int>, Chunk *, pair_hash> generationQueueMap;
 	std::unordered_map<std::pair<int, int>, Chunk *, pair_hash> compilationQueueMap;
 	std::unordered_map<std::pair<int, int>, Chunk *, pair_hash> updateQueueMap;
@@ -33,9 +33,13 @@ private:
 	ShaderHandler *shaderHandler;
 
 public:
+	std::unordered_map<Chunk *, u_int> chunkMap;
 	~ChunkInstantiator();
 	ChunkInstantiator(VertexArrayObjectHandler *vertexArrayObjectHandler, int renderDistance, ShaderHandler *shaderHandler);
 	bool putBlock(glm::vec3 pos, u_char type);
 	// void updateGen(const char *filePath);
-	void Update(glm::vec3 playerPos, std::chrono::milliseconds timeBudget);
+	void Update(glm::vec3 *playerPos, std::vector<VertexArrayObject *> **adrrStableState,
+				std::mutex &cameraMutex, std::mutex &stableMutex, std::chrono::milliseconds timeBudget);
+
+	void prit();
 };

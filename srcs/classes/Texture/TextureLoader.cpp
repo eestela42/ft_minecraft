@@ -84,7 +84,7 @@ bool TextureLoader::LoadTextureArray(std::vector<std::string> fileNames)
 		}
 	}
 	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
-	textureArray = {textureID, width, height, nrChannels, fileNames.size()};
+	textureArray = {textureID, width, height, nrChannels, (int)fileNames.size()};
 	return true;
 }
 

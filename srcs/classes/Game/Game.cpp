@@ -1,4 +1,8 @@
 #include <main.hpp>
+#include <thread>
+#include <chrono>
+#include <mutex>
+#include <functional>
 
 glm::vec3 const Game::cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -59,6 +63,15 @@ Game::Game()
 
 	skyBox = new SkyBox(shaderHandler->GetShader("cubemap"));
 	crossHair = new CrossHair(shaderHandler->GetShader("CrossHair"));
+	stableState = new std::vector<VertexArrayObject *>();
+}
+
+void print()
+{
+	while (true)
+	{
+		std::cout << "hello" << std::endl;
+	}
 }
 
 void Game::StartLoop()
@@ -67,6 +80,16 @@ void Game::StartLoop()
 	u_int fps = 0;
 
 	bool info = true;
+	//lancer le thread de generation
+
+
+	auto boundUpdateFunction = std::bind(&ChunkInstantiator::Update, this->instantiator,
+	&cameraPosition, &stableState, std::ref(cameraMutex), std::ref(stableMutex), std::chrono::milliseconds(1000));
+
+
+	// Create the thread with the bound function
+	std::thread updateThread(boundUpdateFunction);
+
 
 	while (window->ShouldContinue())
 	{
@@ -81,14 +104,14 @@ void Game::StartLoop()
 			begin = std::chrono::steady_clock::now();
 		}
 	}
+	updateThread.join();
 }
 
 void Game::Loop()
 {
+	stableMutex.lock();
 	inputHandler->HandleInput();
 	window->Clear();
-	instantiator->Update(cameraPosition, std::chrono::milliseconds(20));
-
 	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 0), cameraDirection, cameraUp);
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)DEFAULT_WINDOW_WIDTH / (float)DEFAULT_WINDOW_HEIGHT, 0.1f, 16000.0f);
 	glm::mat4 matrix = glm::mat4(1.0f);
@@ -117,13 +140,40 @@ void Game::Loop()
 		drawType = 0;
 	else if (ChunkRLE::shaderName == (char *)"RLE-Geometry")
 		drawType = 1;
-	vertexArrayObjectHandler->DrawAll(drawType);
+	// vertexArrayObjectHandler->DrawAll(drawType);
+	for (auto const x : *this->stableState)
+	{
+
+		x->Bind();
+		glDrawArrays(GL_POINTS, 0, x->GetIndicesSize());
+		x->Unbind();
+	}
 
 	window->SwapBuffersAndPollEvents();
+	stableMutex.unlock();
+
+	vertexArrayObjectHandler->mutex_toAdd.lock();
+	for (auto const &x : vertexArrayObjectHandler->toAdd)
+	{
+		VertexArrayObject *VAO = new VertexArrayObject(new VertexBufferObject(x.vertexData), new ElementBufferObject(x.indices), x.shader);
+		instantiator->chunkMap[(Chunk*)x.ptr] = vertexArrayObjectHandler->AddVAO(VAO);
+	}
+	vertexArrayObjectHandler->toAdd.clear();
+	vertexArrayObjectHandler->mutex_toAdd.unlock();
+
+	vertexArrayObjectHandler->mutex_toDelete.lock();
+	for (auto const &x : vertexArrayObjectHandler->toDelete)
+	{
+		vertexArrayObjectHandler->RemoveVAO(x);
+	}
+	vertexArrayObjectHandler->toDelete.clear();
+	vertexArrayObjectHandler->mutex_toDelete.unlock();
+
 }
 
 void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY)
 {
+	cameraMutex.lock();
 	float speedMultiplier = (keyState[KEY_MOVE_UPWARD] & KEY_HOLD) ? 20 : 1;
 	if (keyState[KEY_MOVE_FORWARD] & KEY_HOLD)
 		cameraPosition += speed * speedMultiplier * cameraDirection;
@@ -161,6 +211,7 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY)
 	view = glm::lookAt(cameraPosition,
 					   cameraPosition + glm::normalize(cameraDirection),
 					   cameraUp);
+	cameraMutex.unlock();
 }
 
 int Game::GetRenderDistance() const
