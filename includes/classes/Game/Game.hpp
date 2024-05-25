@@ -6,6 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <atomic>
 
 #include <classes/World/ChunkDefault.hpp>
 #include <classes/World/ChunkRLE.hpp>
@@ -30,8 +31,8 @@ class Game : I_Input
 		VertexArrayObjectHandler *vertexArrayObjectHandler;
 		ChunkInstantiator *instantiator;
 
-		std::mutex stableMutex;
-		std::vector<VertexArrayObject*> *stableState;
+		std::mutex chunkStableMutex;
+		std::vector<Chunk*> *chunkStableState;
 
 		void Loop();
 

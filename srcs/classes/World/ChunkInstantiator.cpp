@@ -47,41 +47,13 @@ ChunkInstantiator::ChunkInstantiator(VertexArrayObjectHandler *vertexArrayObject
 	std::cout << "seed " << seed << std::endl;
 	ChunkGenerator::initNoise(seed);
 
-	showChunkDebug &&std::cout << "Chunk generation started " << std::endl;
-	for (int x = -renderDistance; x <= renderDistance; x++)
-	{ // Creating chunks
-		for (int y = -renderDistance; y <= renderDistance; y++)
-		{
-			if (isInCircle(x, y, renderDistance, 0, 0))
-			{
-				showChunkDebug &&std::cout << "Generating chunk " << x << " " << y << std::endl;
-				Chunk *chunk = new ChunkRLE(x, y);
-				generationQueueMap[std::pair(x, y)] = chunk;
-				compilationQueueMap[std::pair(x, y)] = chunk;
-			}
-		}
-	}
-	showChunkDebug &&std::cout << "Chunk are generated " << std::endl;
-
-	showChunkDebug &&std::cout << "Chunk compilation started " << std::endl;
-	for (auto const &x : chunks)
-	{
-		showChunkDebug &&std::cout << "compil " << x->GetX() << " " << x->GetY() << std::endl;
-		VertexArrayObject *VAO = new VertexArrayObject(new VertexBufferObject(x->GetVertexData()), new ElementBufferObject(x->GetShapeAssemblyData()), shader);
-		VAO->posX = x->GetX();
-		VAO->posY = x->GetY();
-		chunkMap[x] = vertexArrayObjectHandler->AddVAO(VAO);
-		showChunkDebug &&std::cout << "END compil " << x->GetX() << " " << x->GetY() << std::endl;
-	}
-	showChunkDebug &&std::cout << "Chunk are compiled " << std::endl;
 }
 
-void ChunkInstantiator::Update(glm::vec3 *addrPlayerPos, std::vector<VertexArrayObject *> **adrrStableState,
-	std::mutex &cameraMutex, std::mutex &stableMutex, std::chrono::milliseconds timeBudget)
+void ChunkInstantiator::Update(glm::vec3 *addrPlayerPos, std::vector<Chunk *> **adrrStableState,
+	std::mutex &cameraMutex, std::mutex &stableMutex)
 {
-	while(1)
-	{
-	std::chrono::_V2::system_clock::time_point start = std::chrono::high_resolution_clock::now();
+while(1)
+{
 	Shader *shader = shaderHandler->GetShader(ChunkRLE::shaderName);
 	const std::vector<std::vector<Chunk *>> &loadedChunks = Chunk::GetLoadedChunks();
 	int size = loadedChunks.size();
@@ -97,104 +69,30 @@ void ChunkInstantiator::Update(glm::vec3 *addrPlayerPos, std::vector<VertexArray
 	playerChunkPosX = playerPos.x;
 	playerChunkPosY = playerPos.z;
 
-	std::vector<VertexArrayObject*> *newStableState = new std::vector<VertexArrayObject*>();
+	std::vector<Chunk*> *newStableState = new std::vector<Chunk*>();
 
-	// if (playerChunkPosX != oldPlayerChunkPosX || playerChunkPosY != oldPlayerChunkPosY)
-	// {
-		for (int x = oldPlayerChunkPosX - renderDistance; x <= oldPlayerChunkPosX + renderDistance; x++)
-		{ // Deleting chunks
-			for (int y = oldPlayerChunkPosY - renderDistance; y <= oldPlayerChunkPosY + renderDistance; y++)
-			{
-				if (loadedChunks[(x % size + size) % size][(y % size + size) % size] && !isInCircle(x, y, renderDistance, playerChunkPosX, playerChunkPosY))
-				{
-					generationQueueMap.erase(std::pair(x, y));
-					compilationQueueMap.erase(std::pair(x, y));
-					updateQueueMap.erase(std::pair(x, y));
-
-					int vao = chunkMap[loadedChunks[(x % size + size) % size][(y % size + size) % size]];
-					vertexArrayObjectHandler->pushBackToDelete(vao);
-
-					chunkMap.erase(loadedChunks[(x % size + size) % size][(y % size + size) % size]);
-					delete loadedChunks[(x % size + size) % size][(y % size + size) % size];
-				}
-			}
+	for (int x = playerChunkPosX - size/2; x <= playerChunkPosX + size/2; x++){
+	for (int y = playerChunkPosY - size/2; y <= playerChunkPosX + size/2; y++)
+	{
+		int p_x = x % size; //pos dans loadedChunks
+		int p_y = y % size;
+		if (!loadedChunks[p_x][p_y])
+		{
+			//create new chunk
+			continue ;
 		}
-		for (int x = playerChunkPosX - renderDistance; x <= playerChunkPosX + renderDistance; x++)
-		{ // Creating chunks
-			for (int y = playerChunkPosY - renderDistance; y <= playerChunkPosY + renderDistance; y++)
-			{
-				if (isInCircle(x, y, renderDistance, playerChunkPosX, playerChunkPosY) && !isInCircle(x, y, renderDistance, oldPlayerChunkPosX, oldPlayerChunkPosY))
-				{
-					if (generationQueueMap.find(std::pair(x, y)) == generationQueueMap.end())
-					{
-						Chunk *chunk = new ChunkRLE(x, y);
-						generationQueueMap[std::pair(x, y)] = chunk;
-						compilationQueueMap[std::pair(x, y)] = chunk;
-					}
-					continue ;
-				}
-				if (chunkMap.find(loadedChunks[(x % size + size) % size][(y % size + size) % size]) != chunkMap.end())
-						newStableState->push_back(vertexArrayObjectHandler->GetVAO(chunkMap[loadedChunks[(x % size + size) % size][(y % size + size) % size]]));
-			}
+		if (loadedChunks[p_x][p_y]->GetX() != x || loadedChunks[p_x][p_y]->GetY() != y)
+		{
+			toDelete.push_back(loadedChunks[p_x][p_y]);
+			//loadedChunks[p_x][p_y] = NULL; ?
+			continue ;
 		}
-	// }
-	stableMutex.lock();
-	delete *adrrStableState;
-	*adrrStableState = newStableState;
-	stableMutex.unlock();
-	std::vector<std::pair<int, int>> toErase;
-
-	for (auto const &pos : generationQueueMap)
-	{
-		// if (std::chrono::high_resolution_clock::now() - start > timeBudget)
-		// {
-		// 	for (auto const &erase : toErase)
-		// 	{
-		// 		generationQueueMap.erase(erase);
-		// 	}
-		// 	return;
-		// }
-		pos.second->PublicGenerate();
-		toErase.push_back(pos.first);
+		
 	}
-	for (auto const &erase : toErase)
-	{
-		generationQueueMap.erase(erase);
 	}
 
-	toErase.clear();
-	for (auto const &pos : compilationQueueMap)
-	{
-		// if (std::chrono::high_resolution_clock::now() - start > timeBudget)
-		// {
-		// 	for (auto const &erase : toErase)
-		// 	{
-		// 		compilationQueueMap.erase(erase);
-		// 	}
-		// 	return ;
-		// }
-		// VertexArrayObject *VAO = new VertexArrayObject(new VertexBufferObject(pos.second->GetVertexData()), new ElementBufferObject(pos.second->GetShapeAssemblyData()), shader);
-		t_vaoData data = {pos.first, pos.second, pos.second->GetVertexData(), pos.second->GetShapeAssemblyData(), shader};
-		vertexArrayObjectHandler->pushBackToAdd(data);
 
-		// chunkMap[pos.second] = vertexArrayObjectHandler->AddVAO(VAO);
-		toErase.push_back(pos.first);
-	}
-	for (auto const &erase : toErase)
-	{
-		compilationQueueMap.erase(erase);
-	}
 
-	// for (auto const &x : chunkMap)
-	// {
-	// 	if (x.first->DidUpdate())
-	// 	{
-	// 		if (updateQueueMap.find(std::pair(x.first->GetX(), x.first->GetY())) == generationQueueMap.end())
-	// 		{
-	// 			updateQueueMap[std::pair(x.first->GetX(), x.first->GetY())] = x.first;
-	// 		}
-	// 	}
-	// }
-	toErase.clear();
-	}
+}
+	
 }

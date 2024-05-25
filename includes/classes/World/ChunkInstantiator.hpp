@@ -23,9 +23,8 @@ struct pair_hash
 class ChunkInstantiator
 {
 private:
-	std::unordered_map<std::pair<int, int>, Chunk *, pair_hash> generationQueueMap;
-	std::unordered_map<std::pair<int, int>, Chunk *, pair_hash> compilationQueueMap;
-	std::unordered_map<std::pair<int, int>, Chunk *, pair_hash> updateQueueMap;
+	std::vector<Chunk*> toDelete;
+
 	VertexArrayObjectHandler *vertexArrayObjectHandler;
 	int playerChunkPosX;
 	int playerChunkPosY;
@@ -33,13 +32,11 @@ private:
 	ShaderHandler *shaderHandler;
 
 public:
-	std::unordered_map<Chunk *, u_int> chunkMap;
+	
 	~ChunkInstantiator();
 	ChunkInstantiator(VertexArrayObjectHandler *vertexArrayObjectHandler, int renderDistance, ShaderHandler *shaderHandler);
-	bool putBlock(glm::vec3 pos, u_char type);
-	// void updateGen(const char *filePath);
-	void Update(glm::vec3 *playerPos, std::vector<VertexArrayObject *> **adrrStableState,
-				std::mutex &cameraMutex, std::mutex &stableMutex, std::chrono::milliseconds timeBudget);
+	
+	void Update(glm::vec3 *playerPos, std::vector<Chunk *> **adrrStableState,
+				std::mutex &cameraMutex, std::mutex &stableMutex);
 
-	void prit();
 };

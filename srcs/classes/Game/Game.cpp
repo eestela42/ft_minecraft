@@ -63,7 +63,7 @@ Game::Game()
 
 	skyBox = new SkyBox(shaderHandler->GetShader("cubemap"));
 	crossHair = new CrossHair(shaderHandler->GetShader("CrossHair"));
-	stableState = new std::vector<VertexArrayObject *>();
+	chunkStableState = new std::vector<Chunk *>();
 }
 
 void print()
@@ -84,7 +84,7 @@ void Game::StartLoop()
 
 
 	auto boundUpdateFunction = std::bind(&ChunkInstantiator::Update, this->instantiator,
-	&cameraPosition, &stableState, std::ref(cameraMutex), std::ref(stableMutex), std::chrono::milliseconds(1000));
+	&cameraPosition, &chunkStableState, std::ref(cameraMutex), std::ref(chunkStableMutex));
 
 
 	// Create the thread with the bound function
@@ -109,7 +109,8 @@ void Game::StartLoop()
 
 void Game::Loop()
 {
-	stableMutex.lock();
+	chunkStableMutex.lock();
+
 	inputHandler->HandleInput();
 	window->Clear();
 	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 0), cameraDirection, cameraUp);
@@ -135,22 +136,15 @@ void Game::Loop()
 
 	glBindTexture(GL_TEXTURE_2D_ARRAY, blockTextureArray.id);
 
-	u_int drawType = 0;
-	if (ChunkRLE::shaderName == (char *)"RLE-Regular")
-		drawType = 0;
-	else if (ChunkRLE::shaderName == (char *)"RLE-Geometry")
-		drawType = 1;
 	// vertexArrayObjectHandler->DrawAll(drawType);
-	for (auto const x : *this->stableState)
+	for (auto const x : *this->chunkStableState)
 	{
-
-		x->Bind();
-		glDrawArrays(GL_POINTS, 0, x->GetIndicesSize());
-		x->Unbind();
+		// x->Draw();
 	}
 
 	window->SwapBuffersAndPollEvents();
-	stableMutex.unlock();
+
+	chunkStableMutex.unlock();
 
 	vertexArrayObjectHandler->mutex_toAdd.lock();
 	for (auto const &x : vertexArrayObjectHandler->toAdd)
