@@ -34,6 +34,8 @@ struct DrawInfo
 	glm::ivec2 pos;
 };
 
+
+
 struct pair_hash {
     template <class T1, class T2>
     std::size_t operator () (const std::pair<T1,T2> &p) const {
@@ -58,7 +60,7 @@ private :
 	
 
 	//config
-	int renderDistance = 10;
+	int renderDistance = 50;
 	int chunkLoadingSize = renderDistance * 2 + 1;
 
 	TextureArray blockTextureArray;

@@ -7,8 +7,6 @@
 
 #include <classes/World/ChunkGenerator.hpp>
 
-
-
 class ChunkInstanciator
 {
 	private :
