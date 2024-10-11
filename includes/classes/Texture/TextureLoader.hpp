@@ -1,32 +1,24 @@
-#ifndef __TEXTURELOADER_H__
-#define __TEXTURELOADER_H__
+#ifndef TEXTURELOADER_H
+#define TEXTURELOADER_H
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
-#include "Texture.hpp"
-#include "TextureArray.hpp"
-
-#include <stb/stb_image.h>
-
 #include <iostream>
+#include <classes/Texture/Texture.hpp>
+#include <classes/Texture/TextureArray.hpp>
+#include <stb/stb_image.h>
 #include <assert.h>
 #include <vector>
 
 class TextureLoader
 {
-public:
-	bool LoadTexture(std::string fileName);
-	bool LoadTextureArray(std::vector<std::string> fileNames);
-	Texture GetTexture();
-	TextureArray GetTextureArray();
+    public:
+        static Texture LoadTexture(std::string fileName);
+        static TextureArray LoadTextureArray(std::vector<std::string> fileNames);
 
-private:
-	Texture texture;
-	TextureArray textureArray;
-
-	static bool isReady;
-	static void Init();
+    private:
+        static bool isReady;
+        static void Init();
 };
 
 #endif

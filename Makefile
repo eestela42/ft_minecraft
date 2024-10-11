@@ -2,14 +2,14 @@
 #                               Filename output                                #
 ################################################################################
 
-NAME		=	ft_minecraft
+NAME		=	ft_vox
 
 ################################################################################
 #                               Sources filenames                              #
 ################################################################################
 
-CPP_FILES	= $(shell find $(SRCS_DIR) -name '*.cpp')
-C_FILES		= $(shell find $(SRCS_DIR) -name '*.c')
+CPP_FILES = $(shell find $(SRCS_DIR) -name '*.cpp')
+C_FILES = $(shell find $(SRCS_DIR) -name '*.c')
 
 ################################################################################
 #                         Sources and objects directories                      #
@@ -24,8 +24,8 @@ DEPS_DIR = $(OBJS_DIR)
 ################################################################################
 
 CC			=	clang++ 
-CFLAGS		=	-std=c++17 -Iincludes -MMD -MP
-OPENGL		=	-lglfw3 -lGL -lX11 -llmdb -Llibs
+CFLAGS = -std=c++17 -g -Iincludes -MMD -MP
+OPENGL = -lglfw3 -lGL -lX11 -llmdb
 RM			=	rm -rf
 
 ################################################################################
@@ -89,12 +89,7 @@ init:
 
 $(NAME): $(CPP_OBJS) $(C_OBJS)
 	@ echo "\t$(_YELLOW)[Creating program]$(_NC)"
-	@$(CC) $(CFLAGS) $(CPP_OBJS) $(C_OBJS) $(OPENGL) -o $(NAME) -ldl -lpthread
-	@ echo "$(_GREEN)[program created & ready]$(_NC)"
-
-sanitize: $(CPP_OBJS) $(C_OBJS)
-	@ echo "\t$(_YELLOW)[Creating program]$(_NC)"
-	@$(CC) $(CFLAGS) $(CPP_OBJS) $(C_OBJS) $(OPENGL) -o $(NAME) -ldl -lpthread -fsanitize=address
+	@$(CC) $(CFLAGS) $(CPP_OBJS) $(C_OBJS) $(OPENGL) -Llibs -o $(NAME) -ldl -lpthread
 	@ echo "$(_GREEN)[program created & ready]$(_NC)"
 
 clean:
