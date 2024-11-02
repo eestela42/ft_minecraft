@@ -36,6 +36,7 @@ void VertexArrayObjectHandler::DrawArray() {
 
 
 void VertexArrayObjectHandler::DrawAll(u_int type) {
+	std::cout << "vaomap size : " << vaoMap.size() << std::endl;
 	switch (type) {
 		case 0:
 			DrawAllElements();

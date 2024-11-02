@@ -1,0 +1,3 @@
+render distance : 20
+gen dist : 21
+seed 766247163

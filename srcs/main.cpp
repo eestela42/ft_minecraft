@@ -2,10 +2,7 @@
 #include <classes/Profiler.hpp>
 #include <thread>
 
-int main(int argc, __attribute__((unused)) char **argv) {
-	if (argc > 1) {
-		Profiler::SetSaveOn();
-	}
+int main() {
 	unsigned int numThreads = std::thread::hardware_concurrency();
 	if (PROFILER_ON)
 		Profiler::StartTracking("Game Constructor");

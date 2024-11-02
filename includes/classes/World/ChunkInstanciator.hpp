@@ -2,10 +2,13 @@
 # define CHUNKINSTANCIATOR_HPP
 
 #include <classes/World/ChunkClassic.hpp>
+#include <classes/World/ChunkRLE.hpp>
 #include <glm/glm.hpp>
 #include <deque>
 
 #include <classes/World/ChunkGenerator.hpp>
+
+
 
 class ChunkInstanciator
 {
@@ -27,6 +30,14 @@ class ChunkInstanciator
 	void deleteBadChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos);
 	void createGoodChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos);
 	void updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos);
+	bool compileChunksWithNeighbours(AChunk *chunk, s_neighbours neighbours);
+	
+
+	s_neighbours getNeighbours(glm::ivec2 tabPos, glm::ivec2 chunkPos);
+
+	void setChunkNeighbours(AChunk *chunk, s_neighbours neighbours);
+
+	std::vector<AChunk*> toCompile;
 
 
 	std::mutex &to_VAO_mutex;
@@ -44,6 +55,8 @@ class ChunkInstanciator
 	~ChunkInstanciator();
 
 	void update();
+
+	glm::vec2 convertToTabPos(glm::vec2 pos);
 
 };
 

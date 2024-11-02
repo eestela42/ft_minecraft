@@ -60,7 +60,7 @@ private :
 	
 
 	//config
-	int renderDistance = 50;
+	int renderDistance = 5;
 	int chunkLoadingSize = renderDistance * 2 + 1;
 
 	TextureArray blockTextureArray;
@@ -76,7 +76,7 @@ private :
 	std::mutex playerPos_mutex;
 
 	glm::vec3 const cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 cameraPosition = glm::vec3(0, 10, 0);
+	glm::vec3 cameraPosition = glm::vec3(10000, 100, 10000);
 	glm::vec3 cameraDirection = glm::vec3(	cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 											sin(glm::radians(pitch)),
 											sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
@@ -99,6 +99,12 @@ private :
 	void draw();
 
 	std::unordered_map<std::pair<int, int>, u_int, pair_hash> map_VAO;
+
+
+	//HOTFIX
+	std::map<std::pair<int, int>, VAO_data> pos_to_vao;
+	int vao_counter = 0;
+	int vao_deleted = 0;
 
 public :
 

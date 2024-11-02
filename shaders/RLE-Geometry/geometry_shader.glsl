@@ -100,13 +100,13 @@ void create_face(vec3 pos, vec2 zero_texture, int face, int type, int sizeX, int
 
 void main() {
 	int pos_block = geo_in[0].pos;
-	int x = pos_block % chunk_size_x;
+	int x =  pos_block % chunk_size_x;
 	int y = (pos_block % (chunk_size_x * chunk_size_y)) / chunk_size_y;
 	int z = pos_block / (chunk_size_x * chunk_size_y);
 
 	x += geo_in[0].chunk_x * chunk_size_x;
-	y += geo_in[0].chunk_y * chunk_size_x;
-	vec3 pos = vec3(x, z, y) - cameraPos.xyz;
+	y += geo_in[0].chunk_y * chunk_size_y;
+	vec3 pos = vec3(x, z, y);
 
 	vec2 zero_texture = vec2(0.0, 0.0);
 	int vtype = geo_in[0].type;

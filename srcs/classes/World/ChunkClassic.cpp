@@ -82,23 +82,6 @@ void ChunkClassic::updateFromRaw(u_char *data)
 	setIsGenerated(true);
 }
 
-void ChunkClassic::publicGenerate()
-{
-	/*TEMPORAIRE*/
-	u_char *blocks = (u_char*)calloc(sizeX * sizeY * sizeZ, (sizeof(u_char)));
-	setData(blocks);
-	
-	for (u_int x = 0; x < sizeX; x++)	{
-	for (u_int y = 0; y < sizeY; y++)	{
-	for (u_int z = 0; z < 10; z++)	{
-		blocks[z + y * sizeZ + x * sizeY * sizeZ] = 1;
-	}
-	}
-	}
-	setIsGenerated(true);
-
-}
-
 void ChunkClassic::publicCompile()
 {
 	u_char *blocks = getData();
@@ -152,17 +135,30 @@ void    ChunkClassic::setupMesh()
     glBindVertexArray(0);
 }
 
-void    ChunkClassic::draw()
-{
-	// std::cout << "drawing" << std::endl;
+// void    ChunkClassic::draw()
+// {
+// 	// std::cout << "drawing" << std::endl;
 	
-	// std::cout << vertices.size() << std::endl;
-	// std::cout << indices.size() << std::endl;
-    if (!getIsCompiled())
-        return;
-	// std::cout << "drawing" << std::endl;
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-    // glBindVertexArray(0);
-    // glActiveTexture(GL_TEXTURE0);
+// 	// std::cout << vertices.size() << std::endl;
+// 	// std::cout << indices.size() << std::endl;
+//     if (!getIsCompiled())
+//         return;
+// 	// std::cout << "drawing" << std::endl;
+//     glBindVertexArray(VAO);
+//     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+//     // glBindVertexArray(0);
+//     // glActiveTexture(GL_TEXTURE0);
+// }
+
+t_vbo_data ChunkClassic::getPtrVertices()
+{
+	t_vbo_data data;
+	data.data = vertices.data();
+	data.size = vertices.size() * sizeof(Vertex);
+	return data;
+}
+
+std::vector<unsigned int>* ChunkClassic::getPtrIndices()
+{
+	return &indices;
 }

@@ -23,7 +23,7 @@ DEPS_DIR = $(OBJS_DIR)
 #                              Commands and arguments                          #
 ################################################################################
 
-CC			=	clang++ 
+CC			=	g++ 
 CFLAGS = -std=c++17 -g -Iincludes -MMD -MP
 OPENGL = -lglfw3 -lGL -lX11 -llmdb
 RM			=	rm -rf

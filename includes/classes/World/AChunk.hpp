@@ -9,30 +9,46 @@
 
 #include <classes/types.hpp>
 
+# define NEIGHB_NORTH 0
+# define NEIGHB_SOUTH 1
+# define NEIGHB_EAST 2
+# define NEIGHB_WEST 3
+
+class AChunk;
+
+typedef struct t_neighbours
+{
+	AChunk *north;
+	AChunk *south;
+	AChunk *east;
+	AChunk *west;
+} s_neighbours;
+
 
 class AChunk {
 
 private:
 	
 	u_char *data = NULL;
-	int posX;
-	int posY;
-	int posZ;
+	
 
 	bool isGenerated = false;
 	bool isCompiled = false;
 	bool toUpdate = false;
 
-	
+	s_neighbours neighbours;
 
 
 public :
 
-	std::vector<Vertex> 		vertices;
-	std::vector<unsigned int> 	indices;
+	int posX;
+	int posY;
+	int posZ;
+
+
 	
-	std::vector<Vertex> *getPtrVertices();
-	std::vector<unsigned int> *getPtrIndices();
+	virtual t_vbo_data getPtrVertices() = 0;
+	virtual std::vector<unsigned int> *getPtrIndices() = 0;
 
 	static u_int const sizeX = 16;
 	static u_int const sizeY = 16;
@@ -42,7 +58,6 @@ public :
 	AChunk(int x, int y, int z);
 	~AChunk();
 
-	virtual void publicGenerate() = 0;
 	virtual void updateFromRaw(u_char *data) = 0;
 	virtual void publicCompile() = 0;
 
@@ -51,7 +66,8 @@ public :
 	void setData(u_char *data);
 	u_char *getData();
 
-	virtual void draw() = 0;
+
+	// virtual std::vector<int> &getVertices();
 
 	void setIsGenerated(bool isGenerated);
 	bool getIsGenerated();
@@ -62,9 +78,21 @@ public :
 	void setToUpdate(bool toUpdate);
 	bool getToUpdate();
 
+	virtual bool isFilled(int x, int y, int z);
+	virtual u_char blockType(int x, int y, int z);
 
+	bool getIsGenerated() const;
+	bool getIsCompiled() const;
+	bool getIsToUpdate() const;
+
+	s_neighbours getNeighbours() const;
+	void setNeighbours(s_neighbours neighbours);
+	void setNeighbour(int direction, AChunk *chunk);
 
 };
+
+
+
 # define AIR 0
 # define DIRT 1
 # define GRASS 2

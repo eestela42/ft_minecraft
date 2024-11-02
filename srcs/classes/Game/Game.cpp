@@ -51,10 +51,16 @@ void Game::StartLoop() {
 
 	//lancer le thread de generation de chunks
 	std::thread chunkThread(&ChunkInstanciator::update, chunkInstanciator);
-		
+	int i = 0;
 	while(window->ShouldContinue())
 	{
+		i++;
 		Loop();
+		if (i == 1)
+		{
+			i = 0;
+			std::cout << "VAO count : " << vao_counter << std::endl;
+		}
 	}
 }
 
@@ -68,9 +74,14 @@ void Game::Loop() {
 	matrix = proj * view;
 	skyBox->drawSkybox(view, proj, cameraPosition);
 
-	shaderHandler->Use("default");
-	Shader::GetActiveShader()->Setmat4("matrix", matrix);
-	Shader::GetActiveShader()->SetFloat4("color", 0.6, 0.32, 0.84, 0);
+	shaderHandler->Use("RLE-Geometry");
+	if (Shader::GetActiveShader()) {
+		Shader::GetActiveShader()->SetFloat4("cameraPos", cameraPosition.x, cameraPosition.y, cameraPosition.z, 0);
+		Shader::GetActiveShader()->Setmat4("matrix", matrix);
+		Shader::GetActiveShader()->SetInt("chunk_size_x", AChunk::sizeX);
+		Shader::GetActiveShader()->SetInt("chunk_size_y", AChunk::sizeY);
+		Shader::GetActiveShader()->SetInt("TextureArraySize", 6);
+	}
 
 
 	manageVAO();
@@ -88,64 +99,49 @@ void Game::Loop() {
 void Game::draw()
 {
 	// chunks[0]->draw();
-	for (auto const& x : Vao_draw)
-	{
-		if (map_VAO.find(std::make_pair(x.pos.x, x.pos.y)) == map_VAO.end())
-			continue ;
-		glBindVertexArray(x.VAO);
-		glDrawElements(GL_TRIANGLES, x.indices_size	, GL_UNSIGNED_INT, 0);
-	}
+	// for (auto const& x : Vao_draw)
+	// {
+	// 	if (map_VAO.find(std::make_pair(x.pos.x, x.pos.y)) == map_VAO.end())
+	// 		continue ;
+	// 	glBindVertexArray(x.VAO);
+	// 	glDrawElements(GL_TRIANGLES, x.indices_size	, GL_UNSIGNED_INT, 0);
+	// }
+	vertexArrayObjectHandler->DrawAll(1);
 
 }
 
 void Game::manageVAO()
 {
+	int i = 0;
+
 	dequeueVAO_mutex.lock();
 	while (!dequeueVAO.empty())
 	{
-		// t_vertexData vbo_data = {(u_char*)info->vertices->data(), info->vertices->size() * sizeof(Vertex)};
-		
+		i++;
 		info_VAO *info = dequeueVAO.front();
 		dequeueVAO.pop_front();
 
-		u_int VBO, EBO, VAO;
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-		glGenBuffers(1, &EBO);
-
-
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	
-		glBufferData(GL_ARRAY_BUFFER, info->vertices->size() * sizeof(Vertex), &(*info->vertices)[0], GL_STATIC_DRAW);  
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, info->indices->size() * sizeof(unsigned int), &(*info->indices)[0], GL_STATIC_DRAW);
-
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 1, GL_INT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, light));
-		glBindVertexArray(0);
-		map_VAO[std::make_pair(info->pos.x, info->pos.y)] = VAO;
-		Vao_draw.push_back({VAO, info->indices->size(), info->pos});
+		t_vertexData dataStruct = {(u_char*)(info->vertices.data), info->vertices.size};
+		VertexArrayObject *VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*(info->indices)), shaderHandler->GetShader("RLE-Geometry"));
+		u_int VAO_id = vertexArrayObjectHandler->AddVAO(VAO);
+		pos_to_vao.insert({std::make_pair(info->pos.x, info->pos.y), {info->vertices.data, info->indices, VAO_id}});
 	}
 	dequeueVAO_mutex.unlock();
-
+	vao_counter += i;
+	i = 0;
 	dequeueDeleteVAO_mutex.lock();
 	while (!dequeueDeleteVAO.empty())
 	{
+		i++;
 		std::pair<int, int> pos = std::make_pair(dequeueDeleteVAO.front().x, dequeueDeleteVAO.front().y);
 		dequeueDeleteVAO.pop_front();
-		if (map_VAO.find(pos) != map_VAO.end())
-		{
-			glDeleteVertexArrays(1, &map_VAO[pos]);
-			map_VAO.erase(pos);
-		}
-
+		vertexArrayObjectHandler->RemoveVAO(pos_to_vao[pos].VAO);
+		pos_to_vao.erase(pos);
+		delete pos_to_vao[pos].vertices;
+		delete pos_to_vao[pos].indices;
 	}
 	dequeueDeleteVAO_mutex.unlock();
+	vao_counter -= i;
 
 }
 
