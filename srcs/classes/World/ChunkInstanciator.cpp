@@ -228,8 +228,6 @@ void ChunkInstanciator::createGoodChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTab
 
 	bool didIt = compileChunksWithNeighbours(tabChunks[chunkTabPos.x][chunkTabPos.y], getNeighbours(chunkTabPos, chunkPos));
 	
-	if (!didIt)
-		toCompile.push_back(tabChunks[chunkTabPos.x][chunkTabPos.y]);
 }
 
 void ChunkInstanciator::updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
@@ -260,8 +258,6 @@ void ChunkInstanciator::updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos,
 	if (tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled() == false && GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)
 	{
 		bool didIt = compileChunksWithNeighbours(tabChunks[chunkTabPos.x][chunkTabPos.y], getNeighbours(chunkTabPos, chunkPos));
-		if (!didIt)
-			toCompile.push_back(tabChunks[chunkTabPos.x][chunkTabPos.y]);
 	}
 
 }

@@ -54,12 +54,13 @@ void Game::StartLoop() {
 	int i = 0;
 	while(window->ShouldContinue())
 	{
-		i++;
+		fps++;
 		Loop();
-		if (i == 1)
+		if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() >= 500)
 		{
-			i = 0;
-			std::cout << "VAO count : " << vao_counter << std::endl;
+			std::cout << "FPS: " << fps * 2 << std::endl;
+			fps = 0;
+			begin = std::chrono::steady_clock::now();
 		}
 	}
 }
@@ -114,20 +115,6 @@ void Game::manageVAO()
 {
 	int i = 0;
 
-	dequeueVAO_mutex.lock();
-	while (!dequeueVAO.empty())
-	{
-		i++;
-		info_VAO *info = dequeueVAO.front();
-		dequeueVAO.pop_front();
-
-		t_vertexData dataStruct = {(u_char*)(info->vertices.data), info->vertices.size};
-		VertexArrayObject *VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*(info->indices)), shaderHandler->GetShader("RLE-Geometry"));
-		u_int VAO_id = vertexArrayObjectHandler->AddVAO(VAO);
-		pos_to_vao.insert({std::make_pair(info->pos.x, info->pos.y), {info->vertices.data, info->indices, VAO_id}});
-	}
-	dequeueVAO_mutex.unlock();
-	vao_counter += i;
 	i = 0;
 	dequeueDeleteVAO_mutex.lock();
 	while (!dequeueDeleteVAO.empty())
@@ -137,11 +124,27 @@ void Game::manageVAO()
 		dequeueDeleteVAO.pop_front();
 		vertexArrayObjectHandler->RemoveVAO(pos_to_vao[pos].VAO);
 		pos_to_vao.erase(pos);
-		delete pos_to_vao[pos].vertices;
-		delete pos_to_vao[pos].indices;
 	}
 	dequeueDeleteVAO_mutex.unlock();
 	vao_counter -= i;
+
+	i = 0;
+	dequeueVAO_mutex.lock();
+	while (!dequeueVAO.empty())
+	{
+		i++;
+		info_VAO *info = dequeueVAO.front();
+		dequeueVAO.pop_front();
+
+		t_vertexData dataStruct = {(u_char*)(info->vertices.data), info->vertices.size};
+		VertexArrayObject *VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*(info->indices)), shaderHandler->GetShader("RLE-Geometry"));
+		
+		u_int VAO_id = vertexArrayObjectHandler->AddVAO(VAO);
+
+		pos_to_vao.insert({std::make_pair(info->pos.x, info->pos.y), {info->vertices.data, info->indices, VAO_id}});
+	}
+	dequeueVAO_mutex.unlock();
+	vao_counter += i;
 
 }
 

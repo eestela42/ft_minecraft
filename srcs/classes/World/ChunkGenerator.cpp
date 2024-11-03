@@ -308,29 +308,29 @@ u_char		*ChunkGenerator::generator(glm::ivec2 tmp_pos) {
 		int z = genBedrock(data, x, y);
 
 
-		data[x * sizeZ + y * sizeX * sizeZ + z++] = AIR;
-		if (x % 2)
-			data[x * sizeZ + y * sizeX * sizeZ + z++] = STONE + tmp_pos.x % 10;
-		else
-			data[x * sizeZ + y * sizeX * sizeZ + z++] = STONE + tmp_pos.y % 10;
+		// data[x * sizeZ + y * sizeX * sizeZ + z++] = AIR;
+		// if (x % 2)
+		// 	data[x * sizeZ + y * sizeX * sizeZ + z++] = STONE + tmp_pos.x % 10;
+		// else
+		// 	data[x * sizeZ + y * sizeX * sizeZ + z++] = STONE + tmp_pos.y % 10;
 
 		
 
 
 
 		
-		// genUnderLayer(pos, z);
+		genUnderLayer(pos, z);
 
-		// genOverLayer(pos, z);
+		genOverLayer(pos, z);
 
 
-		// if (GEN_WATER)
-		// 	genWater(pos, z);
+		if (GEN_WATER)
+			genWater(pos, z);
 
-		// if (GEN_NOISE3D)
-		// 	gen3DCave(hill_height, pos, z);
+		if (GEN_NOISE3D)
+			gen3DCave(hill_height, pos, z);
 
-		// gen2DCave(hill_height, pos, z);
+		gen2DCave(hill_height, pos, z);
 		
 
 	}

@@ -60,7 +60,7 @@ private :
 	
 
 	//config
-	int renderDistance = 5;
+	int renderDistance = 50;
 	int chunkLoadingSize = renderDistance * 2 + 1;
 
 	TextureArray blockTextureArray;

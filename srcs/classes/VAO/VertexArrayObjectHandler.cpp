@@ -36,7 +36,6 @@ void VertexArrayObjectHandler::DrawArray() {
 
 
 void VertexArrayObjectHandler::DrawAll(u_int type) {
-	std::cout << "vaomap size : " << vaoMap.size() << std::endl;
 	switch (type) {
 		case 0:
 			DrawAllElements();
@@ -51,7 +50,6 @@ void VertexArrayObjectHandler::DrawAllElements() {
 	Unbind();
 	for (auto const& x : vaoMap)
 	{
-
 		x.second->Bind();
 		glDrawElements(GL_TRIANGLES, x.second->GetIndicesDataSize(), GL_UNSIGNED_INT, 0);
 		x.second->Unbind();

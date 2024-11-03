@@ -12,7 +12,6 @@ ChunkRLE::ChunkRLE(int posX, int posY, int posZ) : AChunk(posX, posY, posZ)
 
 ChunkRLE::~ChunkRLE()
 {
-
 	delete [] this->rubans_id;
 	delete this->rubans;
 
