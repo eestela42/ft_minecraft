@@ -10,7 +10,7 @@ struct Vertex
 	int 		light;
 };
 
-typedef struct t_vbo_data
+struct t_vbo_data
 {
 	void *data = NULL;
 	u_int size = 0;

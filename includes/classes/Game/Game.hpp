@@ -88,6 +88,10 @@ private :
 
 	void manageVAO();
 
+
+	std::mutex 					playerHasMoved_mutex;
+	bool 						playerHasMoved = false;
+
 	std::mutex					dequeueVAO_mutex;
 	std::deque<info_VAO*>		dequeueVAO;
 
@@ -103,8 +107,8 @@ private :
 
 	//HOTFIX
 	std::map<std::pair<int, int>, VAO_data> pos_to_vao;
+
 	int vao_counter = 0;
-	int vao_deleted = 0;
 
 public :
 

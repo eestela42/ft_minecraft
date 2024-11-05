@@ -29,7 +29,6 @@ public:
 	u_int VBO, EBO, VAO;
 
 	void	createFace(int x, int y, int z,  int tab_x, int tab_y, int tab_z, int dir);
-	void	setupMesh();
 	
 	
 	t_vbo_data 					getPtrVertices() override;

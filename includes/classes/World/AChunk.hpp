@@ -67,7 +67,6 @@ public :
 	u_char *getData();
 
 
-	// virtual std::vector<int> &getVertices();
 
 	void setIsGenerated(bool isGenerated);
 	bool getIsGenerated();

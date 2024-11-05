@@ -14,7 +14,8 @@ Game::Game() {
 	std::cout << "render distance : " << renderDistance << std::endl;
 	chunkInstanciator = new ChunkInstanciator(renderDistance, cameraPosition, playerPos_mutex,
 													dequeueVAO, dequeueVAO_mutex,
-													dequeueDeleteVAO, dequeueDeleteVAO_mutex);
+													dequeueDeleteVAO, dequeueDeleteVAO_mutex,
+													playerHasMoved, playerHasMoved_mutex);
 	blockTextureArray = TextureLoader::LoadTextureArray(
 	{
 	std::filesystem::path("textures/texturePack/dirt.jpg"),
@@ -51,6 +52,7 @@ void Game::StartLoop() {
 
 	//lancer le thread de generation de chunks
 	std::thread chunkThread(&ChunkInstanciator::update, chunkInstanciator);
+	
 	int i = 0;
 	while(window->ShouldContinue())
 	{
@@ -73,6 +75,7 @@ void Game::Loop() {
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)DEFAULT_WINDOW_WIDTH/(float)DEFAULT_WINDOW_HEIGHT, 0.1f, 16000.0f);
 	glm::mat4 matrix = glm::mat4(1.0f);
 	matrix = proj * view;
+
 	skyBox->drawSkybox(view, proj, cameraPosition);
 
 	shaderHandler->Use("RLE-Geometry");
@@ -86,12 +89,8 @@ void Game::Loop() {
 
 
 	manageVAO();
-	
-	
-	draw();
-	// vertexArrayObjectHandler->DrawAll(0);
 
-	// chunks[0]->draw();
+	draw();
 
 	window->SwapBuffersAndPollEvents();
 
@@ -99,14 +98,6 @@ void Game::Loop() {
 
 void Game::draw()
 {
-	// chunks[0]->draw();
-	// for (auto const& x : Vao_draw)
-	// {
-	// 	if (map_VAO.find(std::make_pair(x.pos.x, x.pos.y)) == map_VAO.end())
-	// 		continue ;
-	// 	glBindVertexArray(x.VAO);
-	// 	glDrawElements(GL_TRIANGLES, x.indices_size	, GL_UNSIGNED_INT, 0);
-	// }
 	vertexArrayObjectHandler->DrawAll(1);
 
 }
@@ -150,6 +141,9 @@ void Game::manageVAO()
 
 void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 	float speedMultiplier = (keyState[KEY_MOVE_UPWARD] & KEY_HOLD) ? 20 : 1;
+
+	glm::vec3 oldCamPos = cameraPosition;
+
 	playerPos_mutex.lock();
 	if(keyState[KEY_MOVE_FORWARD] & KEY_HOLD)
   		cameraPosition += speed * speedMultiplier * cameraDirection;
@@ -176,6 +170,13 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 	cameraDirection.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraDirection.y = sin(glm::radians(pitch));
 	cameraDirection.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+	if (oldCamPos.x / AChunk::sizeX != cameraPosition.x / AChunk::sizeX || oldCamPos.z / AChunk::sizeY != cameraPosition.z / AChunk::sizeY)
+	{
+		playerHasMoved_mutex.lock();
+		playerHasMoved = true;
+		playerHasMoved_mutex.unlock();
+	}
 
 	view = glm::lookAt(	cameraPosition, 
 						cameraPosition + glm::normalize(cameraDirection),

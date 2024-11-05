@@ -23,18 +23,6 @@ AChunk::~AChunk()
 	}
 }
 
-// std::vector<int> *AChunk::getPtrVertices()
-// {
-// 	printf("GETTER addr vertices : %p\n", &vertices[0]);
-// 	return &vertices;
-// }
-
-// std::vector<unsigned int> *AChunk::getPtrIndices()
-// {
-// 	printf("GETTER addr indices : %p\n", &indices[0]);
-// 	return &indices;
-// }
-
 glm::ivec2 AChunk::getPos()
 {
 	return {posX, posY};
