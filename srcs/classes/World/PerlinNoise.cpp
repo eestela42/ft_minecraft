@@ -5,7 +5,7 @@
 #include <numeric>
 
 double PerlinNoise::fade(double t) { 
-	return t * t * t * (t * (t * 6 - 15) + 10);
+	return t * t * t * (t * (t * 6 - (size - 1)) + 10);
 }
 
 double PerlinNoise::lerp(double t, double a, double b) { 
@@ -13,7 +13,7 @@ double PerlinNoise::lerp(double t, double a, double b) {
 }
 
 double PerlinNoise::grad(int hash, double x, double y, double z) {
-	int h = hash & 15;
+	int h = hash & (size - 1);
 	// Convert lower 4 bits of hash into 12 gradient directions
 	double u = h < 8 ? x : y,
 		   v = h < 4 ? y : h == 12 || h == 14 ? x : z;

@@ -13,6 +13,10 @@
 # define NEIGHB_SOUTH 1
 # define NEIGHB_EAST 2
 # define NEIGHB_WEST 3
+# define NEIGHB_NORTH_EAST 4
+# define NEIGHB_NORTH_WEST 5
+# define NEIGHB_SOUTH_EAST 6
+# define NEIGHB_SOUTH_WEST 7
 
 class AChunk;
 
@@ -22,6 +26,10 @@ typedef struct t_neighbours
 	AChunk *south;
 	AChunk *east;
 	AChunk *west;
+	AChunk *north_east;
+	AChunk *north_west;
+	AChunk *south_east;
+	AChunk *south_west;
 } s_neighbours;
 
 

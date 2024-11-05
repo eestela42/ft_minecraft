@@ -65,6 +65,7 @@ void Game::StartLoop() {
 			begin = std::chrono::steady_clock::now();
 		}
 	}
+	std::cout << "-----------------------------end of loop" << std::endl;
 }
 
 void Game::Loop() {

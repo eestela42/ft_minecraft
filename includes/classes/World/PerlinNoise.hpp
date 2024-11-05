@@ -15,7 +15,7 @@ private :
 	double grad(int hash, double x, double y, double z);
 
 	std::vector<int> p;
-	const u_int size = 16; //not working, need to adapt in grad() and maybe other fct
+	const u_int size = 16;
 public:
 
 		/*****	1 - constructors 		*****/

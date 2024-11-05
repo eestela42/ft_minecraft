@@ -11,8 +11,10 @@ int main() {
 		Profiler::StopTracking("Game Constructor");
 	
 	game->StartLoop();
+	std::cout << "Game loop ended" << std::endl;
 	if (PROFILER_ON)
 		Profiler::LogData();
+	std::cout << "Profiler data logged" << std::endl;
 	delete game;
 	return 0;
 }

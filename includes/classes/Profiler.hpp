@@ -14,7 +14,7 @@
 #include <lmdb.h>
 #define DB_PATH "."
 #define DB_NAME "Profiler.db"
-#define PROFILER_ON false
+#define PROFILER_ON true
 
 class Profiler;
 

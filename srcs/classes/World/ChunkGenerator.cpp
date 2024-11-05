@@ -341,8 +341,8 @@ u_char		*ChunkGenerator::generator(glm::ivec2 tmp_pos) {
 		return data;
 	}
 
-	
-	
+
+
 
 	std::vector<u_char> *modif = modifMap[position(posX, posY)];
 	for (int i = 0; i < modif->size(); i+=4)
