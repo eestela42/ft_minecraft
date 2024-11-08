@@ -4,5 +4,164 @@
 Nouvelle generation
 
 
-- Un bon Perlin Noise
+- Un bon Perlin Noise DONE
+
+-- gen les blocks [vide]
+
+	-hauteur
+	-reliefness
+
+-- donners des values aux blocks en fonction du "biom"
+	-temperature
+	-humidite
+	...
+
+
+Comment avoir de bonnes values ?
+
+
+
+------------MATHS A COMPRENDRE :
+
+inverse lerp
+filtre passe bas
+
+
+
+
+
+--croute terreste = idependant de tous les param
+
+
+
+Facteurs :
+
+Largeur des reliefs
+Hauteur des relief
+Frequences des reliefs
+Rhougness
+
+Plaine = frequence basse + hauteur basse + largeur haute + Rhougness bas
+Desert = frequence moyenne + hauteur moyenne + largeur moyenne + Rhougness tres bas
+Montagne = frequence basse + hauteur haute + largeur haute + Rhougness haut
+
+
+
+
+
+
+Spline + Octave = suffisant ?
+
+
+[Systeme continental] -> [systeme regional] -> [syteme local] -> [systeme detail]
+
+Systeme : on a des "bioms" et un merger de bioms
+
+Ex :
+
+Systeme continental :
+		Bioms : Ocean - Continent 
+				0-0.4   0.42 - 1.0
+		evolution : lente
+		merger : rapide
+
+Ocean :
+		bioms :	Ocean profond - Ocean peu profond
+				0-0.6 			0.62-1
+		evolution : lente
+		merger : rapide 
+
+Contient :
+		bioms : Plaine - Montagne
+		merger : lent
+
+Ocean profond :
+		bioms : EAU - ile volcanique
+		merger : rapide
+
+Ocean peu profons : 
+		bioms : EAU - archipelles
+
+Plaine :
+		bioms : plat - colines
+
+Montagne : 
+		bioms : montagne unique - chaine de montagne 
+
+
+systeme continental = 0.8 = contient (pas la mer)
+				continent = 0.4 = Plaine
+				plaine = 0.2 = plat
+
+
+Variable = hauteur du sol
+
+Systemes qui appelle des systemes
+
+
+Init Systeme Ocean [liste de systeme + les valeurs d'activations + les valeurs de merge]
+
+Ocean(value);
+
+
+
+Si on fait "WolrdBase" = SystemeParameters
+
+lsite de param[vec2 Pos, float temperature, humidite..]
+
+
+1) la hauteur du sol 
+[Pos] => quel biom
+
+2) potentiellement creuser dans le sol en surface 
+[h du sol + noise2d] => void
+
+3) rajouter des details (type de blocks, arbres, plantes)
+[hauteur du sol, temperature, humidite..] => void
+
+4) rajouter des structures (villages..)
+
+
+chunkgenerator
+for (x, y)
+	int groundPos = SystemeGen(x, y);
+	//Systemegen nous donne + de param ex: Ocean ou Continent
+
+	systemeRemplissage(x,y,gourndPos,temp, humitde...)
+	{
+		int z = 0;
+		while ( z < groundPos)
+		{
+			if (CHECK DE NOISE3D && noise3d)
+				continue ;	
+			fill(choseBlock(z, temperature, humite...));
+		}
+	}
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

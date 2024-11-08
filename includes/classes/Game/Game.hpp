@@ -6,6 +6,7 @@
 #include <map>
 #include <chrono>
 #include <deque>
+#include <atomic>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -60,7 +61,7 @@ private :
 	
 
 	//config
-	int renderDistance = 50;
+	int renderDistance = 100;
 	int chunkLoadingSize = renderDistance * 2 + 1;
 
 	TextureArray blockTextureArray;
@@ -76,7 +77,7 @@ private :
 	std::mutex playerPos_mutex;
 
 	glm::vec3 const cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 cameraPosition = glm::vec3(10000, 100, 10000);
+	glm::vec3 cameraPosition = glm::vec3(0, 200, 0);
 	glm::vec3 cameraDirection = glm::vec3(	cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 											sin(glm::radians(pitch)),
 											sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
@@ -91,6 +92,8 @@ private :
 
 	std::mutex 					playerHasMoved_mutex;
 	bool 						playerHasMoved = false;
+
+	std::atomic<bool>			running;
 
 	std::mutex					dequeueVAO_mutex;
 	std::deque<info_VAO*>		dequeueVAO;

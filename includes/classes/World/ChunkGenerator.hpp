@@ -14,7 +14,10 @@
 #include <algorithm>
 #include <numeric>
 
-#include <classes/World/PerlinNoise.hpp>
+// #include <classes/World/PerlinNoise.hpp>
+
+#include <PerlinNoise.hpp>
+
 #include <classes/World/ChunkClassic.hpp>
 
 
@@ -52,22 +55,32 @@ class position
 
 };
 
+struct param
+{
+	float geologie;
+	float erosion;
+	float pique;
+
+	float humidity;
+	float temperature;
+};
+
 class ChunkGenerator
 {
 	private :
 
 	public :
 	
-	static std::vector<PerlinNoise*> 		noiseList;
+	static std::vector<siv::PerlinNoise*> 		noiseList;
 
 
 	u_char *data;
 	
 	int posX;
 	int posY;
-	u_int sizeX;
-	u_int sizeY;
-	u_int sizeZ;
+	u_int sizeX = AChunk::sizeX;
+	u_int sizeY = AChunk::sizeY;
+	u_int sizeZ = AChunk::sizeZ;
 
 	int ground_height;
 	int hill_height;
@@ -97,8 +110,17 @@ class ChunkGenerator
 
 		int 		gen2DCave(int hill_height, int pos, int &z);
 
-		int 		genWater(int pos, int &z);
+		int 		genWater(int pos, int level);
 		int 		gen3DCave(int hill_height, int pos, int &z);
+
+		int			newGenUnderLayer(int pos, int &z, param p);
+
+		float min_noise = 1000;
+		float max_noise = -1000;
+		int min_z = 1000;
+		int max_z = -1000;
+
+
 };
 
 #endif

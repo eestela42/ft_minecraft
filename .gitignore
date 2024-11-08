@@ -1,0 +1,12 @@
+*.o
+ft_vox
+.vscode/
+objects-dependances/
+txt
+notes
+note
+Profiler.log
+Profiler.db
+data.mdb
+lock.mdb
+tmp

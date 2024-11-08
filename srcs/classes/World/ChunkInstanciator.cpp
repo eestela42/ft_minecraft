@@ -1,10 +1,11 @@
 #include <classes/World/ChunkInstanciator.hpp>
 
-ChunkInstanciator::ChunkInstanciator(u_int renderDistance, glm::vec3 &playerPos, std::mutex &playerPos_mutex,
+ChunkInstanciator::ChunkInstanciator(u_int renderDistance, std::atomic<bool> &running,
+										glm::vec3 &playerPos, std::mutex &playerPos_mutex,
 										std::deque<info_VAO*> &to_VAO, std::mutex &to_VAO_mutex,
 										std::deque<glm::ivec2> &toDeleteVAO, std::mutex &toDeleteVAO_mutex,
 										bool &playerHasMoved, std::mutex &playerHasMoved_mutex)
-	: renderDistance(renderDistance),
+	: renderDistance(renderDistance), running(running),
 		realPlayerPos(playerPos), realPlayerPos_mutex(playerPos_mutex),
 		to_VAO(to_VAO), to_VAO_mutex(to_VAO_mutex),
 		toDeleteVAO(toDeleteVAO), toDeleteVAO_mutex(toDeleteVAO_mutex),
@@ -22,7 +23,7 @@ ChunkInstanciator::ChunkInstanciator(u_int renderDistance, glm::vec3 &playerPos,
 
 	std::srand(std::time(0));
 	long int seed;
-	seed = 1722331298;
+	// seed = 1152604381;
 	seed = std::rand();
 	std::cout << "seed " << seed << std::endl;
 	ChunkGenerator::initNoise(seed);
@@ -54,12 +55,19 @@ bool ChunkInstanciator::compileChunksWithNeighbours(AChunk *chunk, s_neighbours 
 	glm::ivec2 chunkPos = chunk->getPos();
 
 	if (!neighbours.north || !neighbours.south || !neighbours.east || !neighbours.west
+		|| !neighbours.north_east || !neighbours.north_west || !neighbours.south_east || !neighbours.south_west
 		|| !neighbours.north->getIsGenerated() || !neighbours.south->getIsGenerated()
 		|| !neighbours.east->getIsGenerated() || !neighbours.west->getIsGenerated()
+		|| !neighbours.north_east->getIsGenerated() || !neighbours.north_west->getIsGenerated()
+		|| !neighbours.south_east->getIsGenerated() || !neighbours.south_west->getIsGenerated()
 		|| neighbours.north->getPos() != chunkPos + glm::ivec2(0, 1)
 		|| neighbours.south->getPos() != chunkPos + glm::ivec2(0, -1)
 		|| neighbours.east->getPos() != chunkPos + glm::ivec2(1, 0)
-		|| neighbours.west->getPos() != chunkPos + glm::ivec2(-1, 0))
+		|| neighbours.west->getPos() != chunkPos + glm::ivec2(-1, 0)
+		|| neighbours.north_east->getPos() != chunkPos + glm::ivec2(1, 1)
+		|| neighbours.north_west->getPos() != chunkPos + glm::ivec2(-1, 1)
+		|| neighbours.south_east->getPos() != chunkPos + glm::ivec2(1, -1)
+		|| neighbours.south_west->getPos() != chunkPos + glm::ivec2(-1, -1))
 			return false;
 	chunk->publicCompile();
 
@@ -96,6 +104,22 @@ s_neighbours ChunkInstanciator::getNeighbours(glm::ivec2 tabPos, glm::ivec2 chun
 	if (neighbours.south && neighbours.south->getPos().y != chunkPos.y - 1)
 		neighbours.south = NULL;
 
+	neighbours.north_east = tabChunks[(tabPos.x + 1) % size_tab][(tabPos.y + 1) % size_tab];
+	if (neighbours.north_east && neighbours.north_east->getPos() != chunkPos + glm::ivec2(1, 1))
+		neighbours.north_east = NULL;
+	
+	neighbours.north_west = tabChunks[(tabPos.x - 1 + size_tab) % size_tab][(tabPos.y + 1) % size_tab];
+	if (neighbours.north_west && neighbours.north_west->getPos() != chunkPos + glm::ivec2(-1, 1))
+		neighbours.north_west = NULL;
+
+	neighbours.south_east = tabChunks[(tabPos.x + 1) % size_tab][(tabPos.y - 1 + size_tab) % size_tab];
+	if (neighbours.south_east && neighbours.south_east->getPos() != chunkPos + glm::ivec2(1, -1))
+		neighbours.south_east = NULL;
+
+	neighbours.south_west = tabChunks[(tabPos.x - 1 + size_tab) % size_tab][(tabPos.y - 1 + size_tab) % size_tab];
+	if (neighbours.south_west && neighbours.south_west->getPos() != chunkPos + glm::ivec2(-1, -1))
+		neighbours.south_west = NULL;
+
 	return neighbours;
 }
 
@@ -116,6 +140,23 @@ void ChunkInstanciator::setChunkNeighbours(AChunk *chunk, s_neighbours neighbour
 	chunk->setNeighbour(NEIGHB_WEST, neighbours.west);
 	if (neighbours.west)
 		neighbours.west->setNeighbour(NEIGHB_EAST, chunk);
+
+	chunk->setNeighbour(NEIGHB_NORTH_EAST, neighbours.north_east);
+	if (neighbours.north_east)
+		neighbours.north_east->setNeighbour(NEIGHB_SOUTH_WEST, chunk);
+	
+	chunk->setNeighbour(NEIGHB_NORTH_WEST, neighbours.north_west);
+	if (neighbours.north_west)
+		neighbours.north_west->setNeighbour(NEIGHB_SOUTH_EAST, chunk);
+
+	chunk->setNeighbour(NEIGHB_SOUTH_EAST, neighbours.south_east);
+	if (neighbours.south_east)
+		neighbours.south_east->setNeighbour(NEIGHB_NORTH_WEST, chunk);
+
+	chunk->setNeighbour(NEIGHB_SOUTH_WEST, neighbours.south_west);
+	if (neighbours.south_west)
+		neighbours.south_west->setNeighbour(NEIGHB_NORTH_EAST, chunk);
+
 }
 
 void ChunkInstanciator::resetGetNextPos()
@@ -149,7 +190,7 @@ void ChunkInstanciator::update()
 	bool debug = true ;
 	glm::ivec2 pos = {0, 0};
 	
-	while(1)
+	while(running.load())
 	{
 		
 		realPlayerPos_mutex.lock();
@@ -198,10 +239,13 @@ void ChunkInstanciator::update()
 					}
 
 					updateChunk(chunkPos, chunkTabPos, playerChunkPos);
+					
+					if (!running.load() || playerHasMoved)
+						break ;
 		}
 
 		playerHasMoved_mutex.lock();
-		if (playerHasMoved)
+		if (!running.load() || playerHasMoved)
 		{
 			playerHasMoved = false;
 			playerHasMoved_mutex.unlock();
@@ -247,7 +291,7 @@ void ChunkInstanciator::createGoodChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTab
 
 		s_neighbours neighbours = getNeighbours(chunkTabPos, chunkPos);
 		AChunk** neighb = (AChunk**)(&neighbours);
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 8; i++)
 		{
 			if (!neighb[i])
 				continue ;

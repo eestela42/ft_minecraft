@@ -122,6 +122,19 @@ void AChunk::setNeighbour(int direction, AChunk *chunk)
 	case NEIGHB_WEST:
 		neighbours.west = chunk;
 		break;
+		
+	case NEIGHB_NORTH_EAST:
+		neighbours.north_east = chunk;
+		break;
+	case NEIGHB_NORTH_WEST:
+		neighbours.north_west = chunk;
+		break;
+	case NEIGHB_SOUTH_EAST:
+		neighbours.south_east = chunk;
+		break;
+	case NEIGHB_SOUTH_WEST:
+		neighbours.south_west = chunk;
+		break;
 	}
 }
 

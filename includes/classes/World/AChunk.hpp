@@ -58,8 +58,8 @@ public :
 	virtual t_vbo_data getPtrVertices() = 0;
 	virtual std::vector<unsigned int> *getPtrIndices() = 0;
 
-	static u_int const sizeX = 16;
-	static u_int const sizeY = 16;
+	static u_int const sizeX = 32;
+	static u_int const sizeY = 32;
 	static u_int const sizeZ = 256;
 
 

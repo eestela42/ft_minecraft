@@ -10,9 +10,10 @@ Game::Game() {
 	
 	vertexArrayObjectHandler = new VertexArrayObjectHandler();
 
-
+	running.store(true);
 	std::cout << "render distance : " << renderDistance << std::endl;
-	chunkInstanciator = new ChunkInstanciator(renderDistance, cameraPosition, playerPos_mutex,
+	chunkInstanciator = new ChunkInstanciator(renderDistance, running,
+													cameraPosition, playerPos_mutex,
 													dequeueVAO, dequeueVAO_mutex,
 													dequeueDeleteVAO, dequeueDeleteVAO_mutex,
 													playerHasMoved, playerHasMoved_mutex);
@@ -65,6 +66,8 @@ void Game::StartLoop() {
 			begin = std::chrono::steady_clock::now();
 		}
 	}
+	running.store(false);
+	chunkThread.join();
 	std::cout << "-----------------------------end of loop" << std::endl;
 }
 

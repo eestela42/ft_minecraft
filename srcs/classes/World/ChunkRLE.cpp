@@ -392,7 +392,7 @@ void	ChunkRLE::CompileTopBotFaces()
 	for (u_int x = 0; x < AChunk::sizeX; x++)
 	{
 		//find next face to draw in ruban
-		while (map[x + y * AChunk::sizeX] && tool[x][y][height] < sizeZ - 1 )
+		while (map[x + y * AChunk::sizeX] && tool[x][y][height] < AChunk::sizeZ - 1 )
 		{
 			
 			if (tool[x][y][block_type] == AIR) //si sur AIR

@@ -5,6 +5,7 @@
 #include <classes/World/ChunkRLE.hpp>
 #include <glm/glm.hpp>
 #include <deque>
+#include <atomic>
 
 #include <classes/World/ChunkGenerator.hpp>
 
@@ -26,6 +27,8 @@ class ChunkInstanciator
 	
 	std::mutex 							&realPlayerPos_mutex;
 	glm::vec3 							&realPlayerPos;
+
+	std::atomic<bool>					&running;
 
 	std::mutex 							&playerHasMoved_mutex;
 	bool 								&playerHasMoved;
@@ -64,7 +67,7 @@ class ChunkInstanciator
 
 	public :
 
-	ChunkInstanciator(u_int renderDistance,
+	ChunkInstanciator(u_int renderDistance, std::atomic<bool> &running,
 						glm::vec3 &playerPos, std::mutex &playerPos_mutex,
 						std::deque<info_VAO*> &to_VAO, std::mutex &to_VAO_mutex,
 						std::deque<glm::ivec2> &toDeleteVAO, std::mutex &toDeleteVAO_mutex,
