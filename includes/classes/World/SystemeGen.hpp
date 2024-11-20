@@ -3,29 +3,22 @@
 
 #include <vector>
 
-class SystemeGroundGen
+class SystemeGen
 {
 private :
-	std::vector<SystemeGroundGen> list;
+	std::vector<SystemeGen> list;
 	std::vector<float> table;
 	std::vector<float> mergers;
 
 public:
-	SystemeGroundGen(std::vector<SystemeGroundGen> list,
+	SystemeGen(std::vector<SystemeGen> list,
 						std::vector<float> table,
 						std::vector<float> mergers);
-	~SystemeGroundGen();
+	~SystemeGen();
 
 	virtual int getValue(float x, float y, float z);
 };
 
-// class SystemeBlocksGen
-// {
-// private :
-// 	std::vector<SystemeBlocksGen> list;
-// 	std::vector<float> table;
-// 	std::vector<float> mergers;
-// };
 
 
 

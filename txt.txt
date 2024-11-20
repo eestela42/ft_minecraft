@@ -122,7 +122,9 @@ lsite de param[vec2 Pos, float temperature, humidite..]
 4) rajouter des structures (villages..)
 
 
+
 chunkgenerator
+
 for (x, y)
 	int groundPos = SystemeGen(x, y);
 	//Systemegen nous donne + de param ex: Ocean ou Continent
