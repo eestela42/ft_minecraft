@@ -1,4 +1,4 @@
-#include <classes/World/ChunkGenerator.hpp>
+#include <classes/Generation/ChunkGenerator.hpp>
 
 
 std::vector<siv::PerlinNoise*> 		ChunkGenerator::noiseList;
@@ -40,7 +40,7 @@ void ChunkGenerator::initNoise(u_int seed)
 
 ChunkGenerator::ChunkGenerator()
 {
-	
+	ASysteme *base = new SystemeCall();
 }
 
 ChunkGenerator::ChunkGenerator(__attribute__((unused)) u_int seed)
@@ -146,56 +146,56 @@ int ChunkGenerator::genUnderLayer(int pos, int &z)
 int ChunkGenerator::genOverLayer( int pos, int &z)
 {
 	double detail_factor =  noiseList[2]->octave2D_01(0.206 * p_x, 0.204 * p_y, 1, 0.4);
-		int detail_height = hill_height + detail_factor * 6;
-		
-		while (z < detail_height) {
-			data[pos + z] = STONE;
-			z++;
-		}
-
-
-
-		double dirt_factor = noiseList[2]->octave2D_01(0.00156 * p_x, 0.00195 * p_y, 1, 0.5);
-		int dirt_height = hill_height + (int)((dirt_factor) * 30);
-
-		u_char under_layer = DIRT;
-		u_char over_layer = GRASS;
-
-		double geologie = noiseList[5]->octave2D_01(0.0002887 * p_x, 0.0002689 * p_y, 1, 0.7);
-		if (geologie > 0.6)
-		{
-			under_layer = SAND;
-			over_layer = SAND;
-		}
-
-		if (hill_height > 80 + (geologie * 180))
-			over_layer = SNOW_BLOCK;
-		
-		
-		while (z < dirt_height && z < AChunk::sizeZ) {
-			data[pos + z] = under_layer;
-			z++;
-		}
-
+	int detail_height = hill_height + detail_factor * 6;
 	
-		if (z > 60 && z == dirt_height && dirt_factor > 0.1)
+	while (z < detail_height) {
+		data[pos + z] = STONE;
+		z++;
+	}
+
+
+
+	double dirt_factor = noiseList[2]->octave2D_01(0.00156 * p_x, 0.00195 * p_y, 1, 0.5);
+	int dirt_height = hill_height + (int)((dirt_factor) * 30);
+
+	u_char under_layer = DIRT;
+	u_char over_layer = GRASS;
+
+	double geologie = noiseList[5]->octave2D_01(0.0002887 * p_x, 0.0002689 * p_y, 1, 0.7);
+	if (geologie > 0.6)
+	{
+		under_layer = SAND;
+		over_layer = SAND;
+	}
+
+	if (hill_height > 80 + (geologie * 180))
+		over_layer = SNOW_BLOCK;
+	
+	
+	while (z < dirt_height && z < AChunk::sizeZ) {
+		data[pos + z] = under_layer;
+		z++;
+	}
+
+
+	if (z > 60 && z == dirt_height && dirt_factor > 0.1)
+	{
+		
+		data[pos + z -1] = over_layer;
+		if (geologie < 0.6 && over_layer == GRASS)
 		{
-			
-			data[pos + z -1] = over_layer;
-			if (geologie < 0.6 && over_layer == GRASS)
+			double tree_factor = noiseList[3]->octave2D_01(0.00856 * p_x, 0.00665 * p_y, 1, 0.4);
+			tree_factor /= 10;
+			if ((engine.operator()() % 1000) / tree_factor < 1)
 			{
-				double tree_factor = noiseList[3]->octave2D_01(0.00856 * p_x, 0.00665 * p_y, 1, 0.4);
-				tree_factor /= 10;
-				if ((engine.operator()() % 1000) / tree_factor < 1)
-				{
-					int x = pos / sizeZ % sizeX;
-					int y = pos / (sizeZ * sizeX);
-					if (x > 2 && x < 13 && y > 2 && y < 13)
-						generateTree(x, y, z);
-				}
+				int x = pos / sizeZ % sizeX;
+				int y = pos / (sizeZ * sizeX);
+				if (x > 2 && x < 13 && y > 2 && y < 13)
+					generateTree(x, y, z);
 			}
 		}
-		return 0;
+	}
+	return 0;
 }
 
 int ChunkGenerator::gen2DCave(int hill_height, int pos, int &z)
@@ -299,10 +299,9 @@ int ChunkGenerator::newGenUnderLayer(int pos, int &z, param p)
 	spline.set_points(	{0.0, 	0.3,	0.4,	0.7,	0.75,	1},
 						{1,		10,		50,		70,		80,		130});
 	u_int ground_height = spline(p.geologie);
-	while (z <  ground_height && z < AChunk::sizeZ - 2) {
+
+	while (z <  ground_height && z < AChunk::sizeZ - 2)
 		data[pos + z++] = STONE;
-	}
-	
 
 	double plane_factor = noiseList[1]->octave2D_01((0.000128 ) * p_x, (0.0001368 ) * p_y, 1, 0.75);
 	u_int type = GRASS;
@@ -379,126 +378,53 @@ int ChunkGenerator::newGenUnderLayer(int pos, int &z, param p)
 
 }
 
-
-
-
-u_char		*ChunkGenerator::generator(glm::ivec2 tmp_pos) {
-	
+u_char		*ChunkGenerator::generator(glm::ivec2 tmp_pos)
+{	
 	sizeX = AChunk::sizeX;
 	sizeY = AChunk::sizeY;
 	sizeZ = AChunk::sizeZ;
 	posX = tmp_pos.x;
 	posY = tmp_pos.y;
+
 	data = (u_char*)calloc(sizeX * sizeY * sizeZ, sizeof(*data));
-
 	if (!data)
-	{
 		std::cout << "raw map calloc failed !" << std::endl;
-	}
-
 
 	engine.seed(seed * posX * posY);
 	
-	for (int y = 0; y < sizeY; y++) {
-	for (int x = 0; x < sizeX; x++) {
-		ground_height = 0;
-		hill_height = 0;
-		
-
-
-
-		int pos = x * sizeZ + y * sizeX * sizeZ;
-		p_x = ((double)posX * sizeX + x);
-		p_y = ((double)posY * sizeY + y);
-		
-		int z = genBedrock(data, x, y);
-
-		param p;
-		p.geologie = noiseList[4]->octave2D_01(0.0028327 * p_x, 0.002479 * p_y, 4, 1);
-
-		p.pique = noiseList[5]->octave2D_01(0.0045327 * p_x, 0.004679 * p_y, 4, 1);
-
-		p.erosion = noiseList[3]->octave2D_01(0.0048327 * p_x, 0.004479 * p_y, 4, 1);
-
-		// if (p.geologie < min_noise)
-		// 	min_noise = p.geologie;
-		// if (p.geologie > max_noise)
-		// 	max_noise = p.geologie;
-		// std::cout << "min : " << min_noise << " max : " << max_noise << std::endl;
-		
-		newGenUnderLayer(pos, z, p);
-
-		// data[x * sizeZ + y * sizeX * sizeZ + z++] = AIR;
-		// if (x % 2)
-		// 	data[x * sizeZ + y * sizeX * sizeZ + z++] = STONE + tmp_pos.x % 10;
-		// else
-		// 	data[x * sizeZ + y * sizeX * sizeZ + z++] = STONE + tmp_pos.y % 10;
-
-		
-		// genUnderLayer(pos, z);
-
-		// genOverLayer(pos, z);
-
-
-		// if (GEN_WATER)
-			genWater(pos, 65);// double mont_freq =  0.00628;
-	// double mont_freq_2 =  0.0000328;
-
-	// double ocean_factor = noiseList[7]->octave2D_01((0.000128 ) * p_x, (0.0001368 ) * p_y, 2, 0.75);
-
-	// double plane_factor = noiseList[1]->octave2D_01((0.000128 ) * p_x, (0.0001368 ) * p_y, 2, 0.75);
-	
-	// double montain_factor = 0;
-	// double montain_factor2 = 0;
-	// float lerp = plane_factor;
-
-
-	// if (p.geologie <= 0.3)
-	// {
-	// 	spline.set_points(	{0.0, 0.2, 0.3},
-	// 						{1.0, 0.6, 0.0});
-	// 	lerp = glm::mix(plane_factor, ocean_factor, spline(p.geologie));
-	// 	type = SAND;
-	// }
-	// else if (p.geologie >= 0.7)
-	// {
-	// montain_factor =  noiseList[2]->octave2D_01(mont_freq * p_x, mont_freq * p_y, 4, 0.75);
-	// montain_factor2 = noiseList[3]->octave2D_01(mont_freq_2 * p_x, mont_freq_2 * p_y, 4);
-	// montain_factor *= montain_factor;
-	// montain_factor += montain_factor2;
-	// spline.set_points(	{0.0,	 0.9,	4},
-	// 					{0.0,	 0.9,	1});
-	// montain_factor = spline(montain_factor);
-	// // montain_factor = limiteExponentielle(montain_factor, 1, 0.01);
-
-	// spline.set_points(	{0.0,	 0.7,	1},
-	// 					{0.0,	 0.0,	1});
-	// lerp = glm::mix(plane_factor, montain_factor, spline(p.geologie));
-	// type = STONE;
-	// }
-		// 	gen3DCave(hill_height, pos, z);
-
-		// gen2DCave(hill_height, pos, z);
-
-
-		
-
-	}
-	}
-
-	if (modifMap.find(position(posX, posY)) == modifMap.end())
+	for (int y = 0; y < sizeY; y++)
 	{
-		return data;
-	}
+		for (int x = 0; x < sizeX; x++)
+		{
+			ground_height = 0;
+			hill_height = 0;
+			
+			int pos = x * sizeZ + y * sizeX * sizeZ;
+			p_x = ((double)posX * sizeX + x);
+			p_y = ((double)posY * sizeY + y);
+			
+			int z = genBedrock(data, x, y);
 
+			param p;
 
+			p.geologie = noiseList[4]->octave2D_01(0.0028327 * p_x, 0.002479 * p_y, 4, 1);
+			p.pique = noiseList[5]->octave2D_01(0.0045327 * p_x, 0.004679 * p_y, 4, 1);
+			p.erosion = noiseList[3]->octave2D_01(0.0048327 * p_x, 0.004479 * p_y, 4, 1);
 
-
-	std::vector<u_char> *modif = modifMap[position(posX, posY)];
-	for (int i = 0; i < modif->size(); i+=4)
-	{
-		data[(*modif)[i] * sizeZ + (*modif)[i + 1] * sizeX * sizeZ + (*modif)[i + 2]] = (*modif)[i + 3];
+			newGenUnderLayer(pos, z, p);
+			genWater(pos, 65);
+		}
 	}
 	return data;
 }
 
+
+
+
+{
+	ocean:{
+		high:{
+			x : 0, y : 0
+		}
+	}
+}

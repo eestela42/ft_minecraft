@@ -7,7 +7,7 @@
 #include <deque>
 #include <atomic>
 
-#include <classes/World/ChunkGenerator.hpp>
+#include <classes/Generation/ChunkGenerator.hpp>
 
 
 

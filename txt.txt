@@ -140,7 +140,6 @@ for (x, y)
 		}
 	}
 
-	
 
 
 
@@ -151,16 +150,162 @@ for (x, y)
 
 
 
+JSON = fichier de config de la gen
+
+
+Gen 2D
+= 1 data par [x,y ] du chunk
+	=> hauteur + types de blocks sousterrai + type de blocks surface
+ou	=> RLE blocks + humidity + temperature
+ou	=> tout les blocks + RLE bioms 
+
+
+
+DATA :
+
+ex :	float 	float[3] 	RLE_INT[3]
+		FACTOR 	POS 		BLOCKS_COLONE
+
+GENERATION SYSTEMES :
+
+Caller Base : Ocean (slow_merge 0.42) Continet
+
+Caller Ocean : Deep_plus (fast_merge 0.5) Islands
+
+
+Calculator Deep : 0.33 fast_noise
+
+Caller Deep_plus : fond_marin (0.12) rien
+
+
+
+Deep_plus : 
+	hieght = noise_2(x,y)
+	expo(height) 
+
+
+
+
+JSON => aller chercher dans le fichier .txt
+JSON => init du fichier txt
+et ensuite tout est la => trvaille pour aller chercher une var = rien
+
+
+class constructor 
+{
+}
+
+Calculator(pos)
+{
+	json("deep", FLOAT)
+}
+
+
+{
+  "deep_Var": {
+    "var" : [0.13, 2.5, ]
+	"function" : ["get_variable", "use_variable", "devient_cool"]
+  }
+}
+
+
+
+Gen : Ocean Continent
+	Ocean : Deep Islands
+	Continent : Plaine Montagne
+	Plaine : [0.25, 0.36]
+
+
+
+Deep ; "get_variable"
 
 
 
 
 
+init generator
+parse => architecture des systemes
+
+on cree => (depuis le bas) le graph des syteme
 
 
 
 
+DataHolder
+	:
+	get("variable")
 
+
+ASysteme :
+	Data ?
+	liste_systeme(Data)
+	liste_mergers(systeme1, systeme2)
+
+
+
+//EXEMPLE FILE
+
+in :
+	ivec2 POS
+
+out :
+	int ground_height
+
+
+
+base :
+	OCEAN
+	merge(ground_height, 0.74)
+	CONTINENT
+
+Ocea :
+	DEEP
+	merge(ground_height, 0.2) 
+	ISLANDS
+
+
+
+DEEP :
+
+	var : 
+		pos_factor = 0.02876
+
+	logic :
+		value = octave_2d(POS * pos_factor, 4, 2, 1.5)
+		spline(	{0.0, 	0.3,	0.4,	0.7,	0.75,	1},
+							{1,		10,		50,		70,		80,		130})
+		
+		POS = spline(var)
+
+/****ou alors****/
+
+DEEP :
+	var :
+		pos_factor = 0.02876
+
+	logic :
+		octave_2d_spline(pos_factor, 4, 2, 1.5)
+
+
+INIT:
+Je parse mon fichier
+Je cree les systemes depuis le start
+Quand j'arrive sur un systeme Calculator/ un merger
+Je setup les var, les funcs et le schema
+
+
+
+RUNTIME :
+Je rentre dans Systemegenerator.start
+Je rentre dans des systemes
+J'arrive dans un SystemeCalculator
+Je call logic.do_stuff
+Je suis le schema
+{
+	je cree un dataHolder pour ma fonctions
+	j'appelle ma fonction avec le dataHolder
+}
+Je return
 
 
 

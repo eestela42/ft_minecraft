@@ -1,4 +1,4 @@
-#include <classes/World/PerlinNoise.hpp>
+#include <classes/Generation/PerlinNoise.hpp>
 #include <cmath>
 #include <random>
 #include <algorithm>

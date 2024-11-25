@@ -1,6 +1,5 @@
 #include <classes/World/ChunkRLE.hpp>
 #include <map>
-#include <classes/World/PerlinNoise.hpp>
 #include <iostream>
 #include <cstring>
 
