@@ -71,7 +71,10 @@ class ChunkGenerator
 {
 public :
 	
+	SystemeGenerator System;
+	
 	static std::vector<siv::PerlinNoise*> 		noiseList;
+
 
 	u_char *data;
 	

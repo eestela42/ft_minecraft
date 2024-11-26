@@ -3,65 +3,21 @@
 
 #include <vector>
 #include <classes/Generation/DataHolder.hpp>
+#include <classes/Generation/LogicAuto.hpp>
 #include <glm/glm.hpp>
 #include <unordered_map>
 
 
 
-class Merger; //  LogicAuyo ?
-
-class DataHolder
-{
-	private :
-		std::vector<unsigned char> data; //"MAP???"
-		//keep info about the data (pos, size, type, name...)
-	public :
-		void *get(std::string name);
-};
-
-typedef t_schema; //has the func call order + DataHolder info
-
-class func_auto
-{
-	void logic(DataHolder &inputs);
-/*{ exemple : 
-	float pos_factor = inouts.get("pos_factor")
-	int octave = inputs.get("octave");
-	...
-puis la fonction normale
-
-	int height = 
-
-
-
-}*/
-};
-
-class LogicAuto
-{
-	private :
-		DataHolder var;
-		std::vector<func_auto&> functions;
-		t_schema schema;
-	public :
-		void do_stuff(DataHolder &inputs)
-/*{
-
-	while(schema)
-	{
-	DataHolder inputs = get_inputs(schema);
-	func_auto.logic(inputs);
-
-	schema.next;
-	}
-}*/
-
-};
-
+class Merger; //  LogicAuto ?
 
 class SystemeGenerator
 {
-	ASysteme *start;
+	private :
+		ASysteme *start;
+	public :
+		SystemeGenerator();
+		~SystemeGenerator();
 };
 
 class ASysteme
@@ -75,7 +31,7 @@ class ASysteme
 
 class SystemeCall : public ASysteme
 {
-	private :
+	// private :
 		std::vector<ASysteme&>	list_system;
 		std::vector<Merger&> 	list_merger;
 
@@ -88,11 +44,14 @@ class SystemeCall : public ASysteme
 
 class SystemeCalculator : public ASysteme
 {
-	private :
+	// private :
 		DataHolder 	var;
 		LogicAuto 	functions;
 
 	public :
+		SystemeCalculator();
+		~SystemeCalculator();
+
 		void do_stuff(DataHolder &data) override;
 /*{
 	logic.do_stuff	

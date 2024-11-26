@@ -390,31 +390,42 @@ u_char		*ChunkGenerator::generator(glm::ivec2 tmp_pos)
 	if (!data)
 		std::cout << "raw map calloc failed !" << std::endl;
 
-	engine.seed(seed * posX * posY);
-	
-	for (int y = 0; y < sizeY; y++)
+	for (int y = 0; y < sizeY; y++){
+	for (int x = 0; x < sizeX; x++)
 	{
-		for (int x = 0; x < sizeX; x++)
-		{
-			ground_height = 0;
-			hill_height = 0;
-			
-			int pos = x * sizeZ + y * sizeX * sizeZ;
-			p_x = ((double)posX * sizeX + x);
-			p_y = ((double)posY * sizeY + y);
-			
-			int z = genBedrock(data, x, y);
-
-			param p;
-
-			p.geologie = noiseList[4]->octave2D_01(0.0028327 * p_x, 0.002479 * p_y, 4, 1);
-			p.pique = noiseList[5]->octave2D_01(0.0045327 * p_x, 0.004679 * p_y, 4, 1);
-			p.erosion = noiseList[3]->octave2D_01(0.0048327 * p_x, 0.004479 * p_y, 4, 1);
-
-			newGenUnderLayer(pos, z, p);
-			genWater(pos, 65);
-		}
+		
 	}
+
+	}
+
+
+
+
+	// engine.seed(seed * posX * posY);
+	
+	// for (int y = 0; y < sizeY; y++)
+	// {
+	// 	for (int x = 0; x < sizeX; x++)
+	// 	{
+	// 		ground_height = 0;
+	// 		hill_height = 0;
+			
+	// 		int pos = x * sizeZ + y * sizeX * sizeZ;
+	// 		p_x = ((double)posX * sizeX + x);
+	// 		p_y = ((double)posY * sizeY + y);
+			
+	// 		int z = genBedrock(data, x, y);
+
+	// 		param p;
+
+	// 		p.geologie = noiseList[4]->octave2D_01(0.0028327 * p_x, 0.002479 * p_y, 4, 1);
+	// 		p.pique = noiseList[5]->octave2D_01(0.0045327 * p_x, 0.004679 * p_y, 4, 1);
+	// 		p.erosion = noiseList[3]->octave2D_01(0.0048327 * p_x, 0.004479 * p_y, 4, 1);
+
+	// 		newGenUnderLayer(pos, z, p);
+	// 		genWater(pos, 65);
+	// 	}
+	// }
 	return data;
 }
 

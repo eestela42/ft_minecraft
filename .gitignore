@@ -10,3 +10,4 @@ Profiler.db
 data.mdb
 lock.mdb
 tmp
+test.c

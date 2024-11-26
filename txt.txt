@@ -258,7 +258,7 @@ base :
 	merge(ground_height, 0.74)
 	CONTINENT
 
-Ocea :
+Ocean :
 	DEEP
 	merge(ground_height, 0.2) 
 	ISLANDS
@@ -267,7 +267,7 @@ Ocea :
 
 DEEP :
 
-	var : 
+	var :
 		pos_factor = 0.02876
 
 	logic :
@@ -285,6 +285,24 @@ DEEP :
 
 	logic :
 		octave_2d_spline(pos_factor, 4, 2, 1.5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 INIT:

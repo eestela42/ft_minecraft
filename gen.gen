@@ -1,0 +1,17 @@
+in :
+	ivec2 pos
+
+out :
+	int height
+
+
+base : contient 0.5 ocean 
+
+
+continent : 150
+
+
+ocean : 50
+
+
+
