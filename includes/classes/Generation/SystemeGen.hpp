@@ -46,7 +46,7 @@ class SystemeCalculator : public ASysteme
 {
 	// private :
 		DataHolder 	var;
-		LogicAuto 	functions;
+		FunctionAuto 	function;
 
 	public :
 		SystemeCalculator();

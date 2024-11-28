@@ -246,7 +246,7 @@ ASysteme :
 //EXEMPLE FILE
 
 in :
-	ivec2 POS
+	ivec POS
 
 out :
 	int ground_height
@@ -260,7 +260,7 @@ base :
 
 Ocean :
 	DEEP
-	merge(ground_height, 0.2) 
+	merge(ground_height, 0.2)
 	ISLANDS
 
 

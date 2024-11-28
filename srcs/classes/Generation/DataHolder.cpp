@@ -8,6 +8,9 @@ DataHolder::~DataHolder()
 
 void*	DataHolder::get(std::string var_name)
 {
+	//AEBDF
+	//3.12
+
 	return((void*)&(data[indice[var_name]]));
 }
 
