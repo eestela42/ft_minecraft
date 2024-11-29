@@ -1,13 +1,20 @@
 #include <classes/Game/Game.hpp>
 
-Game::Game() {
+Game::Game()
+{
 	window = new Window("Minecraft", DrawMode::FILL);
 	inputHandler = new InputHandler(window->GetWindow());
 	inputHandler->AddCallback((I_Input*)this); // c'est quoi c'truc
 	inputHandler->AddCallback((I_Input*)window);
 	shaderHandler = new ShaderHandler("shaders");
 
-	
+	ASystem *systemGravity = new SystemGarvity();
+	std::vector<ASystem*> systems = {systemGravity};
+	ecs = new ECS(systems);
+
+	ecs->addEntity();
+
+
 	vertexArrayObjectHandler = new VertexArrayObjectHandler();
 
 
@@ -69,6 +76,7 @@ void Game::StartLoop() {
 
 void Game::Loop() {
 	inputHandler->HandleInput();
+	ecs->cycle();
 	window->Clear();
 
 	glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, cameraUp);

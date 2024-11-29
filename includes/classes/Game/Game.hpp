@@ -25,6 +25,8 @@
 
 #include <classes/types.hpp>
 
+#include <classes/ECS/ECS.hpp>
+
 #include <thread>
 
 struct DrawInfo
@@ -55,6 +57,8 @@ private :
 	ShaderHandler *shaderHandler;
 	ChunkInstanciator *chunkInstanciator;
 	VertexArrayObjectHandler *vertexArrayObjectHandler;
+
+	ECS *ecs;
 	
 	void SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) /*override*/;
 	
