@@ -20,6 +20,8 @@ reducing the number of triangles to display. <br>
 
 Inside the GPU, we create our triangles using the geometry shader. It reduces the amount of RAM used however this does not significantly improve the FPS <br>
 
+https://tokei.rs/b1/github/eestela42/ft_minecraft
+
 ![Montains](assets/montain.png)
 
 ![Desert](assets/desert.png)
