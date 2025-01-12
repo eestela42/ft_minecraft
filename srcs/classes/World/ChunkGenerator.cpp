@@ -257,8 +257,8 @@ int ChunkGenerator::gen3DCave(int hill_height, int pos, int &z)
 		if (cave_factor > 0.8 || cave_factor < 0.2)
 		{
 			data[pos + z] = AIR;
-			continue;
-		}
+			continue ;
+		}		
 	}
 	return 0;
 }
