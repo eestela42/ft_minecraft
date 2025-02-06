@@ -55,6 +55,11 @@
 		"thread": "cpp",
 		"cinttypes": "cpp",
 		"typeinfo": "cpp",
-		"bitset": "cpp"
+		"bitset": "cpp",
+		"compare": "cpp",
+		"concepts": "cpp",
+		"set": "cpp",
+		"ranges": "cpp",
+		"stop_token": "cpp"
 	}
 }

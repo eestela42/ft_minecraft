@@ -8,8 +8,8 @@
 
 #include <interfaces/Interface_Input.hpp>
 
-#define DEFAULT_WINDOW_WIDTH 1290
-#define DEFAULT_WINDOW_HEIGHT 760
+#define DEFAULT_WINDOW_WIDTH 1080
+#define DEFAULT_WINDOW_HEIGHT 720
 
 enum class DrawMode {
     FILL,

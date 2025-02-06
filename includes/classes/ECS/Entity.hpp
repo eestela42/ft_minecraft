@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <bitset>
+#include <glm/glm.hpp>
 
 
 struct id
@@ -16,7 +17,7 @@ class Entity
 {
 	private :
 		std::vector<id> ids;
-		std::bitset<8>	flag_compo;
+		std::bitset<8>	flag_compo; //size is 1 bit per component existing (to update)
 		std::bitset<8>	flag_info;
 
 	public :

@@ -10,8 +10,7 @@ Game::Game()
 
 	ASystem *systemGravity = new SystemGarvity();
 	std::vector<ASystem*> systems = {systemGravity};
-	ecs = new ECS(systems);
-
+	ecs = new ECS();
 	ecs->addEntity();
 
 
@@ -144,7 +143,6 @@ void Game::manageVAO()
 	}
 	dequeueVAO_mutex.unlock();
 	vao_counter += i;
-
 }
 
 void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
@@ -175,12 +173,14 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 		pitch =  89.0f;
 	if(pitch < -89.0f)
 		pitch = -89.0f;
+
 	cameraDirection.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraDirection.y = sin(glm::radians(pitch));
 	cameraDirection.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 
 	if (oldCamPos.x / AChunk::sizeX != cameraPosition.x / AChunk::sizeX || oldCamPos.z / AChunk::sizeY != cameraPosition.z / AChunk::sizeY)
 	{
+		// std::cout << "player has moved" << std::endl;
 		playerHasMoved_mutex.lock();
 		playerHasMoved = true;
 		playerHasMoved_mutex.unlock();
