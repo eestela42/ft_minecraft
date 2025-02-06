@@ -20,8 +20,9 @@ Window::Window(const char *name, DrawMode drawMode) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);  //OpenGL version ->4.6
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);  //OpenGL version   4.6<-
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We use the core profile because we want to use the modulable part of OpenGL
-
-    window = glfwCreateWindow(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, name, NULL, NULL);
+	int count;
+	GLFWmonitor **monitors = glfwGetMonitors(&count);
+    window = glfwCreateWindow(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, name, NULL, NULL); // Create a window
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;

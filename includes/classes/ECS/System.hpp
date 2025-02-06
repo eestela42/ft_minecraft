@@ -11,29 +11,53 @@ class ECS;
 
 class ASystem
 {
-	private :
-		
 	public :
+		std::bitset<8> flag_components;
 		ASystem();
 		~ASystem();
 		
-		virtual std::bitset<8> getFlag() = 0;
-		virtual void apply(ECS &ecs, Entity &entity) = 0;
+		virtual std::bitset<8> getFlag();
+		virtual void apply(std::vector<void*> &data);
 };
 
 class SystemGarvity : public ASystem
 {
 	private :
-		std::bitset<8> flag_components = 0b00000001;
 	
 	public :
 		SystemGarvity();
 		~SystemGarvity();
-		
-		
-		std::bitset<8> getFlag();
+		void apply(std::vector<void*> &data);
+};
 
-		void apply(ECS &ecs, Entity &entity);
+class SystemIsOnGround : public ASystem
+{
+	private :
+	
+	public :
+		SystemIsOnGround();
+		~SystemIsOnGround();
+		void apply(std::vector<void*> &data);
+};
+
+class SystemMove : public ASystem
+{
+	private :
+	
+	public :
+		SystemMove();
+		~SystemMove();
+		void apply(std::vector<void*> &data);
+};
+
+class SystemDraw : public ASystem
+{
+	private :
+	
+	public :
+		SystemDraw();
+		~SystemDraw();
+		void apply(std::vector<void*> &data);
 };
 
 #endif

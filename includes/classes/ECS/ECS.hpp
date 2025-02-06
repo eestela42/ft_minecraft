@@ -13,12 +13,12 @@ class ECS
 	private :
 		std::vector<Entity> entities;
 
-		std::unordered_map<std::string, AComponent*> components;
+		std::unordered_map<std::string, Component*> components;
 
 		std::vector<ASystem*> systems;
 
 	public :
-		ECS(std::vector<ASystem*> systems);
+		ECS();
 		~ECS();
 		
 		void addEntity();

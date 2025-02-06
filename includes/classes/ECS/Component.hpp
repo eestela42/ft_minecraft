@@ -2,34 +2,33 @@
 #define COMPONENT_HPP
 
 #include <vector>
+#include <cstring>
 
 
-class AComponent
-{
-	public :
-		AComponent();
-		~AComponent();
 
-	virtual void addComponent() = 0;
-	virtual void removeComponent() = 0;
-};
-
-template <typename T>
-class Component : public AComponent
+class Component
 {
 	private :
-		std::vector<T> values;
+		unsigned int id;
+		unsigned int data_size;
+		std::vector<unsigned char> values;
+		std::vector<unsigned int> free_indices;
 	
 	public :
-		Component();
+		Component(unsigned int id, unsigned int data_size);
 		~Component();
 		
-		void addComponent(T value);
-		void removeComponent(int index);
+		unsigned int addComponent(void* value);
+		void removeComponent(unsigned int index);
 		
-		T getComponent(int index);
-		std::vector<T> getComponents();
+		void* getComponent(unsigned int index);
+		std::vector<unsigned char>* getComponents();
+
+		unsigned int getId() {return id;};
 };
+
+
+
 
 
 

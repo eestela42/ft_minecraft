@@ -168,38 +168,49 @@ void ChunkInstanciator::update()
 		resetGetNextPos();
 		for (int x1 = -generationDistance ; x1 <= generationDistance; x1++) {
 		for (int y1 = -generationDistance; y1 <= generationDistance; y1++) {
-					getNextPos(zop);
-					int x = zop.x;
-					int y = zop.y;
 
-					glm::ivec2 chunkTabPos(mod_floor(playerTabPos.x + x, size_tab),
-											mod_floor(playerTabPos.y + y, size_tab));
+				playerHasMoved_mutex.lock();
+				if (playerHasMoved)
+				{
+					playerHasMoved_mutex.unlock();
+					break ;
+				}
+				playerHasMoved_mutex.unlock();
 
+				getNextPos(zop);
+				int x = zop.x;
+				int y = zop.y;
+
+				glm::ivec2 chunkTabPos(mod_floor(playerTabPos.x + x, size_tab),
+										mod_floor(playerTabPos.y + y, size_tab));
+
+				
+				glm::ivec2 chunkPos;
+
+				if (tabChunks[chunkTabPos.x][chunkTabPos.y] == NULL)
+				{
+					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
+					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
 					
-					glm::ivec2 chunkPos;
 
-					if (tabChunks[chunkTabPos.x][chunkTabPos.y] == NULL)
-					{
-						chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
-						createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
+					continue ;
+				}
 
-						continue ;
-					}
+				chunkPos = tabChunks[chunkTabPos.x][chunkTabPos.y]->getPos();
+				
+				updateChunk(chunkPos, chunkTabPos, playerChunkPos);
 
-					chunkPos = tabChunks[chunkTabPos.x][chunkTabPos.y]->getPos();
 
-					if (chunkPos.x != playerChunkPos.x + x || chunkPos.y != playerChunkPos.y + y)
-					{
-						deleteBadChunk(chunkPos, chunkTabPos, playerChunkPos);
-						chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
-						createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
+				if (chunkPos.x != playerChunkPos.x + x || chunkPos.y != playerChunkPos.y + y)
+				{
+					deleteBadChunk(chunkPos, chunkTabPos, playerChunkPos);
+					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
+					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
 
-						continue ;
-					}
+					continue ;
+				}
 
-					updateChunk(chunkPos, chunkTabPos, playerChunkPos);
 		}
-
 		playerHasMoved_mutex.lock();
 		if (playerHasMoved)
 		{
@@ -208,6 +219,7 @@ void ChunkInstanciator::update()
 			break ;
 		}
 		playerHasMoved_mutex.unlock();
+
 		
 		}
 	}
