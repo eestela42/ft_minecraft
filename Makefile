@@ -2,7 +2,7 @@
 #                               Filename output                                #
 ################################################################################
 
-NAME		=	ft_vox
+NAME		=	ft_miencraft
 
 ################################################################################
 #                               Sources filenames                              #
@@ -25,7 +25,7 @@ DEPS_DIR = $(OBJS_DIR)
 
 CC			=	g++ 
 CFLAGS = -std=c++17 -g -Iincludes -MMD -MP
-OPENGL = -lglfw3 -lGL -lX11 -llmdb
+OPENGL = -lglfw3 -lGL -lX11 
 RM			=	rm -rf
 
 ################################################################################
