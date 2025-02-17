@@ -12,8 +12,12 @@ ChunkRLE::ChunkRLE(int posX, int posY, int posZ) : AChunk(posX, posY, posZ)
 
 ChunkRLE::~ChunkRLE()
 {
+	std::cout << "before RLE deleted" << std::endl;
+
 	delete [] this->rubans_id;
 	delete this->rubans;
+	std::cout << "AFTER RLE deleted" << std::endl;
+
 
 }
 

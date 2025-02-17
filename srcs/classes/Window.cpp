@@ -7,7 +7,7 @@ void framebuffer_size_callback( __attribute__((unused)) GLFWwindow* window, int 
 
 static void glfwError( __attribute__((unused)) int id, const char* description)
 {
-  std::cout << description << std::endl;
+  std::cout << "func glfwError : " << description << std::endl;
 }
 
 Window::Window(const char *name, DrawMode drawMode) {

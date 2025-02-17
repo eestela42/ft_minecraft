@@ -128,7 +128,7 @@ int ChunkGenerator::genUnderLayer(int pos, int &z)
 			int air_end = 0;
 			for ( ; z < hill_height && z < AChunk::sizeZ; z++)
 			{
-				double montain_factor = noiseList[3]->Octave3D(0.0256 * p_x, 0.0295 * p_y, z * 0.023, 2, 0.56);
+				double montain_factor = noiseList[3]->Octave3D(0.0256 * p_x, 0.0295 * p_y, z * 0.023, 1, 0.56);
 				if (montain_factor < float(z)/(hill_height*2))
 				{
 					air_end++;
@@ -288,7 +288,6 @@ u_char		*ChunkGenerator::generator(glm::ivec2 tmp_pos) {
 	posX = tmp_pos.x;
 	posY = tmp_pos.y;
 	data = (u_char*)calloc(sizeX * sizeY * sizeZ, sizeof(*data));
-
 	if (!data)
 	{
 		std::cout << "raw map calloc failed !" << std::endl;
@@ -298,6 +297,7 @@ u_char		*ChunkGenerator::generator(glm::ivec2 tmp_pos) {
 	
 	for (int y = 0; y < sizeY; y++) {
 	for (int x = 0; x < sizeX; x++) {
+
 		ground_height = 0;
 		hill_height = 0;
 		

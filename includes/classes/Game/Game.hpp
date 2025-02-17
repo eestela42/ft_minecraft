@@ -61,7 +61,7 @@ private :
 	ECS *ecs;
 	
 	void SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) /*override*/;
-	
+
 
 	//config
 	int renderDistance = 150;

@@ -1,23 +1,7 @@
 #include <classes/ECS/ECS.hpp>
 #include <glm/glm.hpp>
 
-/*
-	Gravity => mettre des mobs
 
-	Flags: is_gravity, is_mobile
-
-	Coponent : Pos, Movement
-
-	System : is_on_ground, Gravity, Move, Draw
-
-is_on_ground + is_gravity => SYS_gravity[in: pos, out: movement]
-
-SYS_move[in: movement, out : pos]
-
-SYS_draw[in: pos, out: draw]
-
-
-*/
 
 ECS::ECS()
 {
@@ -56,19 +40,15 @@ void ECS::cycle()
 {
 	for (auto system : systems)
 	{
-
 		std::bitset<8> system_flag = system->getFlag();
 
 		std::vector<Component*> components;
 
+		//NOT PRETTY
 		if (system_flag.test(0))
 			components.push_back(this->components["pos"]);
-
 		if (system_flag.test(1))
 			components.push_back(this->components["movement"]);
-
-
-
 
 		for (int i = 0; i < entities.size(); i++)
 		{
@@ -78,7 +58,11 @@ void ECS::cycle()
 				continue;
 			
 			std::vector<id> compo_id = entities[i].getComponents();
+
 			std::vector<void*> data;
+
+			data.push_back((void*)entities[i].getFlagInfoAddr()); //data[0] == flag_info
+
 			for (auto compo : components)
 			{
 				for (auto id : compo_id)
@@ -93,10 +77,7 @@ void ECS::cycle()
 
 			system->apply(data);
 			
-			std::cout << "END apply" << std::endl;
-			
-
-			// systems->apply(*this, entities[i]);
+			// std::cout << "END apply" << std::endl;
 		}
 	}
 }
