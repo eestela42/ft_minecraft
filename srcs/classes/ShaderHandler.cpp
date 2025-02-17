@@ -3,7 +3,9 @@
 ShaderHandler::~ShaderHandler()
 {
 	for (auto& shader : shaderMap) {
+		std::cout << "before shader deleted" << std::endl;
 		delete shader.second;
+		std::cout << "after shader deleted" << std::endl;
 	}
 }
 

@@ -33,6 +33,8 @@ class Entity
 		std::vector<id> 	getComponents();
 		std::bitset<8> 		getFlagCompo();
 		std::bitset<8> 		getFlagInfo();
+		std::bitset<8>* 	getFlagInfoAddr();
+
 };
 
 

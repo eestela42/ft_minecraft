@@ -1,7 +1,7 @@
 #include <classes/World/AChunk.hpp>
 
 AChunk::AChunk(int x, int y, int z) : posX(x), posY(y), posZ(z)
-{	
+{
 }
 
 AChunk::~AChunk()

@@ -2,6 +2,8 @@
 
 Game::Game()
 {
+	std::cout << "start game constructor" << std::endl;
+
 	window = new Window("Minecraft", DrawMode::FILL);
 	inputHandler = new InputHandler(window->GetWindow());
 	inputHandler->AddCallback((I_Input*)this); // c'est quoi c'truc
@@ -11,6 +13,7 @@ Game::Game()
 	ASystem *systemGravity = new SystemGarvity();
 	std::vector<ASystem*> systems = {systemGravity};
 	ecs = new ECS();
+	ecs->addEntity();
 	ecs->addEntity();
 
 
@@ -43,13 +46,16 @@ Game::Game()
 	VertexArrayObjectHandler *vertexArrayObjectHandler = new VertexArrayObjectHandler();
 
 	skyBox = new SkyBox(shaderHandler->GetShader("cubemap"));
+	std::cout << "end game constructor" << std::endl;
 
 	
 }
 Game::~Game() {
+	std::cout << "start game destructor" << std::endl;
 	delete window;
 	delete inputHandler;
 	delete shaderHandler;
+	std::cout << "end game destructor" << std::endl;
 }
 
 void Game::StartLoop() {
@@ -75,13 +81,16 @@ void Game::StartLoop() {
 
 void Game::Loop() {
 	inputHandler->HandleInput();
-	ecs->cycle();
+
+	// ecs->cycle();
+
 	window->Clear();
 
 	glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, cameraUp);
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)DEFAULT_WINDOW_WIDTH/(float)DEFAULT_WINDOW_HEIGHT, 0.1f, 16000.0f);
 	glm::mat4 matrix = glm::mat4(1.0f);
 	matrix = proj * view;
+
 
 	skyBox->drawSkybox(view, proj, cameraPosition);
 
@@ -100,6 +109,7 @@ void Game::Loop() {
 	draw();
 
 	window->SwapBuffersAndPollEvents();
+
 
 }
 

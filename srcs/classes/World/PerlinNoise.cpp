@@ -33,6 +33,7 @@ PerlinNoise::PerlinNoise(const PerlinNoise &copy)
 {
 	*this = copy;
 }
+
 PerlinNoise::PerlinNoise(unsigned int seed) {
 	p.resize(size*size);
 
@@ -55,7 +56,7 @@ double PerlinNoise::Octave2D(double x, double y, const std::int32_t octaves, con
 	double total = 0;
     double frequency = 1;
     double amplitude = 1;
-    double maxValue = 0;  
+    double maxValue = 0; 
     for(int i = 0; i < octaves; i++) {
         total += newNoise3d(x * frequency, y * frequency, 0.5) * amplitude;
         
@@ -105,8 +106,22 @@ double	PerlinNoise::newNoise3d(double x, double y, double z)
 	double w = fade(z);
 
 	// Hash coordinates of the 8 cube corners
+	// std::cout << "A" << std::endl;
+	// std::cout << "X " << X << " Y " << Y  << std::endl;
+	// std::cout << "p.size " << p.size() << std::endl;
+	// std::cout << "size " << size << std::endl;
+	
+	// printf("address = %p\n", &p);
+	// printf("address = %p\n", p.data());
+
+	// for (int i = 0; i < p.size(); i++)
+	// {
+	// 	std::cout << p[i] << std::endl;
+	// }
 	int A = p[X] + Y;
+
 	int AA = p[A] + Z;
+	
 	int AB = p[A + 1] + Z;
 	int B = p[X + 1] + Y;
 	int BA = p[B] + Z;
@@ -115,6 +130,7 @@ double	PerlinNoise::newNoise3d(double x, double y, double z)
 	// Add blended results from 8 corners of cube
 	double res = lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z), grad(p[BA], x-1, y, z)), lerp(u, grad(p[AB], x, y-1, z), grad(p[BB], x-1, y-1, z))),	lerp(v, lerp(u, grad(p[AA+1], x, y, z-1), grad(p[BA+1], x-1, y, z-1)), lerp(u, grad(p[AB+1], x, y-1, z-1),	grad(p[BB+1], x-1, y-1, z-1))));
 	// std::cout << "res " << res << std::endl;
+
 	return (res + 1.0)/2.0;
 }
 

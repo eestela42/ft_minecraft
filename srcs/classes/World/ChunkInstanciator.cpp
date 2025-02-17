@@ -49,7 +49,7 @@ int distance(glm::ivec2 a, glm::ivec2 b)
 
 bool ChunkInstanciator::compileChunksWithNeighbours(AChunk *chunk, s_neighbours neighbours)
 {
-	if (!chunk)
+	if (!chunk) //not supposed to happen curently
 		return false;
 	glm::ivec2 chunkPos = chunk->getPos();
 
@@ -202,7 +202,8 @@ void ChunkInstanciator::update()
 
 
 				if (chunkPos.x != playerChunkPos.x + x || chunkPos.y != playerChunkPos.y + y)
-				{
+				{//Updatechunk fait deja le boulot nn ?
+					std::cout << "INSIDE" << std::endl;
 					deleteBadChunk(chunkPos, chunkTabPos, playerChunkPos);
 					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
 					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
@@ -222,6 +223,7 @@ void ChunkInstanciator::update()
 
 		
 		}
+
 	}
 }
 
@@ -242,7 +244,12 @@ void ChunkInstanciator::deleteBadChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabP
 
 	if (tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsGenerated())
 	{
+		std::cout << "before tabChunks deleted" << std::endl;
+
 		delete tabChunks[chunkTabPos.x][chunkTabPos.y];
+
+		std::cout << "after tabChunks deleted" << std::endl;
+
 		tabChunks[chunkTabPos.x][chunkTabPos.y] = NULL;
 	}
 }
@@ -282,7 +289,7 @@ void ChunkInstanciator::createGoodChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTab
 
 void ChunkInstanciator::updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
 {
-	if (!tabChunks[chunkTabPos.x][chunkTabPos.y])
+	if (!tabChunks[chunkTabPos.x][chunkTabPos.y]) //npt supposed to happen curently
 		return ;
 
 	bool to_delete = (chunkPos.x - playerChunkPos.x > renderDistance || playerChunkPos.x - chunkPos.x < -renderDistance

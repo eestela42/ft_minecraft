@@ -31,7 +31,16 @@ void ASystem::apply(std::vector<void*> &data)
 
 void SystemGarvity::apply(std::vector<void*> &data)
 {
-	glm::vec3* movement = (glm::vec3*)data[0];
+	std::bitset<8> *flag_info = (std::bitset<8>*)data[0];
+	
+
+	glm::vec3* movement = (glm::vec3*)data[1];
+
+	if (!flag_info->test(0)) //is on ground
+	{
+		movement->z = 0;
+		return ;
+	}
 
 	movement->z -= 0.1;
 }
@@ -47,12 +56,16 @@ SystemIsOnGround::~SystemIsOnGround()
 
 void SystemIsOnGround::apply(std::vector<void*> &data)
 {
-	glm::vec3* pos = (glm::vec3*)data[0];
+	std::bitset<8> *flag_info = (std::bitset<8>*)data[0];
+	glm::vec3* pos = (glm::vec3*)data[1];
 	// glm::vec3* pos = static_cast<glm::vec3*>(data[0]);
 	// std::bitset<8> *flag = (std::bitset<8>*)data[1];
-
-	if (pos->z < 100)
-		;
+	if (pos->z <= 100)
+	{
+		flag_info->reset(0);
+		return ;
+	}
+	flag_info->set(0);
 }
 
 SystemMove::SystemMove()
@@ -67,14 +80,12 @@ SystemMove::~SystemMove()
 
 void SystemMove::apply(std::vector<void*> &data)
 {
-	glm::vec3* pos = (glm::vec3*)data[0];
-	glm::vec3* movement = (glm::vec3*)data[1];
+	glm::vec3* pos = (glm::vec3*)data[1];
+	glm::vec3* movement = (glm::vec3*)data[2];
 
 	pos->x += movement->x;
 	pos->y += movement->y;
 	pos->z += movement->z;
-	std::cout << "pos z " << pos->z << std::endl;
-	std::cout << "SystemMove apply end" << std::endl;
 }
 
 SystemDraw::SystemDraw()
