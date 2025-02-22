@@ -5,7 +5,7 @@ std::vector<PerlinNoise*> 		ChunkGenerator::noiseList;
 std::map<position, std::vector<u_char>*> ChunkGenerator::modifMap;
 int ChunkGenerator::seed;
 
-#define GEN_NOISE3D true
+#define GEN_NOISE3D false
 #define GEN_WATER true
 
 ChunkGenerator::~ChunkGenerator()
@@ -281,6 +281,8 @@ int ChunkGenerator::gen3DCave(int hill_height, int pos, int &z)
 
 
 u_char		*ChunkGenerator::generator(glm::ivec2 tmp_pos) {
+	if (PROFILER_ON)
+		Profiler::StartTracking("the generator");
 	sizeX = 16;
 	sizeY = 16;
 	sizeZ = 256;
@@ -336,19 +338,8 @@ u_char		*ChunkGenerator::generator(glm::ivec2 tmp_pos) {
 	}
 	}
 
-	if (modifMap.find(position(posX, posY)) == modifMap.end())
-	{
-		return data;
-	}
-
-	
-	
-
-	std::vector<u_char> *modif = modifMap[position(posX, posY)];
-	for (int i = 0; i < modif->size(); i+=4)
-	{
-		data[(*modif)[i] * sizeZ + (*modif)[i + 1] * sizeX * sizeZ + (*modif)[i + 2]] = (*modif)[i + 3];
-	}
+	if (PROFILER_ON)
+		Profiler::StopTracking("the generator");
 	
 	return data;
 }

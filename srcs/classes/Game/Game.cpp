@@ -10,11 +10,7 @@ Game::Game()
 	inputHandler->AddCallback((I_Input*)window);
 	shaderHandler = new ShaderHandler("shaders");
 
-	ASystem *systemGravity = new SystemGarvity();
-	std::vector<ASystem*> systems = {systemGravity};
-	ecs = new ECS();
-	ecs->addEntity();
-	ecs->addEntity();
+
 
 
 	vertexArrayObjectHandler = new VertexArrayObjectHandler();
@@ -24,7 +20,19 @@ Game::Game()
 	chunkInstanciator = new ChunkInstanciator(renderDistance, cameraPosition, playerPos_mutex,
 													dequeueVAO, dequeueVAO_mutex,
 													dequeueDeleteVAO, dequeueDeleteVAO_mutex,
-													playerHasMoved, playerHasMoved_mutex);
+													playerHasMoved, playerHasMoved_mutex,
+													endChunkInstanciator, endChunkInstanciator_mutex);
+
+	ecs = new ECS(chunkInstanciator->getTabChunks(), chunkInstanciator->getTabChunks_mutex(),
+					endChunkInstanciator, endChunkInstanciator_mutex,
+					dequeueVAO, dequeueVAO_mutex,
+					dequeueDeleteVAO, dequeueDeleteVAO_mutex);
+	for (int i = 0; i < 1000; i++)
+		ecs->addEntity(std::rand() % 100, std::rand() % 100, std::rand() % 10000);
+	// ecs->addEntity();
+	// ecs->addEntity();
+	// ecs->addEntity();
+
 	blockTextureArray = TextureLoader::LoadTextureArray(
 	{
 	std::filesystem::path("textures/texturePack/dirt.jpg"),
@@ -64,6 +72,7 @@ void Game::StartLoop() {
 
 	//lancer le thread de generation de chunks
 	std::thread chunkThread(&ChunkInstanciator::update, chunkInstanciator);
+	std::thread ecsThread(&ECS::update, ecs);
 	
 	int i = 0;
 	while(window->ShouldContinue())
@@ -77,6 +86,16 @@ void Game::StartLoop() {
 			begin = std::chrono::steady_clock::now();
 		}
 	}
+	endChunkInstanciator_mutex.lock();
+	endChunkInstanciator = true;
+	endChunkInstanciator_mutex.unlock();
+	
+	playerHasMoved_mutex.lock();
+	playerHasMoved = true;
+	playerHasMoved_mutex.unlock();
+
+	chunkThread.join();
+	ecsThread.join();
 }
 
 void Game::Loop() {
@@ -155,6 +174,8 @@ void Game::manageVAO()
 	vao_counter += i;
 }
 
+bool Gogogo = false;
+
 void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 	float speedMultiplier = (keyState[KEY_MOVE_UPWARD] & KEY_HOLD) ? 20 : 1;
 
@@ -175,6 +196,15 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 			cameraPosition += glm::vec3(0, speed * speedMultiplier, 0);
 	if(keyState[KEY_MOVE_DOWNWARD] & KEY_HOLD)
 			cameraPosition += glm::vec3(0, -speed * speedMultiplier, 0);
+	if (Gogogo || keyState[KEY_DELETE_ONE_BLOCK] & KEY_PRESS)
+	{
+		Gogogo = true;
+		glm::vec3 flatDrirection = cameraDirection;
+		flatDrirection.y = 0;
+		cameraPosition += 2 * speed * speedMultiplier * flatDrirection;
+		// cameraPosition += speed * 0.5f * speedMultiplier * glm::normalize(glm::cross(cameraDirection, cameraUp));
+		mouseMoveX += 0.5;
+	}
 	playerPos_mutex.unlock();
 
 	yaw += mouseMoveX * sensitivity;

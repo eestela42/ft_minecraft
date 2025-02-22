@@ -71,10 +71,8 @@ VertexArrayObject::~VertexArrayObject() {
     glDeleteVertexArrays(1, &VAO);
     VBO->DeleteBuffers();
     EBO->DeleteBuffers();
-	std::cout << "before VAO deleted" << std::endl;
 	delete EBO;
 	delete VBO;
-	std::cout << "after VAO deleted" << std::endl;
 
 
 }

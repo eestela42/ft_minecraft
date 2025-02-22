@@ -3,6 +3,15 @@
 #include <thread>
 
 int main() {
+	// ChunkRLE *chunk = new ChunkRLE(0, 0, 0);
+
+	// AChunk *aChunk = chunk;
+	// aChunk->borrow();
+	// AChunk *bChunk = chunk;
+	
+	// aChunk->deleter();
+	// std::cout << "sharedHolder : " << bChunk->pubIsFilled(0,0,0) << std::endl;
+	// bChunk->deleter();
 	unsigned int numThreads = std::thread::hardware_concurrency();
 	if (PROFILER_ON)
 		Profiler::StartTracking("Game Constructor");

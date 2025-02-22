@@ -12,13 +12,23 @@ ChunkRLE::ChunkRLE(int posX, int posY, int posZ) : AChunk(posX, posY, posZ)
 
 ChunkRLE::~ChunkRLE()
 {
-	std::cout << "before RLE deleted" << std::endl;
-
+	//mutex lock ?
 	delete [] this->rubans_id;
 	delete this->rubans;
-	std::cout << "AFTER RLE deleted" << std::endl;
 
+}
 
+void ChunkRLE::deleter()
+{
+	// std::cout << "BEFORE ChunkRLE deleteR" << std::endl;
+	if (this->sharedHolder == 1)
+		delete this;
+	else
+	{
+		this->sharedHolder--;
+	}
+	// std::cout << "AFTER ChunkRLE deleteR" << std::endl;
+	
 }
 
 
@@ -119,37 +129,7 @@ void ChunkRLE::CreateFaceRLE(int orientation, std::vector<int> &vData, std::vect
 }
 
 
-bool ChunkRLE::isFilled(int x, int y, int z) {
-	if (!getIsGenerated()) { 
-		return false;
-	}
-	const u_char *data = rubans->data();
-	int pos = this->rubansIndexes[x][y];
-	int tmp_z = 0;
-	while (tmp_z <= z)
-	{
-		tmp_z += data[pos + 1];
-		pos += 2;
-	}
-	if (data[pos - 2] != 0)
-		return true;
-	return false;
-}
 
-u_char ChunkRLE::blockType(int x, int y, int z) {
-	if (!getIsGenerated()) { 
-		return 0;
-	}
-	const u_char *data = rubans->data();
-	int pos = this->rubansIndexes[x][y];
-	int tmp_z = 0;
-	while (tmp_z <= z)
-	{
-		tmp_z += data[pos + 1];
-		pos += 2;
-	}
-	return data[pos - 2];
-}
 
 
 std::vector<u_char>* 	ChunkRLE::GetAdjacentRuban(int x, int y, int z, int &pos, u_char direction)
@@ -554,8 +534,9 @@ void ChunkRLE::CompileSideFaces()
 	}
 }
 
-void	ChunkRLE::publicCompile()
+void	ChunkRLE::privCompile()
 {
+
 	vertexData.clear();
 	indices.clear();
 	vertexData.reserve(500);
@@ -563,7 +544,8 @@ void	ChunkRLE::publicCompile()
 	
 	CompileTopBotFaces();
 	CompileSideFaces();
-	setIsCompiled(true);
+
+	// setIsCompiled(true);
 	// std::cout << "vertexData size : " << vertexData.size() << std::endl;
 	// std::cout << "indices size : " << indices.size() << std::endl;
 
@@ -601,7 +583,7 @@ u_int					ChunkRLE::GetRubanPos(int x, int y, int z)
 }
 
 
-void ChunkRLE::updateFromRaw(u_char *rawData)
+void ChunkRLE::privGenerate(u_char *rawData)
 {
 	rubans = new std::vector<u_char>;
 	rubans->reserve(sizeX * sizeY * 2);
@@ -645,13 +627,13 @@ void ChunkRLE::updateFromRaw(u_char *rawData)
 
 	this->sizeData = rubans->size();
 	this->setData(rubans->data());
-	setIsGenerated(true);
+	// setIsGenerated(true);
 
 	free(rawData);
 }
 
 
-	t_vbo_data 					ChunkRLE::getPtrVertices()
+	t_vbo_data 					ChunkRLE::privGetPtrVertices()
 	{
 		t_vbo_data data;
 		data.data = vertexData.data();
@@ -659,11 +641,45 @@ void ChunkRLE::updateFromRaw(u_char *rawData)
 		return data;
 	}
 
-	std::vector<unsigned int>*	ChunkRLE::getPtrIndices()
+	std::vector<unsigned int>*	ChunkRLE::privGetPtrIndices()
 	{
 		return &indices;
 	}
 
+	bool ChunkRLE::privIsFilled(int x, int y, int z) {
+	if (!getIsGenerated()|| z < 0 || z >= sizeZ) {
+		return false;
+	}
+	const u_char *data = rubans->data();
+	int pos = this->rubansIndexes[x][y];
+	int tmp_z = 0;
+	while (tmp_z <= z)
+	{
+		tmp_z += data[pos + 1];
+		pos += 2;
+	}
+	if (data[pos - 2] != 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+	u_char ChunkRLE::privBlockType(int x, int y, int z) {
+	if (!getIsGeneratedMutex()) { 
+		return 0;
+	}
+	// const u_char *data = rubans->data();
+	// int pos = this->rubansIndexes[x][y];
+	// int tmp_z = 0;
+	// while (tmp_z <= z)
+	// {
+	// 	tmp_z += data[pos + 1];
+	// 	pos += 2;
+	// }
+	// return data[pos - 2];
+	return 0;
+}
 
 
 // void 					ChunkRLE::Generate()

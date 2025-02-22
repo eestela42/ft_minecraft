@@ -1,14 +1,17 @@
 #include <classes/World/ChunkInstanciator.hpp>
 
-ChunkInstanciator::ChunkInstanciator(u_int renderDistance, glm::vec3 &playerPos, std::mutex &playerPos_mutex,
-										std::deque<info_VAO*> &to_VAO, std::mutex &to_VAO_mutex,
-										std::deque<glm::ivec2> &toDeleteVAO, std::mutex &toDeleteVAO_mutex,
-										bool &playerHasMoved, std::mutex &playerHasMoved_mutex)
+ChunkInstanciator::ChunkInstanciator(u_int renderDistance,
+										glm::vec3 &playerPos,					std::mutex &playerPos_mutex,
+										std::deque<info_VAO*> &to_VAO, 			std::mutex &to_VAO_mutex,
+										std::deque<glm::ivec2> &toDeleteVAO, 	std::mutex &toDeleteVAO_mutex,
+										bool &playerHasMoved, 					std::mutex &playerHasMoved_mutex,
+										bool &endThread, 						std::mutex &endThread_mutex)
 	: renderDistance(renderDistance),
 		realPlayerPos(playerPos), realPlayerPos_mutex(playerPos_mutex),
 		to_VAO(to_VAO), to_VAO_mutex(to_VAO_mutex),
 		toDeleteVAO(toDeleteVAO), toDeleteVAO_mutex(toDeleteVAO_mutex),
-		playerHasMoved(playerHasMoved), playerHasMoved_mutex(playerHasMoved_mutex)
+		playerHasMoved(playerHasMoved), playerHasMoved_mutex(playerHasMoved_mutex),
+		endThread(endThread), endThread_mutex(endThread_mutex)
 {
 	generationDistance = renderDistance + 1;
 	size_tab = generationDistance * 2 + 1;
@@ -32,20 +35,22 @@ ChunkInstanciator::~ChunkInstanciator()
 {
 }
 
-
-
-int mod_floor(int a, int n) {
-	if (a < 0)
-		a += (-a / n + 1) * n; 
-    return (a % n);
+std::mutex &ChunkInstanciator::getTabChunks_mutex()
+{
+	return tabChunks_mutex;
 }
+
+std::vector<std::vector<AChunk*>> &ChunkInstanciator::getTabChunks()
+{
+	return tabChunks;
+}
+
+
 
 int distance(glm::ivec2 a, glm::ivec2 b)
 {
 	return std::sqrt(std::pow(a.x - b.x, 2) + std::pow(a.y - b.y, 2));
 }
-
-
 
 bool ChunkInstanciator::compileChunksWithNeighbours(AChunk *chunk, s_neighbours neighbours)
 {
@@ -54,17 +59,17 @@ bool ChunkInstanciator::compileChunksWithNeighbours(AChunk *chunk, s_neighbours 
 	glm::ivec2 chunkPos = chunk->getPos();
 
 	if (!neighbours.north || !neighbours.south || !neighbours.east || !neighbours.west
-		|| !neighbours.north->getIsGenerated() || !neighbours.south->getIsGenerated()
-		|| !neighbours.east->getIsGenerated() || !neighbours.west->getIsGenerated()
+		|| !neighbours.north->getIsGeneratedMutex() || !neighbours.south->getIsGeneratedMutex()
+		|| !neighbours.east->getIsGeneratedMutex() || !neighbours.west->getIsGeneratedMutex()
 		|| neighbours.north->getPos() != chunkPos + glm::ivec2(0, 1)
 		|| neighbours.south->getPos() != chunkPos + glm::ivec2(0, -1)
 		|| neighbours.east->getPos() != chunkPos + glm::ivec2(1, 0)
 		|| neighbours.west->getPos() != chunkPos + glm::ivec2(-1, 0))
 			return false;
-	chunk->publicCompile();
+	chunk->pubCompile();
 
 	info_VAO *info = new info_VAO();
-	*info = {chunk->getPtrVertices(), chunk->getPtrIndices(), chunk->getPos()};
+	*info = {chunk->pubGetPtrVertices(), chunk->pubGetPtrIndices(), chunk->getPos()};
 
 	to_VAO_mutex.lock();
 
@@ -144,14 +149,89 @@ void ChunkInstanciator::getNextPos(glm::ivec2 &pos)
 	
 }
 
+void ChunkInstanciator::deleteBadChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
+{
+	if (tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled())
+	{
+		toDeleteVAO_mutex.lock();
+
+		toDeleteVAO.push_back(tabChunks[chunkTabPos.x][chunkTabPos.y]->getPos());
+
+		toDeleteVAO_mutex.unlock();
+
+		tabChunks[chunkTabPos.x][chunkTabPos.y]->setIsCompiled(false);
+	}
+
+	if (tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsGeneratedMutex())
+	{
+
+		tabChunks[chunkTabPos.x][chunkTabPos.y] = NULL;
+	}
+}
+
+void ChunkInstanciator::createGoodChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
+{
+	
+	if (!tabChunks[chunkTabPos.x][chunkTabPos.y] || tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsGeneratedMutex() == false)
+	{
+		tabChunks[chunkTabPos.x][chunkTabPos.y] = new ChunkRLE(chunkPos.x, chunkPos.y, 0);
+		setChunkNeighbours(tabChunks[chunkTabPos.x][chunkTabPos.y], getNeighbours(chunkTabPos, chunkPos));
+		tabChunks[chunkTabPos.x][chunkTabPos.y]->pubGenerate(generator.generator(chunkPos));
+
+		s_neighbours neighbours = getNeighbours(chunkTabPos, chunkPos);
+		AChunk** neighb = (AChunk**)(&neighbours);
+		for (int i = 0; i < 4; i++)
+		{
+			if (!neighb[i])
+				continue ;
+			
+			glm::ivec2 neighbPos = neighb[i]->getPos();
+			glm::ivec2 neighbTabPos;
+			neighbTabPos.x = mod_floor(neighbPos.x, size_tab);
+			neighbTabPos.y = mod_floor(neighbPos.y, size_tab);
+
+			updateChunk(neighbPos, neighbTabPos, playerChunkPos);
+		}
+	}
+
+	bool didIt = compileChunksWithNeighbours(tabChunks[chunkTabPos.x][chunkTabPos.y], getNeighbours(chunkTabPos, chunkPos));
+	
+}
+
+void ChunkInstanciator::updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
+{
+	if (!tabChunks[chunkTabPos.x][chunkTabPos.y]) //npt supposed to happen curently
+		return ;
+	bool to_delete = (chunkPos.x - playerChunkPos.x > renderDistance || playerChunkPos.x - chunkPos.x < -renderDistance
+				|| chunkPos.y - playerChunkPos.y > renderDistance || playerChunkPos.y - chunkPos.y < -renderDistance);
+
+	if (to_delete && tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled())
+	{
+		toDeleteVAO_mutex.lock();
+
+		toDeleteVAO.push_back(tabChunks[chunkTabPos.x][chunkTabPos.y]->getPos());
+
+		toDeleteVAO_mutex.unlock();
+
+		tabChunks[chunkTabPos.x][chunkTabPos.y]->setIsCompiled(false);
+		return ;
+	}
+	if (!to_delete && tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled() == false)
+	{
+		compileChunksWithNeighbours(tabChunks[chunkTabPos.x][chunkTabPos.y], getNeighbours(chunkTabPos, chunkPos));
+	}
+
+}
+ 
+
 void ChunkInstanciator::update()
 {
 	bool debug = true ;
 	glm::ivec2 pos = {0, 0};
-	
-	while(1)
+	endThread_mutex.lock();
+	while(endThread == false)
 	{
-		
+		endThread_mutex.unlock();
 		realPlayerPos_mutex.lock();
 		glm::vec3 playerPos = realPlayerPos;
 		realPlayerPos_mutex.unlock();
@@ -163,12 +243,10 @@ void ChunkInstanciator::update()
 		playerTabPos.y = mod_floor(playerChunkPos.y, size_tab);
 		
 
-				
 		glm::ivec2 zop = {0, 0};
 		resetGetNextPos();
 		for (int x1 = -generationDistance ; x1 <= generationDistance; x1++) {
 		for (int y1 = -generationDistance; y1 <= generationDistance; y1++) {
-
 				playerHasMoved_mutex.lock();
 				if (playerHasMoved)
 				{
@@ -191,11 +269,9 @@ void ChunkInstanciator::update()
 				{
 					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
 					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
-					
 
 					continue ;
 				}
-
 				chunkPos = tabChunks[chunkTabPos.x][chunkTabPos.y]->getPos();
 				
 				updateChunk(chunkPos, chunkTabPos, playerChunkPos);
@@ -203,7 +279,6 @@ void ChunkInstanciator::update()
 
 				if (chunkPos.x != playerChunkPos.x + x || chunkPos.y != playerChunkPos.y + y)
 				{//Updatechunk fait deja le boulot nn ?
-					std::cout << "INSIDE" << std::endl;
 					deleteBadChunk(chunkPos, chunkTabPos, playerChunkPos);
 					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
 					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
@@ -212,107 +287,17 @@ void ChunkInstanciator::update()
 				}
 
 		}
-		playerHasMoved_mutex.lock();
-		if (playerHasMoved)
-		{
-			playerHasMoved = false;
+			playerHasMoved_mutex.lock();
+			if (playerHasMoved)
+			{
+				playerHasMoved = false;
+				playerHasMoved_mutex.unlock();
+				break ;
+			}
 			playerHasMoved_mutex.unlock();
-			break ;
-		}
-		playerHasMoved_mutex.unlock();
-
-		
 		}
 
+		endThread_mutex.lock();
 	}
+	endThread_mutex.unlock();
 }
-
-
-
-void ChunkInstanciator::deleteBadChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
-{
-	if (tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled())
-	{
-		toDeleteVAO_mutex.lock();
-
-		toDeleteVAO.push_back(tabChunks[chunkTabPos.x][chunkTabPos.y]->getPos());
-
-		toDeleteVAO_mutex.unlock();
-
-		tabChunks[chunkTabPos.x][chunkTabPos.y]->setIsCompiled(false);
-	}
-
-	if (tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsGenerated())
-	{
-		std::cout << "before tabChunks deleted" << std::endl;
-
-		delete tabChunks[chunkTabPos.x][chunkTabPos.y];
-
-		std::cout << "after tabChunks deleted" << std::endl;
-
-		tabChunks[chunkTabPos.x][chunkTabPos.y] = NULL;
-	}
-}
-
-void ChunkInstanciator::createGoodChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
-{
-	
-	if (!tabChunks[chunkTabPos.x][chunkTabPos.y] || tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsGenerated() == false)
-	{
-		tabChunks[chunkTabPos.x][chunkTabPos.y] = new ChunkRLE(chunkPos.x, chunkPos.y, 0);
-		setChunkNeighbours(tabChunks[chunkTabPos.x][chunkTabPos.y], getNeighbours(chunkTabPos, chunkPos));
-
-		tabChunks[chunkTabPos.x][chunkTabPos.y]->updateFromRaw(generator.generator(chunkPos));
-
-		s_neighbours neighbours = getNeighbours(chunkTabPos, chunkPos);
-		AChunk** neighb = (AChunk**)(&neighbours);
-		for (int i = 0; i < 4; i++)
-		{
-			if (!neighb[i])
-				continue ;
-			
-			glm::ivec2 neighbPos = neighb[i]->getPos();
-			glm::ivec2 neighbTabPos;
-
-			neighbTabPos.x = mod_floor(neighbPos.x, size_tab);
-			neighbTabPos.y = mod_floor(neighbPos.y, size_tab);
-
-
-			updateChunk(neighbPos, neighbTabPos, playerChunkPos);
-		}
-
-	}
-
-	bool didIt = compileChunksWithNeighbours(tabChunks[chunkTabPos.x][chunkTabPos.y], getNeighbours(chunkTabPos, chunkPos));
-	
-}
-
-void ChunkInstanciator::updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
-{
-	if (!tabChunks[chunkTabPos.x][chunkTabPos.y]) //npt supposed to happen curently
-		return ;
-
-	bool to_delete = (chunkPos.x - playerChunkPos.x > renderDistance || playerChunkPos.x - chunkPos.x < -renderDistance
-				|| chunkPos.y - playerChunkPos.y > renderDistance || playerChunkPos.y - chunkPos.y < -renderDistance);
-
-	if (to_delete && tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled())
-	{
-		toDeleteVAO_mutex.lock();
-
-		toDeleteVAO.push_back(tabChunks[chunkTabPos.x][chunkTabPos.y]->getPos());
-
-		toDeleteVAO_mutex.unlock();
-
-		tabChunks[chunkTabPos.x][chunkTabPos.y]->setIsCompiled(false);
-
-		return ;
-	}
-
-	if (!to_delete && tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled() == false)
-	{
-		compileChunksWithNeighbours(tabChunks[chunkTabPos.x][chunkTabPos.y], getNeighbours(chunkTabPos, chunkPos));
-	}
-
-}
- 
-
