@@ -6,6 +6,9 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <mutex>
+#include <memory>
+
+#include <classes/Profiler.hpp>
 
 #include <classes/types.hpp>
 
@@ -14,22 +17,32 @@
 # define NEIGHB_EAST 2
 # define NEIGHB_WEST 3
 
+int mod_floor(int a, int n);
+
 class AChunk;
 
 typedef struct t_neighbours
 {
-	AChunk *north;
-	AChunk *south;
-	AChunk *east;
-	AChunk *west;
+	AChunk* north;
+	AChunk* south;
+	AChunk* east;
+	AChunk* west;
 } s_neighbours;
 
 
 class AChunk {
 
+protected :
+
+	u_int sharedHolder = 1;
+
 private:
 	
+	std::mutex mutex;
+
 	u_char *data = NULL;
+
+
 	
 
 	bool isGenerated = false;
@@ -37,6 +50,15 @@ private:
 	bool toUpdate = false;
 
 	s_neighbours neighbours;
+
+	virtual void privGenerate(u_char *data) = 0;
+	virtual void privCompile() = 0;
+
+	virtual t_vbo_data privGetPtrVertices() = 0;
+	virtual std::vector<unsigned int> *privGetPtrIndices() = 0;
+
+	virtual bool privIsFilled(int x, int y, int z) = 0;
+	virtual u_char privBlockType(int x, int y, int z) = 0;
 
 
 public :
@@ -47,29 +69,43 @@ public :
 
 
 	
-	virtual t_vbo_data getPtrVertices() = 0;
-	virtual std::vector<unsigned int> *getPtrIndices() = 0;
-
+	
 	static u_int const sizeX = 16;
 	static u_int const sizeY = 16;
 	static u_int const sizeZ = 256;
-
-
+	
 	AChunk(int x, int y, int z);
-	~AChunk();
+	virtual ~AChunk();
+	virtual void deleter() = 0;
 
-	virtual void updateFromRaw(u_char *data) = 0;
-	virtual void publicCompile() = 0;
+	
+	/*Public Functions*/
+
+	void pubGenerate(u_char *data);
+	void pubCompile();
+
+	t_vbo_data pubGetPtrVertices();
+	std::vector<unsigned int> *pubGetPtrIndices();
+	
+	bool pubIsFilled(int x, int y, int z);
+	u_char pubBlockType(int x, int y, int z);
+
+	/*Public Setter and Getters*/
+
+	void borrow();
 
 	glm::ivec2 getPos();
 
-	void setData(u_char *data);
 	u_char *getData();
+	void setData(u_char *data);
 
-
+	u_char *getDataMutex();
+	void setDataMutex(u_char *data);
 
 	void setIsGenerated(bool isGenerated);
 	bool getIsGenerated();
+	bool getIsGeneratedMutex();
+
 
 	void setIsCompiled(bool isCompiled);
 	bool getIsCompiled();
@@ -77,16 +113,9 @@ public :
 	void setToUpdate(bool toUpdate);
 	bool getToUpdate();
 
-	virtual bool isFilled(int x, int y, int z);
-	virtual u_char blockType(int x, int y, int z);
-
-	bool getIsGenerated() const;
-	bool getIsCompiled() const;
-	bool getIsToUpdate() const;
-
-	s_neighbours getNeighbours() const;
+	s_neighbours getNeighbours();
 	void setNeighbours(s_neighbours neighbours);
-	void setNeighbour(int direction, AChunk *chunk);
+	void setNeighbour(int direction, AChunk* chunk);
 
 };
 

@@ -5,6 +5,7 @@
 #include <classes/World/ChunkRLE.hpp>
 #include <glm/glm.hpp>
 #include <deque>
+#include <memory>
 
 #include <classes/World/ChunkGenerator.hpp>
 
@@ -18,11 +19,14 @@ class ChunkInstanciator
 
 
 	std::vector<std::vector<AChunk*>> 	tabChunks;
+	std::mutex 							tabChunks_mutex;
+
 	glm::ivec2 							position;
 
 	int 								renderDistance;
 	int 								generationDistance;
 	int 								size_tab;
+
 	
 	std::mutex 							&realPlayerPos_mutex;
 	glm::vec3 							&realPlayerPos;
@@ -35,6 +39,12 @@ class ChunkInstanciator
 	
 	std::mutex 							&toDeleteVAO_mutex;
 	std::deque<glm::ivec2> 				&toDeleteVAO;
+
+	std::mutex 							&endThread_mutex;
+	bool 								&endThread;
+
+
+
 	
 	
 	void 								deleteBadChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos);
@@ -68,12 +78,15 @@ class ChunkInstanciator
 						glm::vec3 &playerPos, std::mutex &playerPos_mutex,
 						std::deque<info_VAO*> &to_VAO, std::mutex &to_VAO_mutex,
 						std::deque<glm::ivec2> &toDeleteVAO, std::mutex &toDeleteVAO_mutex,
-						bool &playerHasMoved, std::mutex &playerHasMoved_mutex);
+						bool &playerHasMoved, std::mutex &playerHasMoved_mutex,
+						bool &windoeShouldClose, std::mutex &windowShouldClose_mutex);
 
 	~ChunkInstanciator();
 
-	void update();
+	std::mutex 							&getTabChunks_mutex();
+	std::vector<std::vector<AChunk*>> 	&getTabChunks();
 
+	void update();
 
 };
 

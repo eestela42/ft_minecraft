@@ -17,12 +17,18 @@ private :
 	std::vector<unsigned int> 	indices;
 
 public:
+
 	ChunkClassic(int x, int y, int z);
 	~ChunkClassic();
 
-	void updateFromRaw(u_char *data) override;
-	void publicCompile() override;
+	void privGenerate(u_char *data) override;
+	void privCompile() override;
 
+	t_vbo_data 					privGetPtrVertices() override;
+	std::vector<unsigned int>*	privGetPtrIndices() override;
+
+	bool						privIsFilled(int x, int y, int z) override;
+	u_char						privBlockType(int x, int y, int z) override;
 
 
 
@@ -31,8 +37,6 @@ public:
 	void	createFace(int x, int y, int z,  int tab_x, int tab_y, int tab_z, int dir);
 	
 	
-	t_vbo_data 					getPtrVertices() override;
-	std::vector<unsigned int>*	getPtrIndices() override;
 
 
 };

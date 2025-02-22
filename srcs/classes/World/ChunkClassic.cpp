@@ -7,6 +7,7 @@ ChunkClassic::ChunkClassic(int x, int y, int z) : AChunk(x, y, z)
 
 ChunkClassic::~ChunkClassic()
 {
+	// delete data;
 }
 
 
@@ -76,13 +77,13 @@ void ChunkClassic::createFace(int x, int y, int z, int tab_x, int tab_y, int tab
 	indices.push_back(start);
 }
 
-void ChunkClassic::updateFromRaw(u_char *data)
+void ChunkClassic::privGenerate(u_char *data)
 {
 	setData(data);
-	setIsGenerated(true);
+	// setIsGenerated(true);
 }
 
-void ChunkClassic::publicCompile()
+void ChunkClassic::privCompile()
 {
 	u_char *blocks = getData();
 	glm::ivec2 pos = getPos();
@@ -106,10 +107,10 @@ void ChunkClassic::publicCompile()
 	}
 	}
 	}
-	setIsCompiled(true);
+	// setIsCompiled(true);
 }
 
-t_vbo_data ChunkClassic::getPtrVertices()
+t_vbo_data ChunkClassic::privGetPtrVertices()
 {
 	t_vbo_data data;
 	data.data = vertices.data();
@@ -117,7 +118,18 @@ t_vbo_data ChunkClassic::getPtrVertices()
 	return data;
 }
 
-std::vector<unsigned int>* ChunkClassic::getPtrIndices()
+std::vector<unsigned int>* ChunkClassic::privGetPtrIndices()
 {
 	return &indices;
+}
+
+bool ChunkClassic::privIsFilled(int x, int y, int z)
+{
+	std::cout << "Classic priv is filled" << std::endl;
+	return getData()[z + y * sizeZ + x * sizeY * sizeZ] != 0;
+}
+
+u_char ChunkClassic::privBlockType(int x, int y, int z)
+{
+	return getData()[z + y * sizeZ + x * sizeY * sizeZ];
 }

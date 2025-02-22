@@ -5,11 +5,7 @@ VertexArrayObjectHandler::VertexArrayObjectHandler() {}
 VertexArrayObjectHandler::~VertexArrayObjectHandler() {
 	for (auto const& x : vaoMap)
 	{
-		std::cout << "before vaoHandler deleted" << std::endl;
-		
 		delete x.second;
-		std::cout << "after vaoHandler deleted" << std::endl;
-
 	}
 }
 
@@ -88,9 +84,7 @@ u_int VertexArrayObjectHandler::AddVAO(VertexArrayObject *vao) {
 }
 
 void VertexArrayObjectHandler::RemoveVAO(u_int VAO) {
-	std::cout << "before vao deleted" << std::endl;
 	delete vaoMap[VAO];
-	std::cout << "after vao deleted" << std::endl;
 
 	vaoMap.erase(VAO);
 	if (VAO == activeVAO) {

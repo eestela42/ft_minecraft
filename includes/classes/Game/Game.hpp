@@ -64,7 +64,7 @@ private :
 
 
 	//config
-	int renderDistance = 150;
+	int renderDistance = 32;
 	int chunkLoadingSize = renderDistance * 2 + 1;
 
 	TextureArray blockTextureArray;
@@ -80,7 +80,7 @@ private :
 	std::mutex playerPos_mutex;
 
 	glm::vec3 const cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 cameraPosition = glm::vec3(10000, 100, 10000);
+	glm::vec3 cameraPosition = glm::vec3(0, 100, 0);
 	glm::vec3 cameraDirection = glm::vec3(	cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 											sin(glm::radians(pitch)),
 											sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
@@ -101,6 +101,9 @@ private :
 
 	std::mutex					dequeueDeleteVAO_mutex;
 	std::deque<glm::ivec2> 		dequeueDeleteVAO;
+
+	std::mutex					endChunkInstanciator_mutex;
+	bool 						endChunkInstanciator = false;
 
 	std::vector<DrawInfo> Vao_draw;
 

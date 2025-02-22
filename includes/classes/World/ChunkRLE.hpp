@@ -38,6 +38,8 @@ public :
 	~ChunkRLE();
 	// ChunkRLE();
 	ChunkRLE(int posX, int posY, int posZ);
+	void deleter() override;
+
 
 	void 				CreatePointVertexGeometry(std::vector<int> &vertexes, int pos, u_char orientation, u_char type, u_char sizeX, u_char sizeY);
 	void 				CreatePointVertexRegular(std::vector<int> &vertexes, int pos, u_char orientation, u_char type);
@@ -51,8 +53,7 @@ public :
 	void 				CreateFaceRLERegular(int oreientation, std::vector<int> &vData, std::vector<u_int> &iData,
 												int x, int y, int z, int offset, u_char type);										
 
-	bool				isFilled(int x, int y, int z) override;
-	u_char 				blockType(int x, int y, int z) override;
+	
 
 	u_int				GetRubanPos(int x, int y, int z);
 	void				LoadChunk();
@@ -77,15 +78,18 @@ public :
 
 	void				parkourRubans(u_int &x, u_int &y, u_int &pos);
 
-	void 				publicCompile() override;
-
+	
 	void 				randomGen(int &pos, int x, int y);
 	
+	
+	void 						privCompile() override;
+	void 						privGenerate(u_char *rawData) override;
 
-	void 				updateFromRaw(u_char *rawData) override;
+	t_vbo_data 					privGetPtrVertices() override;
+	std::vector<unsigned int>*	privGetPtrIndices() override;
 
-	t_vbo_data 					getPtrVertices() override;
-	std::vector<unsigned int>*	getPtrIndices() override;
+	bool						privIsFilled(int x, int y, int z) override;
+	u_char 						privBlockType(int x, int y, int z) override;
 
 };
 

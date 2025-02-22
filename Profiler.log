@@ -1,2 +1,30 @@
+---------- Chunk Compile ----------
+Average  : 0.3453 ms
+Median   : 0.2993 ms
+Worst    : 1.524 ms
+Worst 5% : 0.5501 ms
+Best     : 0.2275 ms
+Best  5% : 0.2547 ms
+---------- Chunk Generate ----------
+Average  : 109.9 μs
+Median   : 108.7 μs
+Worst    : 258.5 μs
+Worst 5% : 116.0 μs
+Best     : 105.6 μs
+Best  5% : 106.9 μs
+---------- the generator ----------
+Average  : 0.8820 ms
+Median   : 0.8305 ms
+Worst    : 1.972 ms
+Worst 5% : 1.475 ms
+Best     : 0.7064 ms
+Best  5% : 0.7266 ms
+---------- ECS cycle ----------
+Average  : 2.464 ms
+Median   : 2.437 ms
+Worst    : 3.583 ms
+Worst 5% : 2.632 ms
+Best     : 2.300 ms
+Best  5% : 2.388 ms
 ---------- Game Constructor ----------
-Time     : 559.9 ms
+Time     : 673.2 ms

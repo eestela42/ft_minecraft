@@ -25,6 +25,7 @@ class Component
 		std::vector<unsigned char>* getComponents();
 
 		unsigned int getId() {return id;};
+		void print();
 };
 
 
