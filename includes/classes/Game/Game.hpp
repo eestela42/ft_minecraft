@@ -49,6 +49,9 @@ struct pair_hash {
 
 class Game: public I_Input
 {
+	//tmp
+	VertexArrayObject *model_VAO;
+	int amount = 100;
 
 private :
 

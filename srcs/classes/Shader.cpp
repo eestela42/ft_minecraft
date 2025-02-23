@@ -117,7 +117,8 @@ void Shader::parseAttributes(const char *path) {
 			}
 			else {
 				std::cout << "Type not supported by current codebase : " << typeName << std::endl;
-				assert(0);
+				continue ;
+				// assert(0);
 			}
 			attributes.push_back(attribute);
 		}
