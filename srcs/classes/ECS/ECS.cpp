@@ -6,12 +6,14 @@
 ECS::ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mutex,
 			bool &endThread, std::mutex &endThread_mutex,
 			std::deque<info_VAO*> &to_VAO, 			std::mutex &to_VAO_mutex,
-			std::deque<glm::ivec2> &toDeleteVAO, 	std::mutex &toDeleteVAO_mutex
-		)
-		: tabChunks(tabChunks), tabChunks_mutex(tabChunks_mutex),
-		endThread(endThread), endThread_mutex(endThread_mutex),
-		to_VAO(to_VAO), to_VAO_mutex(to_VAO_mutex),
-		toDeleteVAO(toDeleteVAO), toDeleteVAO_mutex(toDeleteVAO_mutex)
+			std::deque<glm::ivec2> &toDeleteVAO, 	std::mutex &toDeleteVAO_mutex,
+			std::vector<unsigned char> **entityPos, std::mutex &entityPos_mutex)
+
+		: tabChunks(tabChunks), 	tabChunks_mutex(tabChunks_mutex),
+		endThread(endThread), 		endThread_mutex(endThread_mutex),
+		to_VAO(to_VAO), 			to_VAO_mutex(to_VAO_mutex),
+		toDeleteVAO(toDeleteVAO), 	toDeleteVAO_mutex(toDeleteVAO_mutex),
+		entityPos(entityPos), 		entityPos_mutex(entityPos_mutex)
 {
 	// systems.push_back(new SystemGetChunk());
 	systems.push_back(new SystemIsOnGround());
@@ -21,7 +23,7 @@ ECS::ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mu
 
 	components["pos"] = new Component(0, sizeof(glm::vec3));
 	components["movement"] = new Component(1, sizeof(glm::vec3));
-
+	*entityPos = components["pos"]->getComponents();
 }
 
 ECS::~ECS()
@@ -188,6 +190,10 @@ void ECS::cycle()
 					{
 						data->push_back((void*)&tabChunks);
 						data->push_back((void*)&tabChunks_mutex);
+					}
+					if (id == -2)
+					{
+						data->push_back((void*)&entityPos_mutex);
 					}
 				}
 			}

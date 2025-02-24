@@ -68,7 +68,7 @@ void SystemIsOnGround::apply(std::vector<void*> &data)
 		return ;
 	}
 
-	bool isFilled = chunk->pubIsFilled((int)pos->x % 16, (int)pos->y % 16, (int)pos->z);
+	bool isFilled = chunk->pubIsFilled((int)pos->x % 16, (int)pos->y % 16, (int)pos->z - 1);
 
 	if (isFilled)
 	{
@@ -116,6 +116,7 @@ SystemMove::SystemMove()
 {
 	flag_components.set(0);
 	flag_components.set(1);
+	flag_info.set(1);
 }
 
 SystemMove::~SystemMove()
@@ -127,9 +128,13 @@ void SystemMove::apply(std::vector<void*> &data)
 	glm::vec3* pos = (glm::vec3*)data[1];
 	glm::vec3* movement = (glm::vec3*)data[2];
 
+	std::mutex *entityPos_mutex = (std::mutex*)data[3];
+
+	entityPos_mutex->lock();
 	pos->x += movement->x;
 	pos->y += movement->y;
 	pos->z += movement->z;
+	entityPos_mutex->unlock();
 }
 
 SystemDraw::SystemDraw()

@@ -50,8 +50,9 @@ struct pair_hash {
 class Game: public I_Input
 {
 	//tmp
+	unsigned int buffer;
 	VertexArrayObject *model_VAO;
-	int amount = 100;
+	int amount = 1750;
 
 private :
 
@@ -93,6 +94,8 @@ private :
 									glm::vec3(0, 1, 0));
 
 
+	void manageVaoEntity();
+									
 	void manageVAO();
 
 
@@ -107,6 +110,9 @@ private :
 
 	std::mutex					endChunkInstanciator_mutex;
 	bool 						endChunkInstanciator = false;
+
+	std::mutex					entityPos_mutex;
+	std::vector<unsigned char>		*entityPos = NULL;
 
 	std::vector<DrawInfo> Vao_draw;
 

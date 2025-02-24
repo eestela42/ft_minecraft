@@ -164,8 +164,9 @@ void ChunkInstanciator::deleteBadChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabP
 
 	if (tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsGeneratedMutex())
 	{
-
+		tabChunks[chunkTabPos.x][chunkTabPos.y]->deleter();	
 		tabChunks[chunkTabPos.x][chunkTabPos.y] = NULL;
+
 	}
 }
 

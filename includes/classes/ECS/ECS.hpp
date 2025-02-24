@@ -30,6 +30,9 @@ class ECS
 		std::deque<glm::ivec2> 				&toDeleteVAO;
 		std::mutex 							&toDeleteVAO_mutex;
 
+		std::vector<unsigned char> 				**entityPos;
+		std::mutex 							&entityPos_mutex;
+
 		bool &endThread;
 		std::mutex &endThread_mutex;
 
@@ -37,7 +40,8 @@ class ECS
 		ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mutex,
 			bool &endThread, std::mutex &endThread_mutex,
 			std::deque<info_VAO*> &to_VAO, 			std::mutex &to_VAO_mutex,
-			std::deque<glm::ivec2> &toDeleteVAO, 	std::mutex &toDeleteVAO_mutex);
+			std::deque<glm::ivec2> &toDeleteVAO, 	std::mutex &toDeleteVAO_mutex,
+			std::vector<unsigned char> **entityPos, std::mutex &entityPos_mutex);
 		~ECS();
 		
 		void addEntity();
