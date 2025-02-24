@@ -30,9 +30,13 @@ Game::Game()
 	ecs = new ECS(chunkInstanciator->getTabChunks(), chunkInstanciator->getTabChunks_mutex(),
 					endChunkInstanciator, endChunkInstanciator_mutex,
 					dequeueVAO, dequeueVAO_mutex,
-					dequeueDeleteVAO, dequeueDeleteVAO_mutex);
-	for (int i = 0; i < 1000; i++)
-		ecs->addEntity(std::rand() % 100, std::rand() % 100, std::rand() % 10000);
+					dequeueDeleteVAO, dequeueDeleteVAO_mutex,
+					&entityPos, entityPos_mutex);
+
+
+
+	for (int i = 0; i < amount; i++)
+		ecs->addEntity(std::rand() % 300, std::rand() % 300, 200);
 	// ecs->addEntity();
 	// ecs->addEntity();
 	// ecs->addEntity();
@@ -75,46 +79,27 @@ Game::Game()
 		indices->push_back(mesh42->triangles[i].v[2]);
 	}
 	// std::vector<unsigned int>* indices = (std::vector<unsigned int>*)&(mesh42->triangles);
-	
 	model_VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*indices), shaderHandler->GetShader("entity"));
-
-	
 	glm::mat4* modelMatrices;
     modelMatrices = new glm::mat4[amount];
-    srand(static_cast<unsigned int>(glfwGetTime())); // initialize random seed
-    float radius = 150.0;
-    float offset = 25.0f;
+	entityPos_mutex.lock();
     for (unsigned int i = 0; i < amount; i++)
     {
         glm::mat4 model = glm::mat4(1.0f);
-		float angle = (float)i / (float)amount * 360.0f;
-        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-        float x = sin(angle) * radius + displacement;
-        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-        float y = displacement * 0.4f; // keep height of asteroid field smaller compared to width of x and z
-        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-        float z = cos(angle) * radius + displacement;
-        model = glm::translate(model, glm::vec3(x, y, z));
-
-        // 2. scale: Scale between 0.05 and 0.25f
-        float scale = static_cast<float>((rand() % 20) / 100.0 + 0.05);
-        model = glm::scale(model, glm::vec3(scale));
-
-        // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
-        float rotAngle = static_cast<float>((rand() % 360));
-        model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
-
-        // 4. now add to list of matrices
-        modelMatrices[i] = model;
+		model = glm::translate(model, glm::vec3(0, 0, 0));
+		// model = glm::translate(model, entityPos->at(i));
+		modelMatrices[i] = model;
     }
+	entityPos_mutex.unlock();
+	std::cout << "2" << std::endl;
 
     // configure instanced array
     // -------------------------
-    unsigned int buffer;
+	
+    buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
-
 	unsigned int VAO = model_VAO->GetVAO();
 	glBindVertexArray(VAO);
 	// set attribute pointers for matrix (4 times vec4)
@@ -133,6 +118,7 @@ Game::Game()
 	glVertexAttribDivisor(4, 1);
 
 	glBindVertexArray(0);
+	
 }
 
 Game::~Game() {
@@ -150,6 +136,7 @@ void Game::StartLoop() {
 	//lancer le thread de generation de chunks
 	std::thread chunkThread(&ChunkInstanciator::update, chunkInstanciator);
 	std::thread ecsThread(&ECS::update, ecs);
+	//sleep 1s
 	
 	int i = 0;
 	while(window->ShouldContinue())
@@ -177,8 +164,8 @@ void Game::StartLoop() {
 
 void Game::Loop() {
 	inputHandler->HandleInput();
+	manageVaoEntity();
 
-	// ecs->cycle();
 
 	window->Clear();
 
@@ -216,6 +203,7 @@ void Game::Loop() {
 	
 	glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(model_VAO->GetEBO()->GetSize()), GL_UNSIGNED_INT, 0, amount);
 	// glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(model_VAO->GetEBO()->GetSize()), GL_UNSIGNED_INT, 0);
+	glDisableVertexAttribArray(1);
 	glBindVertexArray(0);
 
 	window->SwapBuffersAndPollEvents();
@@ -226,6 +214,51 @@ void Game::Loop() {
 void Game::draw()
 {
 	vertexArrayObjectHandler->DrawAll(1);
+
+}
+
+void Game::manageVaoEntity()
+{
+	// std::cout << "manageVaoEntity" << std::endl;
+	// printf("entityPos : %p\n", entityPos);
+	// std::cout << "size : " << entityPos->size() << std::endl;
+	std::vector<glm::mat4> modelMatrices(amount);
+	// std::cout << "1" << std::endl;
+	entityPos_mutex.lock();
+	glm::vec3 *data = (glm::vec3*)entityPos->data();
+	for (unsigned int i = 0; i < amount; i++) {
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::vec3 pos = data[i];
+		// std::cout << "pos  " << i << ": " << pos.x << " " << pos.y << " " << pos.z << std::endl;
+		model = glm::translate(model, glm::vec3(pos.x, pos.z, pos.y));
+		modelMatrices[i] = model;
+	}
+	entityPos_mutex.unlock();
+	unsigned int VAO = model_VAO->GetVAO();
+	
+	// Update the buffer without recreating it
+	// glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	// glBufferSubData(GL_ARRAY_BUFFER, 0, amount * sizeof(glm::mat4), modelMatrices.data());
+	// glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+	
+	glBindVertexArray(VAO);
+	// set attribute pointers for matrix (4 times vec4)
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+	glVertexAttribDivisor(1, 1);
+	glVertexAttribDivisor(2, 1);
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
 
 }
 
