@@ -164,8 +164,10 @@ void ChunkInstanciator::deleteBadChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabP
 
 	if (tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsGeneratedMutex())
 	{
+		tabChunks_mutex.lock();
 		tabChunks[chunkTabPos.x][chunkTabPos.y]->deleter();	
 		tabChunks[chunkTabPos.x][chunkTabPos.y] = NULL;
+		tabChunks_mutex.unlock();
 
 	}
 }
@@ -232,6 +234,7 @@ void ChunkInstanciator::update()
 	endThread_mutex.lock();
 	while(endThread == false)
 	{
+	
 		endThread_mutex.unlock();
 		realPlayerPos_mutex.lock();
 		glm::vec3 playerPos = realPlayerPos;

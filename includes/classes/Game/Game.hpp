@@ -52,7 +52,7 @@ class Game: public I_Input
 	//tmp
 	unsigned int buffer;
 	VertexArrayObject *model_VAO;
-	int amount = 1750;
+	int amount = 10000;
 
 private :
 
@@ -68,7 +68,7 @@ private :
 
 
 	//config
-	int renderDistance = 32;
+	int renderDistance = 50;
 	int chunkLoadingSize = renderDistance * 2 + 1;
 
 	TextureArray blockTextureArray;
@@ -108,8 +108,8 @@ private :
 	std::mutex					dequeueDeleteVAO_mutex;
 	std::deque<glm::ivec2> 		dequeueDeleteVAO;
 
-	std::mutex					endChunkInstanciator_mutex;
-	bool 						endChunkInstanciator = false;
+	std::mutex					endThreads_mutex;
+	bool 						endThreads = false;
 
 	std::mutex					entityPos_mutex;
 	std::vector<unsigned char>		*entityPos = NULL;

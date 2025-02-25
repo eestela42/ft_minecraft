@@ -1,7 +1,10 @@
 #include <classes/Game/Game.hpp>
 #include <classes/Game/mesh.hpp>
 
+unsigned int depthMapFBO;
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
+unsigned int depthMap;
 
 
 Game::Game()
@@ -25,18 +28,17 @@ Game::Game()
 													dequeueVAO, dequeueVAO_mutex,
 													dequeueDeleteVAO, dequeueDeleteVAO_mutex,
 													playerHasMoved, playerHasMoved_mutex,
-													endChunkInstanciator, endChunkInstanciator_mutex);
+													endThreads, endThreads_mutex);
 
 	ecs = new ECS(chunkInstanciator->getTabChunks(), chunkInstanciator->getTabChunks_mutex(),
-					endChunkInstanciator, endChunkInstanciator_mutex,
-					dequeueVAO, dequeueVAO_mutex,
-					dequeueDeleteVAO, dequeueDeleteVAO_mutex,
+					cameraPosition, playerPos_mutex,
+					endThreads, endThreads_mutex,
 					&entityPos, entityPos_mutex);
 
 
 
 	for (int i = 0; i < amount; i++)
-		ecs->addEntity(std::rand() % 300, std::rand() % 300, 200);
+		ecs->addEntity(std::rand() % 500, std::rand() % 500, 255 + std::rand() % 50);
 	// ecs->addEntity();
 	// ecs->addEntity();
 	// ecs->addEntity();
@@ -64,10 +66,30 @@ Game::Game()
 	skyBox = new SkyBox(shaderHandler->GetShader("cubemap"));
 	std::cout << "end game constructor" << std::endl;
 
+	glGenFramebuffers(1, &depthMapFBO);
+	
+
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
+				SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	
 
 
 
-	mesh *mesh42 = new mesh("object3d/42.obj");
+
+	mesh *mesh42 = new mesh("object3d/sheep.obj");
 
 	t_vertexData dataStruct = {(u_char*)(mesh42->vertexes.data()), mesh42->vertexes.size() * (sizeof(glm::vec3) + 4 * sizeof(glm::vec4))};
 
@@ -91,7 +113,6 @@ Game::Game()
 		modelMatrices[i] = model;
     }
 	entityPos_mutex.unlock();
-	std::cout << "2" << std::endl;
 
     // configure instanced array
     // -------------------------
@@ -150,9 +171,9 @@ void Game::StartLoop() {
 			begin = std::chrono::steady_clock::now();
 		}
 	}
-	endChunkInstanciator_mutex.lock();
-	endChunkInstanciator = true;
-	endChunkInstanciator_mutex.unlock();
+	endThreads_mutex.lock();
+	endThreads = true;
+	endThreads_mutex.unlock();
 	
 	playerHasMoved_mutex.lock();
 	playerHasMoved = true;
@@ -163,11 +184,32 @@ void Game::StartLoop() {
 }
 
 void Game::Loop() {
+	window->Clear();
+
 	inputHandler->HandleInput();
 	manageVaoEntity();
+	
+	//light
+	// float near_plane = 1.0f, far_plane = 7.5f;
+	// glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+
+	// glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f), 
+    //                               glm::vec3( 0.0f, 0.0f,  0.0f), 
+    //                               glm::vec3( 0.0f, 1.0f,  0.0f));
+
+	// glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+	// shaderHandler->Use("RLE-Geometry-Light");
+	// Shader::GetActiveShader()->SetInt("chunk_size_x", AChunk::sizeX);
+	// Shader::GetActiveShader()->SetInt("chunk_size_y", AChunk::sizeY);
+	// Shader::GetActiveShader()->Setmat4("lightSpaceMatrix", lightSpaceMatrix);
+
+	// glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	// draw();
+	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-	window->Clear();
+
 
 	glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, cameraUp);
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)DEFAULT_WINDOW_WIDTH/(float)DEFAULT_WINDOW_HEIGHT, 0.1f, 16000.0f);
@@ -259,7 +301,6 @@ void Game::manageVaoEntity()
 	glVertexAttribDivisor(2, 1);
 	glVertexAttribDivisor(3, 1);
 	glVertexAttribDivisor(4, 1);
-
 }
 
 void Game::manageVAO()

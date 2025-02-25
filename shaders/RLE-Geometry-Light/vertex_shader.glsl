@@ -31,7 +31,6 @@ out GEO_OUT {
 
 out int tmp_vertID;
 
-
 void main()
 {
 	tmp_vertID = gl_VertexID;

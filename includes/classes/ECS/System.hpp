@@ -7,6 +7,7 @@
 #include <vector>
 #include <classes/ECS/Entity.hpp>
 #include <classes/World/AChunk.hpp>
+#include <map>
 
 class ECS;
 
@@ -25,8 +26,6 @@ class ASystem
 
 		virtual void apply(std::vector<void*> &data);
 };
-
-
 
 class SystemIsOnGround : public ASystem
 {
@@ -58,6 +57,16 @@ class SystemGarvity : public ASystem
 		void apply(std::vector<void*> &data);
 };
 
+class SystemChase : public ASystem
+{
+	private :
+	
+	public :
+		SystemChase();
+		~SystemChase();
+		void apply(std::vector<void*> &data);
+};
+
 class SystemMove : public ASystem
 {
 	private :
@@ -65,16 +74,6 @@ class SystemMove : public ASystem
 	public :
 		SystemMove();
 		~SystemMove();
-		void apply(std::vector<void*> &data);
-};
-
-class SystemDraw : public ASystem
-{
-	private :
-	
-	public :
-		SystemDraw();
-		~SystemDraw();
 		void apply(std::vector<void*> &data);
 };
 
