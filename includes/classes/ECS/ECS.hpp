@@ -9,6 +9,8 @@
 # include <mutex>
 # include <classes/World/AChunk.hpp>
 #include <deque>
+#include <thread>
+#include <map>
 
 
 
@@ -17,18 +19,20 @@ class ECS
 	private :
 		std::vector<Entity> entities;
 
-		std::unordered_map<std::string, Component*> components;
+		std::vector<Component*> components;
 
 		std::vector<ASystem*> systems;
+
+		//stockage chunks needed
+		std::map<glm::vec2, AChunk*, Vec2Comparator> chunks_needed;
+
+		unsigned int playerEntity;
 
 		std::vector<std::vector<AChunk*>> 	&tabChunks;
 		std::mutex 							&tabChunks_mutex;
 
-		std::deque<info_VAO*> 				&to_VAO;
-		std::mutex 							&to_VAO_mutex;
-
-		std::deque<glm::ivec2> 				&toDeleteVAO;
-		std::mutex 							&toDeleteVAO_mutex;
+		glm::vec3 							&playerPos;
+		std::mutex 							&playerPos_mutex;
 
 		std::vector<unsigned char> 				**entityPos;
 		std::mutex 							&entityPos_mutex;
@@ -38,9 +42,8 @@ class ECS
 
 	public :
 		ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mutex,
+			glm::vec3 &playerPos, std::mutex &playerPos_mutex,
 			bool &endThread, std::mutex &endThread_mutex,
-			std::deque<info_VAO*> &to_VAO, 			std::mutex &to_VAO_mutex,
-			std::deque<glm::ivec2> &toDeleteVAO, 	std::mutex &toDeleteVAO_mutex,
 			std::vector<unsigned char> **entityPos, std::mutex &entityPos_mutex);
 		~ECS();
 		
@@ -50,6 +53,9 @@ class ECS
 
 		void update();
 		void cycle();
+
+		void makeData(int i, std::vector<void*> &data, std::vector<int> &order, glm::vec3 &cp_playerPose,
+			std::vector<Component*> &vec_components, std::map<glm::vec2, AChunk*, Vec2Comparator> &chunks_needed);
 
 		void printAll();
 

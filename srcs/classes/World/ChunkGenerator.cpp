@@ -309,13 +309,18 @@ u_char		*ChunkGenerator::generator(glm::ivec2 tmp_pos) {
 		
 		int z = genBedrock(data, x, y);
 
+	
+		// for (; z < 10 + tmp_pos.x * 5 && z < sizeZ ; z++)
+		// {
+		// 	data[x * sizeZ + y * sizeX * sizeZ + z] = STONE + tmp_pos.x % 10;
+		// }
+		// continue ;
 
 		// data[x * sizeZ + y * sizeX * sizeZ + z++] = AIR;
 		// if (x % 2)
 		// 	data[x * sizeZ + y * sizeX * sizeZ + z++] = STONE + tmp_pos.x % 10;
 		// else
 		// 	data[x * sizeZ + y * sizeX * sizeZ + z++] = STONE + tmp_pos.y % 10;
-
 		
 
 

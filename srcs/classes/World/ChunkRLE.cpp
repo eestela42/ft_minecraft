@@ -650,9 +650,11 @@ void ChunkRLE::privGenerate(u_char *rawData)
 	if (!getIsGenerated()|| z < 0 || z >= sizeZ) {
 		return false;
 	}
+
 	const u_char *data = rubans->data();
 	int pos = this->rubansIndexes[x][y];
 	int tmp_z = 0;
+
 	while (tmp_z <= z)
 	{
 		tmp_z += data[pos + 1];

@@ -10,6 +10,7 @@ uniform int TextureArraySize;
 
 uniform sampler2DArray ourTextureArray;
 
+
 void main()
 {
 	if (out_grass == 1)
