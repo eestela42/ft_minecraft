@@ -29,6 +29,7 @@
 
 #include <thread>
 
+
 struct DrawInfo
 {
 	u_int VAO;
@@ -62,6 +63,9 @@ private :
 	ChunkInstanciator *chunkInstanciator;
 	VertexArrayObjectHandler *vertexArrayObjectHandler;
 
+	std::vector<std::vector<AChunk*>> *tabChunks;
+	std::mutex *tabChunks_mutex;
+
 	ECS *ecs;
 	
 	void SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) /*override*/;
@@ -88,15 +92,13 @@ private :
 	glm::vec3 cameraDirection = glm::vec3(	cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 											sin(glm::radians(pitch)),
 											sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
-	// glm::vec3 cameraDirection = glm::vec3(0, 0, 0);
+
 	glm::mat4 view = glm::lookAt(	cameraPosition,
 									cameraPosition + cameraDirection,
 									glm::vec3(0, 1, 0));
 
 
-	void manageVaoEntity();
-									
-	void manageVAO();
+	
 
 
 	std::mutex 					playerHasMoved_mutex;
@@ -115,8 +117,13 @@ private :
 	std::vector<unsigned char>		*entityPos = NULL;
 
 	std::vector<DrawInfo> Vao_draw;
-
+	
+	
+	void manageVAO();
 	void draw();
+
+	void manageVaoEntity();
+	void drawEntity();
 
 	std::unordered_map<std::pair<int, int>, u_int, pair_hash> map_VAO;
 

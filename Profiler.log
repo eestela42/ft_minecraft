@@ -1,30 +1,56 @@
+---------- SystemGarvity ----------
+Average  : 19.49 ms
+Median   : 19.25 ms
+Worst    : 21.69 ms
+Worst 5% : 21.34 ms
+Best     : 17.05 ms
+Best  5% : 18.79 ms
+---------- SystemGetChunk ----------
+Average  : 17.34 ms
+Median   : 17.42 ms
+Worst    : 18.62 ms
+Worst 5% : 18.35 ms
+Best     : 15.77 ms
+Best  5% : 16.20 ms
+---------- SystemIsOnGround ----------
+Average  : 23.76 ms
+Median   : 23.87 ms
+Worst    : 25.01 ms
+Worst 5% : 24.69 ms
+Best     : 21.46 ms
+Best  5% : 22.22 ms
 ---------- ECS cycle ----------
-Average  : 46.35 ms
-Median   : 46.54 ms
-Worst    : 50.45 ms
-Worst 5% : 49.74 ms
-Best     : 42.97 ms
-Best  5% : 43.16 ms
----------- Chunk Generate ----------
-Average  : 117.4 μs
-Median   : 113.6 μs
-Worst    : 250.9 μs
-Worst 5% : 135.4 μs
-Best     : 107.4 μs
-Best  5% : 109.1 μs
----------- the generator ----------
-Average  : 1.129 ms
-Median   : 0.9163 ms
-Worst    : 5.830 ms
-Worst 5% : 2.064 ms
-Best     : 0.7193 ms
-Best  5% : 0.8035 ms
+Average  : 71.37 ms
+Median   : 71.45 ms
+Worst    : 74.90 ms
+Worst 5% : 73.51 ms
+Best     : 67.32 ms
+Best  5% : 68.40 ms
+---------- SystemChase ----------
+Average  : 10.77 ms
+Median   : 10.76 ms
+Worst    : 11.10 ms
+Worst 5% : 10.93 ms
+Best     : 10.60 ms
+Best  5% : 10.68 ms
 ---------- Chunk Compile ----------
-Average  : 0.4837 ms
-Median   : 0.4131 ms
-Worst    : 1.557 ms
-Worst 5% : 0.9624 ms
-Best     : 0.2477 ms
-Best  5% : 0.2824 ms
----------- Game Constructor ----------
-Time     : 811.4 ms
+Average  : 0.3104 ms
+Median   : 0.2728 ms
+Worst    : 1.118 ms
+Worst 5% : 0.4693 ms
+Best     : 0.2184 ms
+Best  5% : 0.2391 ms
+---------- Chunk Generate ----------
+Average  : 107.0 μs
+Median   : 106.2 μs
+Worst    : 152.9 μs
+Worst 5% : 112.2 μs
+Best     : 101.2 μs
+Best  5% : 102.3 μs
+---------- the generator ----------
+Average  : 0.8413 ms
+Median   : 0.7970 ms
+Worst    : 3.194 ms
+Worst 5% : 1.064 ms
+Best     : 0.6902 ms
+Best  5% : 0.7052 ms

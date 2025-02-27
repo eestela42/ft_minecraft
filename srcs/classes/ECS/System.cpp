@@ -264,6 +264,7 @@ void SystemChase::apply(std::vector<void*> &data)
 	// movement->y = 0.1;
 	// std::cout << "after chase" << std::endl;
 	// std::cout << "movement " << movement->x << " " << movement->y << " " << movement->z << std::endl;
+	
 	movement->x = direction.x;
 	movement->y = direction.y;
 

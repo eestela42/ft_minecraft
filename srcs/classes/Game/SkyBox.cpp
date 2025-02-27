@@ -49,7 +49,6 @@ float skyboxVertices[] = {
 
 unsigned int skyShape[] = {0, 1, 2, 2, 3, 0};
 
-
 unsigned int loadCubemap(std::vector<std::string> faces)
 {
     unsigned int textureID;

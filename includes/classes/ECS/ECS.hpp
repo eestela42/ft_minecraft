@@ -24,7 +24,8 @@ class ECS
 		std::vector<ASystem*> systems;
 
 		//stockage chunks needed
-		std::map<glm::vec2, AChunk*, Vec2Comparator> chunks_needed;
+		std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal> chunks_needed;
+		std::vector<std::vector<AChunk*>> tabChunks_needed;
 
 		unsigned int playerEntity;
 
@@ -55,7 +56,7 @@ class ECS
 		void cycle();
 
 		void makeData(int i, std::vector<void*> &data, std::vector<int> &order, glm::vec3 &cp_playerPose,
-			std::vector<Component*> &vec_components, std::map<glm::vec2, AChunk*, Vec2Comparator> &chunks_needed);
+			std::vector<Component*> &vec_components, std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal> &chunks_needed);
 
 		void printAll();
 
