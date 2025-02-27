@@ -282,7 +282,7 @@ void ChunkInstanciator::update()
 
 
 				if (chunkPos.x != playerChunkPos.x + x || chunkPos.y != playerChunkPos.y + y)
-				{//Updatechunk fait deja le boulot nn ?
+				{	//Updatechunk fait deja le boulot nn ?
 					deleteBadChunk(chunkPos, chunkTabPos, playerChunkPos);
 					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
 					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
@@ -300,7 +300,6 @@ void ChunkInstanciator::update()
 			}
 			playerHasMoved_mutex.unlock();
 		}
-
 		endThread_mutex.lock();
 	}
 	endThread_mutex.unlock();

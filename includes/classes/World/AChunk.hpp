@@ -17,6 +17,21 @@
 # define NEIGHB_EAST 2
 # define NEIGHB_WEST 3
 
+struct IVec2Hash {
+    std::size_t operator()(const glm::ivec2& v) const {
+        // std::size_t h1 = std::hash<int>{}(v.x);
+        // std::size_t h2 = std::hash<int>{}(v.y);
+        // return h1 ^ (h2 << 1); // Combine hashes
+		return (std::size_t)v.x * 1000000 + v.y;
+    }
+};
+
+struct IVec2Equal {
+    bool operator()(const glm::ivec2& lhs, const glm::ivec2& rhs) const {
+        return lhs.x == rhs.x && lhs.y == rhs.y;
+    }
+};
+
 int mod_floor(int a, int n);
 
 class AChunk;

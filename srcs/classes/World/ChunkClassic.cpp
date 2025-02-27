@@ -10,6 +10,13 @@ ChunkClassic::~ChunkClassic()
 	// delete data;
 }
 
+void ChunkClassic::deleter()
+{
+	if (this->sharedHolder == 1)
+		delete this;
+	else
+		this->sharedHolder--;
+}
 
 //NORD SUD EST OUEST HAUT BAS
 void ChunkClassic::createFace(int x, int y, int z, int tab_x, int tab_y, int tab_z, int dir)

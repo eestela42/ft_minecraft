@@ -2,7 +2,6 @@
 #include <glm/glm.hpp>
 
 
-
 ECS::ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mutex,
 			glm::vec3 &playerPos, std::mutex &playerPos_mutex,
 			bool &endThread, std::mutex &endThread_mutex,
@@ -13,12 +12,11 @@ ECS::ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mu
 		endThread(endThread), 		endThread_mutex(endThread_mutex),
 		entityPos(entityPos), 		entityPos_mutex(entityPos_mutex)
 {
-	// systems.push_back(new SystemGetListChunk());
 	// systems.push_back(new SystemGetChunk());
 	systems.push_back(new SystemIsOnGround());
 	systems.push_back(new SystemChase());
 	systems.push_back(new SystemGarvity());
-	systems.push_back(new SystemMove());	
+	systems.push_back(new SystemMove());
 
 	components.push_back(new Component(0, sizeof(glm::vec3)));
 	components.push_back(new Component(1, sizeof(glm::vec3)));
@@ -140,7 +138,7 @@ void ECS::update()
 }
 
 void ECS::makeData(int i, std::vector<void*> &data, std::vector<int> &order, glm::vec3 &cp_playerPose,
-					std::vector<Component*> &vec_components, std::map<glm::vec2, AChunk*, Vec2Comparator> &chunks_needed)
+					std::vector<Component*> &vec_components, std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal> &chunks_needed)
 {
 
 	std::vector<id> compo_id = entities[i].getComponents();
@@ -189,7 +187,7 @@ void ECS::cycle()
 	glm::vec3 cp_playerPose = playerPos;
 	playerPos_mutex.unlock();
 
-
+	std::vector<const char *> systemeNames = {"SystemGetChunk", "SystemIsOnGround", "SystemChase", "SystemGarvity", "SystemMove"};
 
 	
 
@@ -198,6 +196,8 @@ void ECS::cycle()
 	int y = 0;
 	for (auto system : systems)
 	{
+		if (PROFILER_ON)
+			Profiler::StartTracking(systemeNames[y]);
 		// std::cout << "system : " << y++ << std::endl;
 		std::bitset<8> system_flag_compo = system->getFlagCompo();
 		std::bitset<8> system_flag_info = system->getFlagInfo();
@@ -218,15 +218,17 @@ void ECS::cycle()
 			
 			system->apply(data);
 		}
+		if (PROFILER_ON)
+			Profiler::StopTracking(systemeNames[y]);
+		y++;
 	}
-
 	// tabChunks_mutex.lock();
 	// for (auto chunk : chunks_needed)
 	// {
-	// 	// std::cout << "chunk pos : " << chunk.first.x << " " << chunk.first.y << std::endl;
 	// 	chunk.second->deleter();
 	// 	chunk.second = NULL;
 	// }
+	// chunks_needed.clear();
 	// tabChunks_mutex.unlock();
 }
 

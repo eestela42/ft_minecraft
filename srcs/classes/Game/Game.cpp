@@ -9,39 +9,13 @@ unsigned int depthMap;
 
 Game::Game()
 {
-	std::cout << "start game constructor" << std::endl;
-
 	window = new Window("Minecraft", DrawMode::FILL);
 	inputHandler = new InputHandler(window->GetWindow());
 	inputHandler->AddCallback((I_Input*)this); // c'est quoi c'truc
 	inputHandler->AddCallback((I_Input*)window);
 	shaderHandler = new ShaderHandler("shaders");
 
-
-
-
 	vertexArrayObjectHandler = new VertexArrayObjectHandler();
-
-
-	std::cout << "render distance : " << renderDistance << std::endl;
-	chunkInstanciator = new ChunkInstanciator(renderDistance, cameraPosition, playerPos_mutex,
-													dequeueVAO, dequeueVAO_mutex,
-													dequeueDeleteVAO, dequeueDeleteVAO_mutex,
-													playerHasMoved, playerHasMoved_mutex,
-													endThreads, endThreads_mutex);
-
-	ecs = new ECS(chunkInstanciator->getTabChunks(), chunkInstanciator->getTabChunks_mutex(),
-					cameraPosition, playerPos_mutex,
-					endThreads, endThreads_mutex,
-					&entityPos, entityPos_mutex);
-
-
-
-	for (int i = 0; i < amount; i++)
-		ecs->addEntity(std::rand() % 500, std::rand() % 500, 255 + std::rand() % 50);
-	// ecs->addEntity();
-	// ecs->addEntity();
-	// ecs->addEntity();
 
 	blockTextureArray = TextureLoader::LoadTextureArray(
 	{
@@ -61,32 +35,24 @@ Game::Game()
 	std::filesystem::path("textures/texturePack/UNKNOWN.jpg"),
 	});
 
-	VertexArrayObjectHandler *vertexArrayObjectHandler = new VertexArrayObjectHandler();
-
 	skyBox = new SkyBox(shaderHandler->GetShader("cubemap"));
-	std::cout << "end game constructor" << std::endl;
 
-	glGenFramebuffers(1, &depthMapFBO);
-	
-
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
-				SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	
+	chunkInstanciator = new ChunkInstanciator(renderDistance, cameraPosition, playerPos_mutex,
+													dequeueVAO, dequeueVAO_mutex,
+													dequeueDeleteVAO, dequeueDeleteVAO_mutex,
+													playerHasMoved, playerHasMoved_mutex,
+													endThreads, endThreads_mutex);
 
 
+	ecs = new ECS(chunkInstanciator->getTabChunks(), chunkInstanciator->getTabChunks_mutex(),
+					cameraPosition, playerPos_mutex,
+					endThreads, endThreads_mutex,
+					&entityPos, entityPos_mutex);
+
+
+
+	for (int i = 0; i < amount; i++)
+		ecs->addEntity(std::rand() % 500 - 250, std::rand() % 500 - 250, 255 + std::rand() % 50);
 
 
 	mesh *mesh42 = new mesh("object3d/sheep.obj");
@@ -100,7 +66,7 @@ Game::Game()
 		indices->push_back(mesh42->triangles[i].v[1]);
 		indices->push_back(mesh42->triangles[i].v[2]);
 	}
-	// std::vector<unsigned int>* indices = (std::vector<unsigned int>*)&(mesh42->triangles);
+
 	model_VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*indices), shaderHandler->GetShader("entity"));
 	glm::mat4* modelMatrices;
     modelMatrices = new glm::mat4[amount];
@@ -109,13 +75,11 @@ Game::Game()
     {
         glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0, 0, 0));
-		// model = glm::translate(model, entityPos->at(i));
 		modelMatrices[i] = model;
     }
 	entityPos_mutex.unlock();
 
     // configure instanced array
-    // -------------------------
 	
     buffer;
     glGenBuffers(1, &buffer);
@@ -123,7 +87,7 @@ Game::Game()
     glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
 	unsigned int VAO = model_VAO->GetVAO();
 	glBindVertexArray(VAO);
-	// set attribute pointers for matrix (4 times vec4)
+
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
 	glEnableVertexAttribArray(2);
@@ -154,10 +118,8 @@ void Game::StartLoop() {
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	u_int fps = 0;
 
-	//lancer le thread de generation de chunks
 	std::thread chunkThread(&ChunkInstanciator::update, chunkInstanciator);
 	std::thread ecsThread(&ECS::update, ecs);
-	//sleep 1s
 	
 	int i = 0;
 	while(window->ShouldContinue())
@@ -171,6 +133,7 @@ void Game::StartLoop() {
 			begin = std::chrono::steady_clock::now();
 		}
 	}
+
 	endThreads_mutex.lock();
 	endThreads = true;
 	endThreads_mutex.unlock();
@@ -187,29 +150,6 @@ void Game::Loop() {
 	window->Clear();
 
 	inputHandler->HandleInput();
-	manageVaoEntity();
-	
-	//light
-	// float near_plane = 1.0f, far_plane = 7.5f;
-	// glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-
-	// glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f), 
-    //                               glm::vec3( 0.0f, 0.0f,  0.0f), 
-    //                               glm::vec3( 0.0f, 1.0f,  0.0f));
-
-	// glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-	// shaderHandler->Use("RLE-Geometry-Light");
-	// Shader::GetActiveShader()->SetInt("chunk_size_x", AChunk::sizeX);
-	// Shader::GetActiveShader()->SetInt("chunk_size_y", AChunk::sizeY);
-	// Shader::GetActiveShader()->Setmat4("lightSpaceMatrix", lightSpaceMatrix);
-
-	// glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-	// draw();
-	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-
 
 	glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, cameraUp);
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)DEFAULT_WINDOW_WIDTH/(float)DEFAULT_WINDOW_HEIGHT, 0.1f, 16000.0f);
@@ -228,10 +168,9 @@ void Game::Loop() {
 		Shader::GetActiveShader()->SetInt("TextureArraySize", 6);
 	}
 
-
 	manageVAO();
-
 	draw();
+
 
 	shaderHandler->Use("entity");
 	if (Shader::GetActiveShader()) {
@@ -241,16 +180,11 @@ void Game::Loop() {
 		Shader::GetActiveShader()->SetInt("TextureArraySize", 6);
 	}
 
-	glBindVertexArray(model_VAO->GetVAO());
+	manageVaoEntity();
+	drawEntity();
 	
-	glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(model_VAO->GetEBO()->GetSize()), GL_UNSIGNED_INT, 0, amount);
-	// glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(model_VAO->GetEBO()->GetSize()), GL_UNSIGNED_INT, 0);
-	glDisableVertexAttribArray(1);
-	glBindVertexArray(0);
 
 	window->SwapBuffersAndPollEvents();
-
-
 }
 
 void Game::draw()
@@ -259,30 +193,30 @@ void Game::draw()
 
 }
 
+void Game::drawEntity()
+{
+	glBindVertexArray(model_VAO->GetVAO());
+	
+	glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(model_VAO->GetEBO()->GetSize()), GL_UNSIGNED_INT, 0, amount);
+	glDisableVertexAttribArray(1);
+	glBindVertexArray(0);
+}
+
 void Game::manageVaoEntity()
 {
-	// std::cout << "manageVaoEntity" << std::endl;
-	// printf("entityPos : %p\n", entityPos);
-	// std::cout << "size : " << entityPos->size() << std::endl;
 	std::vector<glm::mat4> modelMatrices(amount);
-	// std::cout << "1" << std::endl;
 	entityPos_mutex.lock();
 	glm::vec3 *data = (glm::vec3*)entityPos->data();
+
 	for (unsigned int i = 0; i < amount; i++) {
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::vec3 pos = data[i];
-		// std::cout << "pos  " << i << ": " << pos.x << " " << pos.y << " " << pos.z << std::endl;
 		model = glm::translate(model, glm::vec3(pos.x, pos.z, pos.y));
 		modelMatrices[i] = model;
 	}
 	entityPos_mutex.unlock();
 	unsigned int VAO = model_VAO->GetVAO();
 	
-	// Update the buffer without recreating it
-	// glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	// glBufferSubData(GL_ARRAY_BUFFER, 0, amount * sizeof(glm::mat4), modelMatrices.data());
-	// glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
 	
@@ -318,6 +252,7 @@ void Game::manageVAO()
 		pos_to_vao.erase(pos);
 	}
 	dequeueDeleteVAO_mutex.unlock();
+
 	vao_counter -= i;
 
 	i = 0;
@@ -339,6 +274,7 @@ void Game::manageVAO()
 	vao_counter += i;
 }
 
+//for the stream, auto-move
 bool Gogogo = false;
 
 void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
@@ -361,15 +297,18 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 			cameraPosition += glm::vec3(0, speed * speedMultiplier, 0);
 	if(keyState[KEY_MOVE_DOWNWARD] & KEY_HOLD)
 			cameraPosition += glm::vec3(0, -speed * speedMultiplier, 0);
-	if (Gogogo || keyState[KEY_DELETE_ONE_BLOCK] & KEY_PRESS)
+	
+
+	if (keyState[KEY_DELETE_ONE_BLOCK] & KEY_PRESS)
+		Gogogo = !Gogogo;
+	if (Gogogo)
 	{
-		Gogogo = true;
 		glm::vec3 flatDrirection = cameraDirection;
 		flatDrirection.y = 0;
 		cameraPosition += 2 * speed * speedMultiplier * flatDrirection;
-		// cameraPosition += speed * 0.5f * speedMultiplier * glm::normalize(glm::cross(cameraDirection, cameraUp));
 		mouseMoveX += 0.5;
 	}
+
 	playerPos_mutex.unlock();
 
 	yaw += mouseMoveX * sensitivity;
@@ -385,7 +324,6 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 
 	if (oldCamPos.x / AChunk::sizeX != cameraPosition.x / AChunk::sizeX || oldCamPos.z / AChunk::sizeY != cameraPosition.z / AChunk::sizeY)
 	{
-		// std::cout << "player has moved" << std::endl;
 		playerHasMoved_mutex.lock();
 		playerHasMoved = true;
 		playerHasMoved_mutex.unlock();
@@ -394,5 +332,4 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 	view = glm::lookAt(	cameraPosition, 
 						cameraPosition + glm::normalize(cameraDirection),
 						cameraUp);
-
 }

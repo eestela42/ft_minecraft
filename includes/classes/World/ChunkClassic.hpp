@@ -20,6 +20,7 @@ public:
 
 	ChunkClassic(int x, int y, int z);
 	~ChunkClassic();
+	void deleter() override;
 
 	void privGenerate(u_char *data) override;
 	void privCompile() override;
@@ -36,8 +37,6 @@ public:
 
 	void	createFace(int x, int y, int z,  int tab_x, int tab_y, int tab_z, int dir);
 	
-	
-
 
 };
 

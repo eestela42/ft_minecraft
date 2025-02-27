@@ -23,15 +23,6 @@ uniform int chunk_size_y;
 
 uniform mat4 matrix;
 uniform vec4 cameraPos;
-uniform mat4 lightSpaceMatrix;
-
-out VS_OUT {
-    vec3 FragPos;
-    vec3 Normal;
-    vec2 TexCoords;
-    vec4 FragPosLightSpace;
-} vs_out;
-
 
 out vec2 tex_out;
 flat out int out_grass;

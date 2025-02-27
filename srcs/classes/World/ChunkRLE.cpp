@@ -12,57 +12,54 @@ ChunkRLE::ChunkRLE(int posX, int posY, int posZ) : AChunk(posX, posY, posZ)
 
 ChunkRLE::~ChunkRLE()
 {
-	//mutex lock ?
 	delete [] this->rubans_id;
 	delete this->rubans;
-
 }
 
 void ChunkRLE::deleter()
 {
-	// std::cout << "BEFORE ChunkRLE deleteR" << std::endl;
 	if (this->sharedHolder == 1)
 		delete this;
 	else
-	{
 		this->sharedHolder--;
-	}
-	// std::cout << "AFTER ChunkRLE deleteR" << std::endl;
-	
 }
 
 
 		/*****	2 - methods 		*****/
 void ChunkRLE::CreatePointVertexGeometry(std::vector<int> &vertexes, int pos, u_char orientation, u_char type, u_char longX, u_char longY)
 {
-		vertexes.push_back(posX); //8 bytes
-		vertexes.push_back(posY);//8 bytes
-		// int tmp = 0;
-		// tmp += longY;
-		// tmp = (int)pos << 16;
-		// tmp += orientation << 12;
-		// tmp += type << 8;
-		// tmp += longX << 4;
-		// // std::cout << "geo_IN_pos : " << pos << "  " << (int)orientation << "  " << (int)type << "  " << (int)longX << "  " << (int)longY << std::endl;
-		// int geo_out_pos = 0;
-		// u_char geo_out_face = 0;
-		// u_char geo_out_type = 0;
-		// u_char geo_out_longX = 0;
-		// u_char geo_out_longY = 0;
-		
-		// geo_out_longY = tmp & 0xF;
-		// geo_out_longX = tmp >> 4 & 0xF;
-		// geo_out_type = tmp >> 8 & 0xF;
-		// geo_out_face = tmp >> 12 & 0xF;
-		// geo_out_pos = tmp >> 16 & 0xFFFF;
-		// std::cout << "geo_out_pos : " << geo_out_pos << "  " << (int)geo_out_face << "  " << (int)geo_out_type << "  " << (int)geo_out_longX << "  " << (int)geo_out_longY << std::endl << std::endl;
-		// vertexes.push_back(tmp);
-
+		vertexes.push_back(posX); //4 bytes
+		vertexes.push_back(posY);//4 bytes
 		vertexes.push_back(pos);//4 bytes
-		vertexes.push_back(orientation);//1 byte (peut etre moins)
-		vertexes.push_back(type);//1 byte
-		vertexes.push_back(longX);//1 byte
-		vertexes.push_back(longY);//1 byte
+		int tmp = 0;
+		tmp += longY;
+		tmp += longX << 8;
+		tmp += type << 16;
+		tmp += orientation << 24;
+
+		u_char geo_out_face = 0;
+		u_char geo_out_type = 0;
+		u_char geo_out_longX = 0;
+		u_char geo_out_longY = 0;
+		
+		geo_out_longY = tmp & 0xFF;
+		geo_out_longX = tmp >> 8 & 0xFF;
+		geo_out_type = tmp >> 16 & 0xFF;
+		geo_out_face = tmp >> 24 & 0xFF;
+
+		vertexes.push_back(tmp);
+		
+		if (longY != longY || longX != longX || geo_out_face != orientation || geo_out_type != type || geo_out_longX != longX || geo_out_longY != longY)
+		{
+			std::cout << (int)orientation << "  " << (int)type << "  " << (int)longX << "  " << (int)longY << std::endl;
+			std::cout << (int)geo_out_face << "  " << (int)geo_out_type << "  " << (int)geo_out_longX << "  " << (int)geo_out_longY << std::endl << std::endl;
+		}
+
+		// vertexes.push_back(pos);//4 bytes
+		// vertexes.push_back(orientation);//1 byte (peut etre moins)
+		// vertexes.push_back(type);//1 byte
+		// vertexes.push_back(longX);//1 byte
+		// vertexes.push_back(longY);//1 byte
 }
 
 void ChunkRLE::CreateFaceRLEGeometry(int orientation, std::vector<int> &vData, std::vector<u_int> &iData, int x, int y, int z, int offset, u_char type, int longX, int longY) {
@@ -545,17 +542,8 @@ void	ChunkRLE::privCompile()
 	CompileTopBotFaces();
 	CompileSideFaces();
 
-	// setIsCompiled(true);
-	// std::cout << "vertexData size : " << vertexData.size() << std::endl;
-	// std::cout << "indices size : " << indices.size() << std::endl;
 
 }
-	
-		/*****	1 - constructors 		*****/
-
-
-
-
 
 int ChunkRLE::calcX(int pos)
 {
@@ -627,7 +615,6 @@ void ChunkRLE::privGenerate(u_char *rawData)
 
 	this->sizeData = rubans->size();
 	this->setData(rubans->data());
-	// setIsGenerated(true);
 
 	free(rawData);
 }
@@ -671,21 +658,14 @@ void ChunkRLE::privGenerate(u_char *rawData)
 	if (!getIsGeneratedMutex()) { 
 		return 0;
 	}
-	// const u_char *data = rubans->data();
-	// int pos = this->rubansIndexes[x][y];
-	// int tmp_z = 0;
-	// while (tmp_z <= z)
-	// {
-	// 	tmp_z += data[pos + 1];
-	// 	pos += 2;
-	// }
-	// return data[pos - 2];
+	const u_char *data = rubans->data();
+	int pos = this->rubansIndexes[x][y];
+	int tmp_z = 0;
+	while (tmp_z <= z)
+	{
+		tmp_z += data[pos + 1];
+		pos += 2;
+	}
+	return data[pos - 2];
 	return 0;
 }
-
-
-// void 					ChunkRLE::Generate()
-// {
-	
-// }
-

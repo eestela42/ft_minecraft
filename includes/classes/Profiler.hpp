@@ -14,7 +14,7 @@
 #include <lmdb.h>
 #define DB_PATH "."
 #define DB_NAME "Profiler.db"
-#define PROFILER_ON 1
+#define PROFILER_ON 0
 
 class Profiler;
 
@@ -41,6 +41,7 @@ class Profiler {
 		static MDB_dbi dbi;
 		static std::unordered_map<const char *, ProfilerObject *> data;
 		static bool isSaveOn;
+		std::string logFileName = "Profiler.log";
 	public:
 		static void StartTracking(const char *name);
 		static void StopTracking(const char *name);
@@ -49,4 +50,5 @@ class Profiler {
 		static void InsertData(const char *keyName, const char *keyType, const char *value);
 		static char *RetrieveData(const char *keyName, const char *keyType);
 		static void SetSaveOn();
+		static void SetLogFileName(std::string logFileName);
 };

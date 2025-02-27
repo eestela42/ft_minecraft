@@ -41,12 +41,12 @@ void SystemIsOnGround::apply(std::vector<void*> &data)
 	glm::vec3* pos = (glm::vec3*)data[1];
 	// glm::vec3* pos = static_cast<glm::vec3*>(data[0]);
 	// std::bitset<8> *flag = (std::bitset<8>*)data[1];
-	std::map<glm::vec2, AChunk*,Vec2Comparator> *chunks_needed = (std::map<glm::vec2, AChunk*, Vec2Comparator>*)data[2];
+	std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal> *chunks_needed = (std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal>*)data[2];
 
 	glm::vec3 posChunk = glm::vec3((int)pos->x / 16, (int)pos->y / 16, (int)pos->z / 256); //get chunk pos
 	//borrowed from ChunkInstanciator
 	// std::cout << "posChunk " << posChunk.x << " " << posChunk.y << "  -  ";
-	if (chunks_needed->find(glm::vec2(posChunk.x, posChunk.y)) == chunks_needed->end())
+	if (chunks_needed->find({posChunk.x, posChunk.y}) == chunks_needed->end())
 	{
 		// std::cout << "wtf borther" << std::endl;
 		flag_info->reset(0);
@@ -131,7 +131,6 @@ SystemChase::SystemChase()
 {
 	flag_components.set(0);
 	flag_components.set(1);
-	flag_info.set(0);
 	flag_info.set(2);
 	flag_info.set(3);
 }
@@ -145,22 +144,17 @@ void SystemChase::apply(std::vector<void*> &data)
 	std::bitset<8> *flag_info = (std::bitset<8>*)data[0];
 	glm::vec3 pos = *(glm::vec3*)data[1];
 	glm::vec3* movement = (glm::vec3*)data[2];
-	// glm::vec3* pos = static_cast<glm::vec3*>(data[0]);
-	// std::bitset<8> *flag = (std::bitset<8>*)data[1];
-	std::vector<std::vector<AChunk*>> *tabChunks = (std::vector<std::vector<AChunk*>>*)data[3];
-	std::mutex *tabChunks_mutex = (std::mutex*)data[4];
-	glm::vec3 playerPos = *(glm::vec3*)data[5];
-	std::map<glm::vec2, AChunk*,Vec2Comparator> *chunks_needed = (std::map<glm::vec2, AChunk*, Vec2Comparator>*)data[6];
+	glm::vec3 playerPos = *(glm::vec3*)data[3];
+	std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal>
+			*chunks_needed = (std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal>*)data[4];
 
 	movement->x = 0;
 	movement->y = 0;
 
-	glm::vec3 posChunk = glm::vec3((int)pos.x / 16, (int)pos.y / 16, (int)pos.z / 256); //get chunk pos
-	//borrowed from ChunkInstanciator
+	glm::ivec3 posChunk = glm::vec3((int)pos.x / 16, (int)pos.y / 16, (int)pos.z / 256); //get chunk pos
 
-	if (chunks_needed->find(glm::vec2(posChunk.x, posChunk.y)) == chunks_needed->end())
+	if (chunks_needed->find({posChunk.x, posChunk.y}) == chunks_needed->end())
 	{
-		// std::cout << "wtf borther" << std::endl;
 		return ;
 	}
 
@@ -195,17 +189,10 @@ void SystemChase::apply(std::vector<void*> &data)
 			movement->z = 0.5;
 			return ;
 	}
-	// std::cout << "movement " << movement->x << " " << movement->y << " " << movement->z << std::endl;
-	// std::cout << "direction " << direction.x << " " << direction.y << " " << direction.z << std::endl;
-	// std::cout << "bfr chase" << std::endl;
-	// movement->y = 0.1;
-	// std::cout << "after chase" << std::endl;
-	// std::cout << "movement " << movement->x << " " << movement->y << " " << movement->z << std::endl;
 	movement->x = direction.x;
 	movement->y = direction.y;
 
 
-	// std::cout << "out chase" << std::endl;
 }
 
 
@@ -230,16 +217,24 @@ void SystemGetChunk::apply(std::vector<void*> &data)
 	// std::bitset<8> *flag = (std::bitset<8>*)data[1];
 	std::vector<std::vector<AChunk*>> *tabChunks = (std::vector<std::vector<AChunk*>>*)data[2];
 	std::mutex *tabChunks_mutex = (std::mutex*)data[3];
-	std::map<glm::vec2, AChunk*,Vec2Comparator> *chunks_needed = (std::map<glm::vec2, AChunk*, Vec2Comparator>*)data[4];
+	std::unordered_map<glm::ivec2, AChunk*, IVec2Hash, IVec2Equal> *chunks_needed = (std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal>*)data[4];
 
-	glm::vec3 posChunk = glm::vec3((int)pos.x / 16, (int)pos.y / 16, (int)pos.z / 256); //get chunk pos
+	glm::ivec3 posChunk = glm::vec3((int)pos.x / 16, (int)pos.y / 16, (int)pos.z / 256); //get chunk pos
 	//borrowed from ChunkInstanciator
-
+	Profiler::StartTracking("HASH");
+	if (chunks_needed->find({posChunk.x, posChunk.y}) != chunks_needed->end())
+	{
+		Profiler::StopTracking("HASH");
+		return ;
+	}
+	Profiler::StopTracking("HASH");
 
 	tabChunks_mutex->lock();
 	int size_tab = tabChunks->size();
-
+	Profiler::StartTracking("VEC");
 	AChunk* chunk = (*tabChunks)[mod_floor(posChunk.x, size_tab)][mod_floor(posChunk.y, size_tab)];
+	Profiler::StopTracking("VEC");
+	
 	if (chunk == NULL)
 	{
 		tabChunks_mutex->unlock();
@@ -248,18 +243,7 @@ void SystemGetChunk::apply(std::vector<void*> &data)
 	chunk->borrow();
 	tabChunks_mutex->unlock();
 
-
-
-	if (chunks_needed->find(glm::vec2(posChunk.x, posChunk.y)) != chunks_needed->end() || chunk->getPos().x != posChunk.x || chunk->getPos().y != posChunk.y)
-	{
-
-		flag_info->reset(0);
-		tabChunks_mutex->lock();
-		chunk->deleter();
-		tabChunks_mutex->unlock();
-		return ;
-	}
-	chunks_needed->insert(std::pair<glm::vec2, AChunk*>(glm::vec2(posChunk.x, posChunk.y), chunk));
+	(*chunks_needed)[{posChunk.x, posChunk.y}] = chunk;
 
 }
 

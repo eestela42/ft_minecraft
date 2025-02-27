@@ -12,9 +12,6 @@ AChunk::AChunk(int x, int y, int z) : posX(x), posY(y), posZ(z)
 
 AChunk::~AChunk()
 {
-	//add shared ptr like for thread safe
-	
-
 	if (neighbours.north)
 		neighbours.north->setNeighbour(NEIGHB_SOUTH, NULL);
 	if (neighbours.south)	
@@ -24,11 +21,6 @@ AChunk::~AChunk()
 	if (neighbours.west)
 		neighbours.west->setNeighbour(NEIGHB_EAST, NULL);
 
-
-	// if (data)
-	// {
-	// 	free(data);
-	// }
 	mutex.unlock();
 }
 
@@ -36,7 +28,7 @@ AChunk::~AChunk()
 
 /*Public func*/
 void AChunk::pubGenerate(u_char *data)
-{	//maybe call the generator, then lock, then switch data ?
+{
 	if (PROFILER_ON)
 		Profiler::StartTracking("Chunk Generate");
 	mutex.lock();
@@ -48,7 +40,7 @@ void AChunk::pubGenerate(u_char *data)
 }
 
 void AChunk::pubCompile()
-{	//maybe same as above ?
+{
 	if (PROFILER_ON)
 		Profiler::StartTracking("Chunk Compile");
 	mutex.lock();
@@ -109,9 +101,7 @@ glm::ivec2 AChunk::getPos()
 
 void AChunk::setData(u_char *data)
 {
-	// mutex.lock();
 	this->data = data;
-	// mutex.unlock();
 }
 
 void AChunk::setDataMutex(u_char *data)
@@ -186,18 +176,6 @@ bool AChunk::getToUpdate()
 	return ret;
 }
 
-// bool AChunk::isFilled(int x, int y, int z)
-// {
-// 	return 0;
-// }
-
-// u_char AChunk::blockType(int x, int y, int z)
-// {
-// 	return 0;
-// }
-
-
-
 s_neighbours AChunk::getNeighbours()
 {
 	// mutex.lock();
@@ -235,6 +213,5 @@ void AChunk::setNeighbour(int direction, AChunk *chunk)
 		break;
 	}
 	mutex.unlock();
-
 }
 

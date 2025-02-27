@@ -6,12 +6,6 @@
 #include <bitset>
 #include <glm/glm.hpp>
 
-struct Vec2Comparator {
-    bool operator()(const glm::vec2& a, const glm::vec2& b) const {
-        if (a.x != b.x) return a.x < b.x;
-        return a.y < b.y;
-    }
-};
 
 struct id
 {

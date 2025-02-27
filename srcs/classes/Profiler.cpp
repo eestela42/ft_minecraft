@@ -179,6 +179,11 @@ bool Profiler::isSaveOn = false;
 MDB_env *Profiler::env;
 MDB_dbi Profiler::dbi;
 
+void Profiler::SetLogFileName(std::string logFileName) {
+	logFileName = logFileName;
+	
+}
+
 void Profiler::StartTracking(const char *name) {
 	if (data.find(name) == data.end()) {
 		data[name] = new ProfilerObject(name);
