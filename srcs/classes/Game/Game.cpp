@@ -1,5 +1,6 @@
 #include <classes/Game/Game.hpp>
 #include <classes/Game/mesh.hpp>
+#include <algorithm>
 
 unsigned int depthMapFBO;
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
@@ -52,10 +53,12 @@ Game::Game()
 
 
 	for (int i = 0; i < amount; i++)
-		ecs->addEntity(std::rand() % 500 - 250, std::rand() % 500 - 250, 255 + std::rand() % 50);
+		ecs->addEntity(cameraPosition.x + std::rand() % 500 - 250,cameraPosition.z + std::rand() % 500 - 250, 250 + std::rand() % 20);
+	
+	modelMatrices.resize(amount);
 
 
-	mesh *mesh42 = new mesh("object3d/sheep.obj");
+	mesh *mesh42 = new mesh("object3d/cube.obj");
 
 	t_vertexData dataStruct = {(u_char*)(mesh42->vertexes.data()), mesh42->vertexes.size() * (sizeof(glm::vec3) + 4 * sizeof(glm::vec4))};
 
@@ -68,8 +71,7 @@ Game::Game()
 	}
 
 	model_VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*indices), shaderHandler->GetShader("entity"));
-	glm::mat4* modelMatrices;
-    modelMatrices = new glm::mat4[amount];
+	modelMatrices;
 	entityPos_mutex.lock();
     for (unsigned int i = 0; i < amount; i++)
     {
@@ -77,6 +79,11 @@ Game::Game()
 		model = glm::translate(model, glm::vec3(0, 0, 0));
 		modelMatrices[i] = model;
     }
+	
+
+	oldPos = new glm::vec3[amount];
+	memcpy(oldPos, entityPos->data(), amount * sizeof(glm::vec3));
+
 	entityPos_mutex.unlock();
 
     // configure instanced array
@@ -129,6 +136,7 @@ void Game::StartLoop() {
 		if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() >= 500)
 		{
 			std::cout << "FPS: " << fps * 2 << std::endl;
+			std::cout << "pos : " << cameraPosition.x << " " << cameraPosition.y << " " << cameraPosition.z << std::endl;
 			fps = 0;
 			begin = std::chrono::steady_clock::now();
 		}
@@ -202,19 +210,44 @@ void Game::drawEntity()
 	glBindVertexArray(0);
 }
 
+void interpolatePositions(const glm::vec3* oldPos, 
+	const glm::vec3* newPos, 
+	std::vector<glm::vec3>& interpolatedPos, 
+	float alpha,
+	int amount) {
+	// Ensure vectors have the same size
+	// if (!oldPos || !newPos || oldPos->size() != newPos->size()) return;
+
+	// Resize output vector
+	interpolatedPos.resize(amount);
+
+	// Perform interpolation
+	for (size_t i = 0; i < amount; i++) {
+		interpolatedPos[i] = glm::mix((oldPos)[i], (newPos)[i], alpha);
+}
+}
+
 void Game::manageVaoEntity()
 {
-	std::vector<glm::mat4> modelMatrices(amount);
+	std::vector<glm::mat4> usedModelMatrices(amount);
 	entityPos_mutex.lock();
-	glm::vec3 *data = (glm::vec3*)entityPos->data();
+	glm::vec3 *newPos = (glm::vec3*)entityPos->data();
+
+	// float alpha = (currentTime - lastTickTime) / tickInterval;
+
+	std::vector<glm::vec3> interpolatedPos;
+	interpolatePositions(oldPos, newPos, interpolatedPos, 0.5f, amount);
+	memcpy(oldPos, newPos, amount * sizeof(glm::vec3));
 
 	for (unsigned int i = 0; i < amount; i++) {
 		glm::mat4 model = glm::mat4(1.0f);
-		glm::vec3 pos = data[i];
+		glm::vec3 pos = interpolatedPos[i];
+
 		model = glm::translate(model, glm::vec3(pos.x, pos.z, pos.y));
 		modelMatrices[i] = model;
 	}
 	entityPos_mutex.unlock();
+
 	unsigned int VAO = model_VAO->GetVAO();
 	
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -235,6 +268,7 @@ void Game::manageVaoEntity()
 	glVertexAttribDivisor(2, 1);
 	glVertexAttribDivisor(3, 1);
 	glVertexAttribDivisor(4, 1);
+
 }
 
 void Game::manageVAO()

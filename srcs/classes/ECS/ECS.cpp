@@ -21,7 +21,6 @@ ECS::ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mu
 	components.push_back(new Component(0, sizeof(glm::vec3)));
 	components.push_back(new Component(1, sizeof(glm::vec3)));
 	*entityPos = components[0]->getComponents();
-
 }
 
 ECS::~ECS()
@@ -105,11 +104,12 @@ void ECS::update()
 	std::chrono::steady_clock::time_point lastFrame = std::chrono::steady_clock::now();
 
 	int nbr = 0;
-	endThread_mutex.lock();
 	int nbrTick = 20;
 	int timeSleepToTick = 1000 / nbrTick;
+	endThread_mutex.lock();
 	while (!endThread)
 	{
+		endThread_mutex.unlock();
 		if (std::chrono::steady_clock::now() - lastFrame < std::chrono::milliseconds(timeSleepToTick))
 		{
 			//sleep remainign time
@@ -120,7 +120,6 @@ void ECS::update()
 		if (PROFILER_ON)
 			Profiler::StartTracking("ECS cycle");
 		nbr++;
-		endThread_mutex.unlock();
 		cycle();
 		if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() >= 1000)
 		{
@@ -130,10 +129,10 @@ void ECS::update()
 		}
 		if (PROFILER_ON)
 			Profiler::StopTracking("ECS cycle");
+		// return ;
 		endThread_mutex.lock();
 	}
 	endThread_mutex.unlock();
-	// std::cout << "END THREAD : " << y << std::endl;
 
 }
 

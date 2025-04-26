@@ -11,6 +11,8 @@
 
 class ECS;
 
+AChunk *getChunk(std::vector<std::vector<AChunk*>> &tabChunks, std::mutex &tabChunks_mutex, glm::vec3 pos);
+
 class ASystem
 {
 	public :
