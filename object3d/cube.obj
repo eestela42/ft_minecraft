@@ -1,0 +1,17 @@
+# Cube 0-1 OBJ File
+
+v 0 0 0
+v 1 0 0
+v 1 1 0
+v 0 1 0
+v 0 0 1
+v 1 0 1
+v 1 1 1
+v 0 1 1
+
+f 1 2 3 4  # Front
+f 5 6 7 8  # Back
+f 1 2 6 5  # Bottom
+f 4 3 7 8  # Top
+f 1 5 8 4  # Left
+f 2 6 7 3  # Right

@@ -50,51 +50,57 @@ void create_face(vec3 pos, vec2 zero_texture, int face, int type, int sizeX, int
 	texCoords[2] = vec2(1.0 * sizeX, 1.0 * sizeY);
 	texCoords[3] = vec2(0.0, 1.0 * sizeY);
 
+	vec3 pos_1, pos_2, pos_3, pos_4;
+
 	switch (face)
 	{
-	case 0 : //back
-			create_vertex(pos + vec3(0.0, 0.0, 1.0), texCoords[0], type, face);
-			create_vertex(pos + vec3(1.0 * sizeX, 0.0, 1.0), texCoords[1], type, face);
-			create_vertex(pos + vec3(0.0, 1.0 * sizeY, 1.0), texCoords[3], type, face);
-			create_vertex(pos + vec3(1.0 * sizeX, 1.0 * sizeY, 1.0), texCoords[2], type, face);
+	case 0: // back
+		pos_1 = pos + vec3(0.0, 0.0, 1.0);
+		pos_2 = pos + vec3(1.0 * sizeX, 0.0, 1.0);
+		pos_3 = pos + vec3(0.0, 1.0 * sizeY, 1.0);
+		pos_4 = pos + vec3(1.0 * sizeX, 1.0 * sizeY, 1.0);
 		break;
 
-	case  1 : //right
-			create_vertex(pos + vec3(1.0, 0.0, 0.0), texCoords[0], type, face);
-			create_vertex(pos + vec3(1.0, 0.0, 1.0 * sizeX), texCoords[1], type, face);
-			create_vertex(pos + vec3(1.0, 1.0 * sizeY, 0.0), texCoords[3], type, face);
-			create_vertex(pos + vec3(1.0, 1.0 * sizeY, 1.0 * sizeX), texCoords[2], type, face);
+	case 1: // right
+		pos_1 = pos + vec3(1.0, 0.0, 0.0);
+		pos_2 = pos + vec3(1.0, 0.0, 1.0 * sizeX);
+		pos_3 = pos + vec3(1.0, 1.0 * sizeY, 0.0);
+		pos_4 = pos + vec3(1.0, 1.0 * sizeY, 1.0 * sizeX);
 		break;
 
-	case 2 : //front
-			create_vertex(pos + vec3(0.0, 0.0, 0.0), texCoords[0], type, face);
-			create_vertex(pos + vec3(1.0 * sizeX, 0.0, 0.0), texCoords[1], type, face);
-			create_vertex(pos + vec3(0.0, 1.0 * sizeY, 0.0), texCoords[3], type, face);
-			create_vertex(pos + vec3(1.0 * sizeX, 1.0 * sizeY, 0.0), texCoords[2], type, face);
-		break;
-	
-	case 3 :  //left
-			create_vertex(pos + vec3(0.0, 0.0, 0.0), texCoords[0], type, face);
-			create_vertex(pos + vec3(0.0, 0.0, 1.0 * sizeX), texCoords[1], type, face);
-			create_vertex(pos + vec3(0.0, 1.0 * sizeY, 0.0), texCoords[3], type, face);
-			create_vertex(pos + vec3(0.0, 1.0 * sizeY, 1.0 * sizeX), texCoords[2], type, face);
-		break;
-	
-	case  4 : //bot
-		create_vertex(pos + vec3(0.0, 0.0, 0.0), texCoords[0], type, face);
-		create_vertex(pos + vec3(1.0 * sizeX, 0.0, 0.0), texCoords[1], type, face);
-		create_vertex(pos + vec3(0.0, 0.0, 1.0 * sizeY), texCoords[3], type, face);
-		create_vertex(pos + vec3(1.0 * sizeX, 0.0, 1.0 * sizeY), texCoords[2], type, face);
-
+	case 2: // front
+		pos_1 = pos + vec3(0.0, 0.0, 0.0);
+		pos_2 = pos + vec3(1.0 * sizeX, 0.0, 0.0);
+		pos_3 = pos + vec3(0.0, 1.0 * sizeY, 0.0);
+		pos_4 = pos + vec3(1.0 * sizeX, 1.0 * sizeY, 0.0);
 		break;
 
-	case  5 : //top
-		create_vertex(pos + vec3(0.0, 1.0, 0.0), texCoords[0], type, face);
-		create_vertex(pos + vec3(1.0 * sizeX, 1.0, 0.0), texCoords[1], type, face);
-		create_vertex(pos + vec3(0.0, 1.0, 1.0 * sizeY), texCoords[3], type, face);
-		create_vertex(pos + vec3(1.0 * sizeX, 1.0, 1.0 * sizeY), texCoords[2], type, face);
+	case 3: // left
+		pos_1 = pos + vec3(0.0, 0.0, 0.0);
+		pos_2 = pos + vec3(0.0, 0.0, 1.0 * sizeX);
+		pos_3 = pos + vec3(0.0, 1.0 * sizeY, 0.0);
+		pos_4 = pos + vec3(0.0, 1.0 * sizeY, 1.0 * sizeX);
+		break;
+
+	case 4: // bottom
+		pos_1 = pos + vec3(0.0, 0.0, 0.0);
+		pos_2 = pos + vec3(1.0 * sizeX, 0.0, 0.0);
+		pos_3 = pos + vec3(0.0, 0.0, 1.0 * sizeY);
+		pos_4 = pos + vec3(1.0 * sizeX, 0.0, 1.0 * sizeY);
+		break;
+
+	case 5: // top
+		pos_1 = pos + vec3(0.0, 1.0, 0.0);
+		pos_2 = pos + vec3(1.0 * sizeX, 1.0, 0.0);
+		pos_3 = pos + vec3(0.0, 1.0, 1.0 * sizeY);
+		pos_4 = pos + vec3(1.0 * sizeX, 1.0, 1.0 * sizeY);
 		break;
 	}
+	create_vertex(pos_1, texCoords[0], type, face);
+	create_vertex(pos_2, texCoords[1], type, face);
+	create_vertex(pos_3, texCoords[3], type, face);
+	create_vertex(pos_4, texCoords[2], type, face);
+
 	EndPrimitive();
 }
 

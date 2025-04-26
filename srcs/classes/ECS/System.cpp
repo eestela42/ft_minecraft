@@ -1,6 +1,165 @@
 #include <classes/ECS/System.hpp>
 
 
+AChunk *getChunk(std::vector<std::vector<AChunk*>> &tabChunks, std::mutex &tabChunks_mutex, glm::vec3 pos)
+{
+	tabChunks_mutex.lock();
+	int size_tab = tabChunks.size();
+
+	glm::vec3 posChunk = glm::vec3((int)pos.x / 16, (int)pos.y / 16, (int)pos.z / 256);
+
+	AChunk* chunk = tabChunks[mod_floor(posChunk.x, size_tab)][mod_floor(posChunk.y, size_tab)];
+	if (chunk == NULL)
+	{
+		tabChunks_mutex.unlock();
+		return NULL;
+	}
+	chunk->borrow();
+	tabChunks_mutex.unlock();
+
+	if (chunk->getPos().x != posChunk.x || chunk->getPos().y != posChunk.y)
+	{
+		tabChunks_mutex.lock();
+		chunk->deleter();
+		tabChunks_mutex.unlock();
+		return NULL;
+	}
+
+	return chunk;
+}
+
+void checkChangedChunk(bool &changedChunkX, bool &changedChunkY, glm::ivec3 pos, glm::ivec3 newPos)
+{
+	if (newPos.x / 16 != pos.x / 16)
+		changedChunkX = true;
+	if (newPos.y / 16 != pos.y / 16)
+		changedChunkY = true;
+}
+
+glm::ivec3 getModPos(glm::vec3 pos)
+{
+	glm::ivec3 modPos = glm::vec3(((int)pos.x % 16 + 16) % 16, ((int)pos.y % 16 + 16) % 16, pos.z);
+	// if (modPos.x < 0)
+	// 	modPos.x *= -1;
+	// if (modPos.y < 0)
+	// 	modPos.y *= -1;
+	return modPos;
+}
+
+
+int collide(glm::vec3* pos,glm::vec3* movement, std::vector<std::vector<AChunk*>> *tabChunks, std::mutex *tabChunks_mutex, AChunk *chunk, bool &collideX, bool &collideY, bool &collideZ)
+{
+	glm::vec3 newPos = *pos + *movement;
+	AChunk *chunkDirX = chunk;
+	
+	if (movement->x)
+	{
+		int checkPos;
+		if (movement->x > 0)
+			checkPos = newPos.x + 1;
+		else
+			checkPos = newPos.x;
+		if (checkPos / 16 != (int)pos->x / 16)
+		{
+			chunkDirX = getChunk(*tabChunks, *tabChunks_mutex, glm::vec3(checkPos, pos->y, pos->z));
+		}
+	}
+
+	AChunk *chunkDirY = chunk;
+	if (movement->y)
+	{
+		int checkPos;
+		if (movement->y > 0)
+			checkPos = newPos.y + 1;
+		else
+			checkPos = newPos.y;
+		if (checkPos / 16 != (int)pos->y / 16)
+		{
+			chunkDirY = getChunk(*tabChunks, *tabChunks_mutex, glm::vec3(pos->x, checkPos, pos->z));
+		}
+	}
+
+	AChunk *chunkDirXY = chunk;
+	if (chunkDirX && chunk != chunkDirX && chunkDirY && chunk != chunkDirY)
+	{
+		glm::vec3 tmpPos = newPos;
+		if (movement->x > 0)
+			tmpPos.x += 1;
+		if (movement->y > 0)
+			tmpPos.y += 1;
+		chunkDirXY = getChunk(*tabChunks, *tabChunks_mutex, tmpPos);
+	}
+
+	
+	glm::vec3 offsets[] = {
+		{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 0},
+		{0, 0, 1}, {1, 0, 1}, {0, 1, 1}, {1, 1, 1}
+	};
+
+	if (!chunkDirX || !chunkDirY || !chunkDirXY)
+	{
+		if (chunkDirX && chunkDirX != chunk)
+			chunkDirX->deleter();
+		if (chunkDirY && chunkDirY != chunk)
+			chunkDirY->deleter();
+		if (chunkDirXY && chunkDirXY != chunk)
+			chunkDirXY->deleter();
+		std::cout << "chunk not found" << std::endl;
+		return 0;
+	}
+
+	glm::ivec3 modPos = getModPos(*pos);
+
+	for (glm::vec3& offset : offsets) {
+		AChunk *chunk_test = chunk;
+		glm::ivec3 modTestPos;
+		glm::ivec3 testPos;
+
+		bool changedChunkX, changedChunkY;
+		changedChunkX = changedChunkY = false;
+		
+		testPos = {newPos.x + offset.x, pos->y + offset.y, pos->z + offset.z};
+		modTestPos = getModPos(testPos);
+		checkChangedChunk(changedChunkX, changedChunkY, *pos, testPos);
+		if (changedChunkX && changedChunkY)
+			chunk_test = chunkDirXY;
+		else if (changedChunkX)
+			chunk_test = chunkDirX;
+		else if (changedChunkY)
+			chunk_test = chunkDirY;
+		
+		if (chunk_test->pubIsFilled(modTestPos.x, modTestPos.y, modTestPos.z))
+			collideX = true;
+
+		testPos = {pos->x + offset.x, newPos.y + offset.y, pos->z + offset.z};
+		modTestPos = getModPos(testPos);
+		checkChangedChunk(changedChunkX, changedChunkY, *pos, testPos);
+		if (changedChunkX && changedChunkY)
+			chunk_test = chunkDirXY;
+		else if (changedChunkX)
+			chunk_test = chunkDirX;
+		else if (changedChunkY)
+			chunk_test = chunkDirY;
+
+		if (chunk_test->pubIsFilled(modTestPos.x, modTestPos.y, modTestPos.z))
+			collideY = true;
+		
+		testPos = {pos->x + offset.x, pos->y + offset.y, newPos.z + offset.z};
+		modTestPos = getModPos(testPos);
+		checkChangedChunk(changedChunkX, changedChunkY, *pos, testPos);
+		if (changedChunkX && changedChunkY)
+			chunk_test = chunkDirXY;
+		else if (changedChunkX)
+			chunk_test = chunkDirX;
+		else if (changedChunkY)
+			chunk_test = chunkDirY;
+			
+		if (chunk_test->pubIsFilled(modTestPos.x, modTestPos.y, modTestPos.z))
+			collideZ = true;
+	}
+	return 1;
+}
+
 ASystem::ASystem()
 {
 }
@@ -40,57 +199,32 @@ void SystemIsOnGround::apply(std::vector<void*> &data)
 {
 	std::bitset<8> *flag_info = (std::bitset<8>*)data[0];
 	glm::vec3* pos = (glm::vec3*)data[1];
-	// glm::vec3* pos = static_cast<glm::vec3*>(data[0]);
-	// std::bitset<8> *flag = (std::bitset<8>*)data[1];
 	std::vector<std::vector<AChunk*>> *tabChunks = (std::vector<std::vector<AChunk*>>*)data[2];
 	std::mutex *tabChunks_mutex = (std::mutex*)data[3];
 
-	glm::vec3 posChunk = glm::vec3((int)pos->x / 16, (int)pos->y / 16, (int)pos->z / 256); //get chunk pos
-	//borrowed from ChunkInstanciator
-		tabChunks_mutex->lock();
-		int size_tab = tabChunks->size();
+	AChunk *chunk = getChunk(*tabChunks, *tabChunks_mutex, *pos);
 
-		AChunk* chunk = (*tabChunks)[mod_floor(posChunk.x, size_tab)][mod_floor(posChunk.y, size_tab)];
+	if (!chunk)
+	{
+		flag_info->reset(0);
+		return ;
+	}
 
-		if (chunk == NULL)
-		{
-			tabChunks_mutex->unlock();
-			return ;
-		}
+	glm::vec3 modPos = getModPos(*pos);
 
-		chunk->borrow();
-		tabChunks_mutex->unlock();
-
-		if (chunk->getPos().x != posChunk.x || chunk->getPos().y != posChunk.y)
-		{
-			flag_info->reset(0);
-			tabChunks_mutex->lock();
-			chunk->deleter();
-			tabChunks_mutex->unlock();
-			return ;
-		}
-
-	glm::vec3 modPos = glm::vec3((int)pos->x % 16, (int)pos->y % 16, (int)pos->z - 2);
-	if (modPos.x < 0)
-		modPos.x += 16;
-	if (modPos.y < 0)
-		modPos.y += 16;
-	bool isFilled = chunk->pubIsFilled(modPos.x, modPos.y, modPos.z);
-	// bool isField2 = chunk->pubIsFilled((int)pos->x % 16, (int)pos->y % 16, (int)pos->z - 1);
-
-	
-	// isFilled = isFilled || isField2;
+	bool isFilled = chunk->pubIsFilled(modPos.x, modPos.y, modPos.z - 1);
 
 	if (isFilled)
 	{
-		flag_info->reset(0);
+		flag_info->set(0);
 
 		tabChunks_mutex->lock();
 		chunk->deleter();
 		tabChunks_mutex->unlock();
 		return ;
 	}
-	flag_info->set(0);
+	flag_info->reset(0);
+
 	tabChunks_mutex->lock();
 	chunk->deleter();
 	tabChunks_mutex->unlock();
@@ -111,10 +245,9 @@ void SystemGarvity::apply(std::vector<void*> &data)
 {
 	std::bitset<8> *flag_info = (std::bitset<8>*)data[0];
 	
-
 	glm::vec3* movement = (glm::vec3*)data[1];
 
-	if (!flag_info->test(0) && movement->z <= 0) //is on ground
+	if (flag_info->test(0) && movement->z <= 0) //is on ground
 	{
 		movement->z = 0;
 		return ;
@@ -128,6 +261,7 @@ SystemMove::SystemMove()
 {
 	flag_components.set(0);
 	flag_components.set(1);
+	flag_info.set(0);
 	flag_info.set(1);
 }
 
@@ -140,13 +274,38 @@ void SystemMove::apply(std::vector<void*> &data)
 	glm::vec3* pos = (glm::vec3*)data[1];
 	glm::vec3* movement = (glm::vec3*)data[2];
 
-	std::mutex *entityPos_mutex = (std::mutex*)data[3];
+	std::vector<std::vector<AChunk*>> *tabChunks = (std::vector<std::vector<AChunk*>>*)data[3];
+	std::mutex *tabChunks_mutex = (std::mutex*)data[4];
+
+
+	std::mutex *entityPos_mutex = (std::mutex*)data[5];
+
+	AChunk *chunk = getChunk(*tabChunks, *tabChunks_mutex, *pos);
+
+	if (!chunk)
+		return ;
 
 	entityPos_mutex->lock();
-	pos->x += movement->x;
-	pos->y += movement->y;
-	pos->z += movement->z;
+
+	bool collideX = false, collideY = false, collideZ = false;
+	if (!collide(pos, movement, tabChunks, tabChunks_mutex, chunk, collideX, collideY, collideZ))
+	{
+		std::cout << "move collide" << std::endl;
+		entityPos_mutex->unlock();
+		chunk->deleter();
+		return ;
+	}
+
+
+    if (!collideX)
+		pos->x += movement->x;
+    if (!collideY)
+		pos->y += movement->y;
+    if (!collideZ)
+		pos->z += movement->z;
+
 	entityPos_mutex->unlock();
+
 }
 
 SystemChase::SystemChase()
@@ -166,8 +325,6 @@ void SystemChase::apply(std::vector<void*> &data)
 	std::bitset<8> *flag_info = (std::bitset<8>*)data[0];
 	glm::vec3 pos = *(glm::vec3*)data[1];
 	glm::vec3* movement = (glm::vec3*)data[2];
-	// glm::vec3* pos = static_cast<glm::vec3*>(data[0]);
-	// std::bitset<8> *flag = (std::bitset<8>*)data[1];
 	std::vector<std::vector<AChunk*>> *tabChunks = (std::vector<std::vector<AChunk*>>*)data[3];
 	std::mutex *tabChunks_mutex = (std::mutex*)data[4];
 	glm::vec3 playerPos = *(glm::vec3*)data[5];
@@ -175,104 +332,43 @@ void SystemChase::apply(std::vector<void*> &data)
 	movement->x = 0;
 	movement->y = 0;
 
-	glm::vec3 posChunk = glm::vec3((int)pos.x / 16, (int)pos.y / 16, (int)pos.z / 256); //get chunk pos
-	//borrowed from ChunkInstanciator
+	AChunk *chunk = getChunk(*tabChunks, *tabChunks_mutex, pos);
 
+	if (!chunk)
+		return ;
 
-		tabChunks_mutex->lock();
-		int size_tab = tabChunks->size();
+	
 
-		AChunk* chunk = (*tabChunks)[mod_floor(posChunk.x, size_tab)][mod_floor(posChunk.y, size_tab)];
-		if (chunk == NULL)
-		{
-			tabChunks_mutex->unlock();
-			return ;
-		}
-		chunk->borrow();
-		tabChunks_mutex->unlock();
+	glm::vec3 direction = playerPos - pos;
+	direction.z = 0;
+	direction = glm::normalize(direction);
+	direction *= 0.5f;
+	
+	
+	movement->x = direction.x;
+	movement->y = direction.y;
 
-
-
-	if (chunk->getPos().x != posChunk.x || chunk->getPos().y != posChunk.y)
+	bool collideX = false, collideY = false, collideZ = false;
+	if (!collide(&pos, movement, tabChunks, tabChunks_mutex, chunk, collideX, collideY, collideZ))
 	{
-		flag_info->reset(0);
+		std::cout << "chase collide" << std::endl;
 		tabChunks_mutex->lock();
 		chunk->deleter();
 		tabChunks_mutex->unlock();
 		return ;
 	}
 
-	glm::vec3 direction = playerPos - pos;
-	direction.z = 0; // Ignore the Z component
-	direction = glm::normalize(direction);
-	direction *= 0.5f;
-	
-	int modx = pos.x / 16;
-	int mody = pos.y / 16;
-	
-	pos += direction;
-	if (modx != (int)pos.x / 16 || mody != (int)pos.y / 16)
-	{
-			tabChunks_mutex->lock();
-			chunk->deleter();
-			tabChunks_mutex->unlock();
-			posChunk = glm::vec3((int)pos.x / 16, (int)pos.y / 16, (int)pos.z / 256); //get chunk pos
-			//borrowed from ChunkInstanciator
-
-			tabChunks_mutex->lock();
-			int size_tab = tabChunks->size();
-
-			chunk = (*tabChunks)[mod_floor(posChunk.x, size_tab)][mod_floor(posChunk.y, size_tab)];
-
-			if (chunk == NULL)
-			{
-				tabChunks_mutex->unlock();
-				return ;
-			}
-			chunk->borrow();
-			tabChunks_mutex->unlock();
-
-			if (chunk->getPos().x != posChunk.x || chunk->getPos().y != posChunk.y)
-			{
-				flag_info->reset(0);
-				tabChunks_mutex->lock();
-				chunk->deleter();
-				tabChunks_mutex->unlock();
-				return ;
-			}
-
-	}
-
-	glm::vec3 modPos = glm::vec3((int)pos.x % 16, (int)pos.y % 16, (int)pos.z);
-	if (modPos.x < 0)
-		modPos.x += 16;
-	if (modPos.y < 0)
-		modPos.y += 16;
-	bool isFilled = chunk->pubIsFilled(modPos.x, modPos.y, modPos.z);
-
-	if (isFilled)
-	{
-			movement->z = 0.5;
-			tabChunks_mutex->lock();
-			chunk->deleter();
-			tabChunks_mutex->unlock();
-			return ;
-	}
-	// std::cout << "movement " << movement->x << " " << movement->y << " " << movement->z << std::endl;
-	// std::cout << "direction " << direction.x << " " << direction.y << " " << direction.z << std::endl;
-	// std::cout << "bfr chase" << std::endl;
-	// movement->y = 0.1;
-	// std::cout << "after chase" << std::endl;
-	// std::cout << "movement " << movement->x << " " << movement->y << " " << movement->z << std::endl;
-	
-	movement->x = direction.x;
-	movement->y = direction.y;
+	if (flag_info->test(0) && (collideX || collideY))
+		movement->z = 0.5;
+	if (collideX)
+		movement->x = 0;
+	if (collideY)
+		movement->y = 0;
 
 
 	tabChunks_mutex->lock();
 	chunk->deleter();
 	tabChunks_mutex->unlock();
-	// std::cout << "out chase" << std::endl;
 }
 
 

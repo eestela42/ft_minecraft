@@ -44,7 +44,7 @@ struct pair_hash {
     std::size_t operator () (const std::pair<T1,T2> &p) const {
         auto h1 = std::hash<T1>{}(p.first);
         auto h2 = std::hash<T2>{}(p.second);
-        return h1 ^ h2;  
+        return h1 ^ h2; 
     }
 };
 
@@ -53,7 +53,11 @@ class Game: public I_Input
 	//tmp
 	unsigned int buffer;
 	VertexArrayObject *model_VAO;
-	int amount = 10000;
+	int amount = 100;
+
+	std::vector<glm::mat4> modelMatrices;
+	glm::vec3 *oldPos = NULL;
+	
 
 private :
 
@@ -88,7 +92,7 @@ private :
 	std::mutex playerPos_mutex;
 
 	glm::vec3 const cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 cameraPosition = glm::vec3(0, 100, 0);
+	glm::vec3 cameraPosition = glm::vec3(1000, 200, 1000);
 	glm::vec3 cameraDirection = glm::vec3(	cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 											sin(glm::radians(pitch)),
 											sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
