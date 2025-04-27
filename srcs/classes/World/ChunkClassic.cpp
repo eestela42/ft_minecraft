@@ -140,3 +140,7 @@ u_char ChunkClassic::privBlockType(int x, int y, int z)
 {
 	return getData()[z + y * sizeZ + x * sizeY * sizeZ];
 }
+
+bool ChunkClassic::privChangeBlock(int x, int y, int z, u_char type) {
+	return false;
+}

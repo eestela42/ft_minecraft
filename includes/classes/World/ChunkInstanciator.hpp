@@ -43,6 +43,8 @@ class ChunkInstanciator
 	std::mutex 							&endThread_mutex;
 	bool 								&endThread;
 
+	bool								&casse_block;
+
 
 
 	
@@ -79,7 +81,8 @@ class ChunkInstanciator
 						std::deque<info_VAO*> &to_VAO, std::mutex &to_VAO_mutex,
 						std::deque<glm::ivec2> &toDeleteVAO, std::mutex &toDeleteVAO_mutex,
 						bool &playerHasMoved, std::mutex &playerHasMoved_mutex,
-						bool &windoeShouldClose, std::mutex &windowShouldClose_mutex);
+						bool &windoeShouldClose, std::mutex &windowShouldClose_mutex,
+						bool& casse_block);
 
 	~ChunkInstanciator();
 

@@ -7,12 +7,10 @@
 ChunkRLE::ChunkRLE(int posX, int posY, int posZ) : AChunk(posX, posY, posZ)
 {
 	this->rubans = NULL;
-	this->rubans_id = new u_int[AChunk::sizeZ];
 }
 
 ChunkRLE::~ChunkRLE()
 {
-	delete [] this->rubans_id;
 	delete this->rubans;
 }
 
@@ -620,20 +618,21 @@ void ChunkRLE::privGenerate(u_char *rawData)
 }
 
 
-	t_vbo_data 					ChunkRLE::privGetPtrVertices()
-	{
-		t_vbo_data data;
-		data.data = vertexData.data();
-		data.size = vertexData.size() * sizeof(int);
-		return data;
-	}
+t_vbo_data 					ChunkRLE::privGetPtrVertices()
+{
+	t_vbo_data data;
+	data.data = vertexData.data();
+	data.size = vertexData.size() * sizeof(int);
+	return data;
+}
 
-	std::vector<unsigned int>*	ChunkRLE::privGetPtrIndices()
-	{
-		return &indices;
-	}
+std::vector<unsigned int>*	ChunkRLE::privGetPtrIndices()
+{
+	return &indices;
+}
 
-	bool ChunkRLE::privIsFilled(int x, int y, int z) {
+bool ChunkRLE::privIsFilled(int x, int y, int z)
+{
 	if (!getIsGenerated()|| z < 0 || z >= sizeZ) {
 		return false;
 	}
@@ -654,7 +653,7 @@ void ChunkRLE::privGenerate(u_char *rawData)
 	return false;
 }
 
-	u_char ChunkRLE::privBlockType(int x, int y, int z) {
+u_char ChunkRLE::privBlockType(int x, int y, int z) {
 	if (!getIsGeneratedMutex()) { 
 		return 0;
 	}
@@ -668,4 +667,81 @@ void ChunkRLE::privGenerate(u_char *rawData)
 	}
 	return data[pos - 2];
 	return 0;
+}
+
+bool ChunkRLE::privChangeBlock(int x, int y, int z, u_char type) {
+	
+	if (x < 0 || x >= sizeX || y < 0 || y >= sizeY || z < 0 || z >= sizeZ) {
+		return false;
+	}
+	std::cout << "RLE CHANGE x : " << x << " y : " << y << " z : " << z << std::endl;
+	u_char *data = rubans->data();
+	int pos_next = this->rubansIndexes[x][y];
+	int z_next = 0;
+	while (z_next <= z && z_next < sizeZ)
+	{
+		z_next += data[pos_next + 1];
+		pos_next += 2;
+	}
+	int pos_before = pos_next - 2;
+	//block is the same type as what it is supposed to replace
+	if (data[pos_before] == type) {
+		return false;
+	}
+	//block is at the start of a ruban
+	int z_before  = z_next - data[pos_before + 1];
+
+	if (data[pos_before + 1] == 1)
+	{
+		data[pos_before] = type;
+		//add modif memory
+		return true;
+	}
+
+	data[pos_before] = type;
+
+	// if (z == z_before)
+	// {
+	// 	rubans->insert(rubans->begin() + pos_next, 1 * 2, 0);
+	// 	u_char old_type = data[pos_before];
+	// 	data[pos_before] = type;
+	// 	data[pos_before + 1] = 1;
+	// 	data[pos_next] = old_type;
+	// 	data[pos_next + 1]--;
+	// }
+	// else if (z == z_before + data[pos_before + 1] - 1)
+	// {
+	// 	if (data[pos_before + 2] == type)
+	// 	{
+	// 		data[pos_before + 1]--;
+	// 		data[pos_before + 2]++;
+	// 		return true;
+	// 	}
+	// 	rubans->insert(rubans->begin() + pos_next, 1 * 2, 0);
+	// 	data[pos_before + 1]--;
+	// 	data[pos_next] = type;
+	// 	data[pos_next + 1] = 1;
+	// }
+	// else
+	// {
+	// 	rubans->insert(rubans->begin() + pos_next, 2 * 2, 0);
+	// 	u_char old_type = data[pos_before];
+	// 	data[pos_before + 1]--;
+	// 	data[pos_next] = type;
+	// 	data[pos_next + 1] = 1;
+	// }
+
+	// while (x < sizeX)
+	// {
+	// 	while (y < sizeY)
+	// 	{
+	// 		this->rubansIndexes[x][y] += 2;
+	// 		y++;
+	// 	}
+	// 	y = 0;
+	// 	x++;
+	// }
+
+	//add modif memory
+	return true;
 }

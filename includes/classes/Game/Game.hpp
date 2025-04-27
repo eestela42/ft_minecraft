@@ -53,7 +53,7 @@ class Game: public I_Input
 	//tmp
 	unsigned int buffer;
 	VertexArrayObject *model_VAO;
-	int amount = 100;
+	int amount = 0;
 
 	std::vector<glm::mat4> modelMatrices;
 	glm::vec3 *oldPos = NULL;
@@ -71,12 +71,13 @@ private :
 	std::mutex *tabChunks_mutex;
 
 	ECS *ecs;
+	bool casse_block = false;
 	
 	void SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) /*override*/;
 
 
 	//config
-	int renderDistance = 50;
+	int renderDistance = 10;
 	int chunkLoadingSize = renderDistance * 2 + 1;
 
 	TextureArray blockTextureArray;
@@ -92,7 +93,7 @@ private :
 	std::mutex playerPos_mutex;
 
 	glm::vec3 const cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 cameraPosition = glm::vec3(1000, 200, 1000);
+	glm::vec3 cameraPosition = glm::vec3(0, 200, 0);
 	glm::vec3 cameraDirection = glm::vec3(	cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
 											sin(glm::radians(pitch)),
 											sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
