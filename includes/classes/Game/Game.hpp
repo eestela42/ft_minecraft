@@ -77,7 +77,15 @@ private :
 
 
 	//config
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 	int renderDistance = 10;
+=======
+	int renderDistance = 100;
+>>>>>>> Stashed changes
+=======
+	int renderDistance = 100;
+>>>>>>> Stashed changes
 	int chunkLoadingSize = renderDistance * 2 + 1;
 
 	TextureArray blockTextureArray;
