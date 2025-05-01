@@ -53,7 +53,7 @@ class Game: public I_Input
 	//tmp
 	unsigned int buffer;
 	VertexArrayObject *model_VAO;
-	int amount = 100;
+	int amount = 0;
 
 	std::vector<glm::mat4> modelMatrices;
 	glm::vec3 *oldPos = NULL;
@@ -136,6 +136,14 @@ private :
 	std::map<std::pair<int, int>, VAO_data> pos_to_vao;
 
 	int vao_counter = 0;
+
+	GLuint frontGroundFBO, frontColorTexture, frontDepthTexture;
+	GLuint backgroundFBO, backColorTexture,  backDepthTexture;
+	GLuint outFBO, outTexture;
+	int displayDistance = 10;
+	float displayDist_f = 0.f;
+	int sizeFog = 100;
+
 
 public :
 

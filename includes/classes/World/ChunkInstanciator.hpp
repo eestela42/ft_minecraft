@@ -43,6 +43,8 @@ class ChunkInstanciator
 	std::mutex 							&endThread_mutex;
 	bool 								&endThread;
 
+	int 								&displayDistance;
+
 
 
 	
@@ -69,7 +71,7 @@ class ChunkInstanciator
 	u_int size_pos = 0;
 	u_int size_direction = 0;
 
-	void getNextPos(glm::ivec2 &pos);
+	int getNextPos(glm::ivec2 &pos);
 	void resetGetNextPos();
 
 	public :
@@ -79,7 +81,8 @@ class ChunkInstanciator
 						std::deque<info_VAO*> &to_VAO, std::mutex &to_VAO_mutex,
 						std::deque<glm::ivec2> &toDeleteVAO, std::mutex &toDeleteVAO_mutex,
 						bool &playerHasMoved, std::mutex &playerHasMoved_mutex,
-						bool &windoeShouldClose, std::mutex &windowShouldClose_mutex);
+						bool &windoeShouldClose, std::mutex &windowShouldClose_mutex,
+						int &displayDistance);
 
 	~ChunkInstanciator();
 

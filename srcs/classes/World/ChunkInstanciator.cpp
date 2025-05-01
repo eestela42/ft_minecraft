@@ -5,13 +5,15 @@ ChunkInstanciator::ChunkInstanciator(u_int renderDistance,
 										std::deque<info_VAO*> &to_VAO, 			std::mutex &to_VAO_mutex,
 										std::deque<glm::ivec2> &toDeleteVAO, 	std::mutex &toDeleteVAO_mutex,
 										bool &playerHasMoved, 					std::mutex &playerHasMoved_mutex,
-										bool &endThread, 						std::mutex &endThread_mutex)
+										bool &endThread, 						std::mutex &endThread_mutex,
+										int &displayDistance)
 	: renderDistance(renderDistance),
 		realPlayerPos(playerPos), realPlayerPos_mutex(playerPos_mutex),
 		to_VAO(to_VAO), to_VAO_mutex(to_VAO_mutex),
 		toDeleteVAO(toDeleteVAO), toDeleteVAO_mutex(toDeleteVAO_mutex),
 		playerHasMoved(playerHasMoved), playerHasMoved_mutex(playerHasMoved_mutex),
-		endThread(endThread), endThread_mutex(endThread_mutex)
+		endThread(endThread), endThread_mutex(endThread_mutex),
+		displayDistance(displayDistance)
 {
 	generationDistance = renderDistance + 1;
 	size_tab = generationDistance * 2 + 1;
@@ -130,12 +132,12 @@ void ChunkInstanciator::resetGetNextPos()
 	incr_pos = 0;
 }
 
-void ChunkInstanciator::getNextPos(glm::ivec2 &pos)
+int ChunkInstanciator::getNextPos(glm::ivec2 &pos)
 {
 	if (size_direction == 0)
 	{
 		size_direction++;
-		return ;
+		return size_direction;
 	}
 
 	pos += incr[incr_pos];
@@ -146,6 +148,7 @@ void ChunkInstanciator::getNextPos(glm::ivec2 &pos)
 		size_direction += incr_pos % 2;
 		incr_pos = (incr_pos + 1) % 4;
 	}
+	return size_direction;
 	
 }
 
@@ -249,6 +252,11 @@ void ChunkInstanciator::update()
 
 		glm::ivec2 zop = {0, 0};
 		resetGetNextPos();
+		int size_direction = 0;
+		bool sizeDisplayable = true;
+		int actualDisplayDistance = 0;
+		//temp
+		displayDistance = renderDistance;
 		for (int x1 = -generationDistance ; x1 <= generationDistance; x1++) {
 		for (int y1 = -generationDistance; y1 <= generationDistance; y1++) {
 				playerHasMoved_mutex.lock();
@@ -259,7 +267,15 @@ void ChunkInstanciator::update()
 				}
 				playerHasMoved_mutex.unlock();
 
-				getNextPos(zop);
+				int tmp_sd = getNextPos(zop);
+				// if (sizeDisplayable && tmp_sd != size_direction)
+				// {
+				// 	actualDisplayDistance = tmp_sd;
+				// }
+				// if (actualDisplayDistance > displayDistance)
+				// 	displayDistance = actualDisplayDistance;
+				// size_direction = tmp_sd;
+
 				int x = zop.x;
 				int y = zop.y;
 
@@ -271,6 +287,7 @@ void ChunkInstanciator::update()
 
 				if (tabChunks[chunkTabPos.x][chunkTabPos.y] == NULL)
 				{
+					sizeDisplayable = false;
 					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
 					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
 
@@ -286,9 +303,9 @@ void ChunkInstanciator::update()
 					deleteBadChunk(chunkPos, chunkTabPos, playerChunkPos);
 					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
 					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
-
-					continue ;
 				}
+				if (!tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled())
+					sizeDisplayable = false;
 
 		}
 			playerHasMoved_mutex.lock();
@@ -301,6 +318,7 @@ void ChunkInstanciator::update()
 			playerHasMoved_mutex.unlock();
 		}
 		endThread_mutex.lock();
+		// displayDistance = actualDisplayDistance;
 	}
 	endThread_mutex.unlock();
 }

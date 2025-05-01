@@ -3,6 +3,7 @@
 #define VRTX 1 << 0
 #define FGMT 1 << 1
 #define GMTR 1 << 2
+#define CMPT 1 << 3
 
 Shader *Shader::activeShader = NULL;
 Shader::~Shader()
@@ -13,6 +14,8 @@ Shader::~Shader()
 Shader::Shader(const std::string &folderPath) {
 	u_char activeShaders = 0;
 	ID = glCreateProgram();
+	//check if path = file
+	
 
 	for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
 		if (entry.is_regular_file()) {
@@ -36,9 +39,16 @@ Shader::Shader(const std::string &folderPath) {
 				glDeleteShader(geometryShader);
 				activeShaders |= GMTR;
 			}
+			else if (fileName.find("compute_shader") != std::string::npos) {
+				GLuint computeShader = CompileSingleShader(filePath.c_str(), GL_COMPUTE_SHADER, "COMPUTE");
+				glAttachShader(ID, computeShader);
+				glDeleteShader(computeShader);
+				activeShaders |= CMPT;
+				break;
+			}	
 		}
 	}
-	if (!(activeShaders & VRTX) || !(activeShaders & FGMT)) {
+	if ((!(activeShaders & VRTX) || !(activeShaders & FGMT)) && !(activeShaders & CMPT)) {
 		assert(!"Shader::Shader Minimum shader requirement not met");
 	}
 	glLinkProgram(ID);
@@ -138,7 +148,7 @@ void Shader::SetInt(const std::string &name, int value) const {
     glUniform1i(glGetUniformLocation(ID, name.c_str()), value); 
 }
 void Shader::SetFloat(const std::string &name, float value) const { 
-    glUniform1f(glGetUniformLocation(ID, name.c_str()), value); 
+    glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 }
 
 void Shader::SetFloat4(const std::string &name, float value1, float value2, float value3, float value4) const { 
@@ -146,6 +156,19 @@ void Shader::SetFloat4(const std::string &name, float value1, float value2, floa
 }
 void Shader::Setmat4(const std::string &name, glm::mat4 value) const { 
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+}
+void Shader::SetTexture(const std::string &name, GLuint texture_id, int texture_num) const {
+    // Convert texture_num (GL_TEXTURE0, GL_TEXTURE1, etc.) to texture unit index (0, 1, etc.)
+    int texture_unit = texture_num - GL_TEXTURE0;
+    
+    // Activate the texture unit
+    glActiveTexture(texture_num);
+    
+    // Bind the texture to the active texture unit
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    
+    // Set the uniform to refer to the correct texture unit
+    glUniform1i(glGetUniformLocation(ID, name.c_str()), texture_unit);
 }
 
 std::vector<t_vertexAttribute> &Shader::GetVertexAttributes() {

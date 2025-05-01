@@ -34,6 +34,8 @@ class Shader
 		void SetFloat(const std::string &name, float value) const;
 		void SetFloat4(const std::string &name, float value1, float value2, float value3, float value4) const;
 		void Setmat4(const std::string &name, glm::mat4 value) const;
+		void SetTexture(const std::string &name, GLuint texture_id, int texture_num) const;
+
 
 		std::vector<t_vertexAttribute> &GetVertexAttributes();
 		static Shader *GetActiveShader();
@@ -46,5 +48,7 @@ class Shader
 		void parseAttributes(const char *path);
 		void CheckCompileErrors(unsigned int shader, std::string type);
 };
+
+
   
 #endif
