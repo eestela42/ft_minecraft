@@ -758,7 +758,6 @@ bool ChunkRLE::privChangeBlock(int x, int y, int z, u_char type) {
 		x = 0;
 		y++;
 	}
-	printToFile();
 
 	//add modif memory
 	return true;

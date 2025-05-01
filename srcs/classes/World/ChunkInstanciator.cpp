@@ -325,17 +325,18 @@ void ChunkInstanciator::update()
 						neigh.east->setToUpdate(true);
 						neigh.west->setToUpdate(true);
 					}
-					t_x++;
-					if (t_x == AChunk::sizeX)
+					t_z++;
+					if (t_z == AChunk::sizeZ)
 					{
-						t_x = 0;
+						t_z = 0;
 						t_y++;
 						if (t_y == AChunk::sizeY)
 						{
 							t_y = 0;
-							t_z++;
-							if (t_z == AChunk::sizeZ)
+							t_x++;
+							if (t_x == AChunk::sizeX)
 							{
+								t_x = 0;
 								t_z = 10;
 							}
 						}

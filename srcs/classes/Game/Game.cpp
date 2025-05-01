@@ -337,7 +337,7 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 			cameraPosition += glm::vec3(0, -speed * speedMultiplier, 0);
 	
 
-	if (keyState[KEY_DELETE_ONE_BLOCK] & KEY_PRESS)
+	if (keyState[KEY_DELETE_ONE_BLOCK] & KEY_HOLD)
 	{
 		casse_block = true;
 	}
