@@ -698,50 +698,120 @@ bool ChunkRLE::privChangeBlock(int x, int y, int z, u_char type) {
 		return true;
 	}
 
-	data[pos_before] = type;
-
-	// if (z == z_before)
-	// {
-	// 	rubans->insert(rubans->begin() + pos_next, 1 * 2, 0);
-	// 	u_char old_type = data[pos_before];
-	// 	data[pos_before] = type;
-	// 	data[pos_before + 1] = 1;
-	// 	data[pos_next] = old_type;
-	// 	data[pos_next + 1]--;
-	// }
-	// else if (z == z_before + data[pos_before + 1] - 1)
-	// {
-	// 	if (data[pos_before + 2] == type)
-	// 	{
-	// 		data[pos_before + 1]--;
-	// 		data[pos_before + 2]++;
-	// 		return true;
-	// 	}
-	// 	rubans->insert(rubans->begin() + pos_next, 1 * 2, 0);
-	// 	data[pos_before + 1]--;
-	// 	data[pos_next] = type;
-	// 	data[pos_next + 1] = 1;
-	// }
-	// else
-	// {
-	// 	rubans->insert(rubans->begin() + pos_next, 2 * 2, 0);
-	// 	u_char old_type = data[pos_before];
-	// 	data[pos_before + 1]--;
-	// 	data[pos_next] = type;
-	// 	data[pos_next + 1] = 1;
-	// }
-
-	// while (x < sizeX)
-	// {
-	// 	while (y < sizeY)
-	// 	{
-	// 		this->rubansIndexes[x][y] += 2;
-	// 		y++;
-	// 	}
-	// 	y = 0;
-	// 	x++;
-	// }
+	int offset = 0;
+	if (z == z_before)
+	{
+		if (data[pos_before - 2] == type)
+		{
+			data[pos_before + 1]--;
+			data[pos_before - 1]++;
+			return true;
+		}
+		int pos_new = pos_before;
+		rubans->insert(rubans->begin() + pos_before, 1 * 2, 0);
+		u_char old_type = data[pos_before];
+		pos_before += 2;
+		data[pos_new] = type;
+		data[pos_new + 1] = 1;
+		data[pos_before] = old_type;
+		data[pos_before + 1]--;
+		offset = 1;
+	}
+	else if (z == z_before + data[pos_before + 1] - 1)
+	{
+		if (data[pos_before + 2] == type)
+		{
+			data[pos_before + 1]--;
+			data[pos_before + 3]++;
+			return true;
+		}
+		int pos_new = pos_next;
+		rubans->insert(rubans->begin() + pos_next, 1 * 2, 0);
+		data[pos_before + 1]--;
+		data[pos_next] = type;
+		data[pos_next + 1] = 1;
+		offset = 1;
+	}
+	else
+	{
+		int pos_new_1 = pos_next;
+		int pos_new_2 = pos_next + 2;
+		int size_block_1 = z - z_before;
+		int size_block_2 = data[pos_before + 1] - size_block_1 - 1;
+		rubans->insert(rubans->begin() + pos_next, 2 * 2, 0);
+		u_char old_type = data[pos_before];
+		data[pos_before + 1] = size_block_1;
+		data[pos_new_1] = type;
+		data[pos_new_1 + 1] = 1;
+		data[pos_new_2] = old_type;
+		data[pos_new_2 + 1] = size_block_2;
+		offset = 2;
+	}
+	x++;
+	while (y < sizeY && offset)
+	{
+		while (x < sizeX)
+		{
+			this->rubansIndexes[x][y] += 2 * offset;
+			x++;
+		}
+		x = 0;
+		y++;
+	}
+	printToFile();
 
 	//add modif memory
 	return true;
+}
+
+#include <fstream>
+#include <stdexcept>
+#include <iomanip> // For std::setw
+
+void ChunkRLE::printToFile() {
+	const std::string& filename = "COUPE_CHUNK.txt";
+    std::ofstream outFile(filename);
+    if (!outFile.is_open()) {
+        throw std::runtime_error("Failed to open file: " + filename);
+    }
+
+    u_char* data = rubans->data();
+    constexpr int sizeX = AChunk::sizeX; // 16
+    constexpr int sizeY = AChunk::sizeY; // 16
+    constexpr int sizeZ = AChunk::sizeZ; // Height of column
+
+    // Iterate over each column in the 16x16 grid
+    for (int x = 0; x < sizeX; x++) {
+        for (int y = 0; y < sizeY; y++) {
+            // Get the starting position of the RLE data for column (x, y)
+            int pos = rubansIndexes[x][y];
+
+            // Decode the RLE to reconstruct the column
+            int z = 0; // Current height in the column
+            std::vector<u_char> column(sizeZ, 0); // Store the column's data
+
+            while (z < sizeZ && pos < rubans->size()) {
+                u_char type = data[pos];     // Block type
+                u_char size = data[pos + 1]; // Run length
+
+                // Fill the column with 'size' number of 'type' blocks
+                for (int i = 0; i < size && z < sizeZ; i++) {
+                    column[z] = type;
+                    z++;
+                }
+                pos += 2; // Move to the next RLE pair (type, size)
+            }
+
+            // Write the column to the file, starting from the bottom (z = sizeZ - 1)
+            for (int z = sizeZ - 1; z >= 0; z--) {
+                outFile << static_cast<int>(column[z]) << "\n";
+            }
+
+            // Write the position in [x-y] format
+            outFile << "[" << std::setw(2) << x << "-" << std::setw(2) << y << "]\n";
+            outFile << "---\n"; // Separator after the position
+        }
+    }
+
+    outFile.close();
 }

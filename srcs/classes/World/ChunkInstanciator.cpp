@@ -246,7 +246,7 @@ void ChunkInstanciator::updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos,
  
 int t_x = 0;
 int t_y = 0;
-int t_z = 1;
+int t_z = 10;
 void ChunkInstanciator::update()
 {
 	bool debug = true ;

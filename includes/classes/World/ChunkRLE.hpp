@@ -77,6 +77,7 @@ public:
 	void parkourRubans(u_int &x, u_int &y, u_int &pos);
 
 	void randomGen(int &pos, int x, int y);
+	void printToFile();
 
 };
 
