@@ -441,7 +441,6 @@ void	ChunkRLE::parkourRubans(u_int &x, u_int &y, u_int &pos)
 		const u_char *data = rubans->data();
 		while (z < sizeZ - 1)
 		{
-
 			u_int z_end  = z + data[pos + 1];
 			
 			/*Bottom Face*/
@@ -589,7 +588,6 @@ void ChunkRLE::privGenerate(u_char *rawData)
 
 		u_char type = 0;
 		u_char size = 0;
-
 		for (u_int z = 0; z < sizeZ; z++)
 		{
 			if (rawData[pos] != type)
@@ -669,98 +667,44 @@ u_char ChunkRLE::privBlockType(int x, int y, int z) {
 	return 0;
 }
 
+
+u_char *ChunkRLE::decompileRLE()
+{
+	u_char * data = (u_char*)calloc(sizeX * sizeY * sizeZ, sizeof(*data));
+	int pos = 0;
+	for (int y = 0; y < sizeY; y++)
+	{
+	for (int x = 0; x < sizeX; x++)
+	{
+		int pos = this->rubansIndexes[x][y];
+		int z_next = 0;
+		while (pos < rubans->size() && z_next < sizeZ)
+		{
+			int type = rubans->at(pos);
+			int start = z_next;
+			z_next += rubans->at(pos + 1);
+			for (int z = start; z < z_next && z < sizeZ; z++)
+			{
+				data[x * sizeZ + y * sizeX * sizeZ + z] = type;
+			}
+			pos += 2;
+		}
+		
+	}
+	}
+	return data;
+}
+
 bool ChunkRLE::privChangeBlock(int x, int y, int z, u_char type) {
-	
 	if (x < 0 || x >= sizeX || y < 0 || y >= sizeY || z < 0 || z >= sizeZ) {
 		return false;
 	}
-	std::cout << "RLE CHANGE x : " << x << " y : " << y << " z : " << z << std::endl;
-	u_char *data = rubans->data();
-	int pos_next = this->rubansIndexes[x][y];
-	int z_next = 0;
-	while (z_next <= z && z_next < sizeZ)
-	{
-		z_next += data[pos_next + 1];
-		pos_next += 2;
-	}
-	int pos_before = pos_next - 2;
-	//block is the same type as what it is supposed to replace
-	if (data[pos_before] == type) {
-		return false;
-	}
-	//block is at the start of a ruban
-	int z_before  = z_next - data[pos_before + 1];
 
-	if (data[pos_before + 1] == 1)
-	{
-		data[pos_before] = type;
-		//add modif memory
-		return true;
-	}
+	u_char *data = decompileRLE();
 
-	int offset = 0;
-	if (z == z_before)
-	{
-		if (data[pos_before - 2] == type)
-		{
-			data[pos_before + 1]--;
-			data[pos_before - 1]++;
-			return true;
-		}
-		int pos_new = pos_before;
-		rubans->insert(rubans->begin() + pos_before, 1 * 2, 0);
-		u_char old_type = data[pos_before];
-		pos_before += 2;
-		data[pos_new] = type;
-		data[pos_new + 1] = 1;
-		data[pos_before] = old_type;
-		data[pos_before + 1]--;
-		offset = 1;
-	}
-	else if (z == z_before + data[pos_before + 1] - 1)
-	{
-		if (data[pos_before + 2] == type)
-		{
-			data[pos_before + 1]--;
-			data[pos_before + 3]++;
-			return true;
-		}
-		int pos_new = pos_next;
-		rubans->insert(rubans->begin() + pos_next, 1 * 2, 0);
-		data[pos_before + 1]--;
-		data[pos_next] = type;
-		data[pos_next + 1] = 1;
-		offset = 1;
-	}
-	else
-	{
-		int pos_new_1 = pos_next;
-		int pos_new_2 = pos_next + 2;
-		int size_block_1 = z - z_before;
-		int size_block_2 = data[pos_before + 1] - size_block_1 - 1;
-		rubans->insert(rubans->begin() + pos_next, 2 * 2, 0);
-		u_char old_type = data[pos_before];
-		data[pos_before + 1] = size_block_1;
-		data[pos_new_1] = type;
-		data[pos_new_1 + 1] = 1;
-		data[pos_new_2] = old_type;
-		data[pos_new_2 + 1] = size_block_2;
-		offset = 2;
-	}
-	x++;
-	while (y < sizeY && offset)
-	{
-		while (x < sizeX)
-		{
-			this->rubansIndexes[x][y] += 2 * offset;
-			x++;
-		}
-		x = 0;
-		y++;
-	}
-
-	//add modif memory
-	return true;
+	data[x * sizeZ + y * sizeX * sizeZ + z] = type;
+	privGenerate(data);
+	return true; // set the bool right
 }
 
 #include <fstream>

@@ -246,7 +246,7 @@ void ChunkInstanciator::updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos,
  
 int t_x = 0;
 int t_y = 0;
-int t_z = 10;
+int t_z = 1;
 void ChunkInstanciator::update()
 {
 	bool debug = true ;
@@ -328,7 +328,7 @@ void ChunkInstanciator::update()
 					t_z++;
 					if (t_z == AChunk::sizeZ)
 					{
-						t_z = 0;
+						t_z = 1;
 						t_y++;
 						if (t_y == AChunk::sizeY)
 						{
@@ -337,7 +337,9 @@ void ChunkInstanciator::update()
 							if (t_x == AChunk::sizeX)
 							{
 								t_x = 0;
-								t_z = 10;
+								t_z = 1;
+								t_y = 0;
+
 							}
 						}
 					}
