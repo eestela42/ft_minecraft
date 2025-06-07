@@ -42,7 +42,8 @@ Game::Game()
 													dequeueVAO, dequeueVAO_mutex,
 													dequeueDeleteVAO, dequeueDeleteVAO_mutex,
 													playerHasMoved, playerHasMoved_mutex,
-													endThreads, endThreads_mutex);
+													endThreads, endThreads_mutex,
+													casse_block);
 
 
 	ecs = new ECS(chunkInstanciator->getTabChunks(), chunkInstanciator->getTabChunks_mutex(),
@@ -150,8 +151,11 @@ void Game::StartLoop() {
 	playerHasMoved = true;
 	playerHasMoved_mutex.unlock();
 
+	std::cout << "Joining threads..." << std::endl;
 	chunkThread.join();
+	std::cout << "Chunk thread joined." << std::endl;
 	ecsThread.join();
+	std::cout << "ECS thread joined." << std::endl;
 }
 
 void Game::Loop() {
@@ -333,15 +337,18 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 			cameraPosition += glm::vec3(0, -speed * speedMultiplier, 0);
 	
 
-	if (keyState[KEY_DELETE_ONE_BLOCK] & KEY_PRESS)
-		Gogogo = !Gogogo;
-	if (Gogogo)
+	if (keyState[KEY_DELETE_ONE_BLOCK] & KEY_HOLD)
 	{
-		glm::vec3 flatDrirection = cameraDirection;
-		flatDrirection.y = 0;
-		cameraPosition += 2 * speed * speedMultiplier * flatDrirection;
-		mouseMoveX += 0.5;
+		casse_block = true;
 	}
+	// 	Gogogo = !Gogogo;
+	// if (Gogogo)
+	// {
+	// 	glm::vec3 flatDrirection = cameraDirection;
+	// 	flatDrirection.y = 0;
+	// 	cameraPosition += 2 * speed * speedMultiplier * flatDrirection;
+	// 	mouseMoveX += 0.5;
+	// }
 
 	playerPos_mutex.unlock();
 

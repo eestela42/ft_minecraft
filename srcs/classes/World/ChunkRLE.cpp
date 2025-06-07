@@ -7,12 +7,10 @@
 ChunkRLE::ChunkRLE(int posX, int posY, int posZ) : AChunk(posX, posY, posZ)
 {
 	this->rubans = NULL;
-	this->rubans_id = new u_int[AChunk::sizeZ];
 }
 
 ChunkRLE::~ChunkRLE()
 {
-	delete [] this->rubans_id;
 	delete this->rubans;
 }
 
@@ -443,7 +441,6 @@ void	ChunkRLE::parkourRubans(u_int &x, u_int &y, u_int &pos)
 		const u_char *data = rubans->data();
 		while (z < sizeZ - 1)
 		{
-
 			u_int z_end  = z + data[pos + 1];
 			
 			/*Bottom Face*/
@@ -591,7 +588,6 @@ void ChunkRLE::privGenerate(u_char *rawData)
 
 		u_char type = 0;
 		u_char size = 0;
-
 		for (u_int z = 0; z < sizeZ; z++)
 		{
 			if (rawData[pos] != type)
@@ -620,20 +616,21 @@ void ChunkRLE::privGenerate(u_char *rawData)
 }
 
 
-	t_vbo_data 					ChunkRLE::privGetPtrVertices()
-	{
-		t_vbo_data data;
-		data.data = vertexData.data();
-		data.size = vertexData.size() * sizeof(int);
-		return data;
-	}
+t_vbo_data 					ChunkRLE::privGetPtrVertices()
+{
+	t_vbo_data data;
+	data.data = vertexData.data();
+	data.size = vertexData.size() * sizeof(int);
+	return data;
+}
 
-	std::vector<unsigned int>*	ChunkRLE::privGetPtrIndices()
-	{
-		return &indices;
-	}
+std::vector<unsigned int>*	ChunkRLE::privGetPtrIndices()
+{
+	return &indices;
+}
 
-	bool ChunkRLE::privIsFilled(int x, int y, int z) {
+bool ChunkRLE::privIsFilled(int x, int y, int z)
+{
 	if (!getIsGenerated()|| z < 0 || z >= sizeZ) {
 		return false;
 	}
@@ -654,7 +651,7 @@ void ChunkRLE::privGenerate(u_char *rawData)
 	return false;
 }
 
-	u_char ChunkRLE::privBlockType(int x, int y, int z) {
+u_char ChunkRLE::privBlockType(int x, int y, int z) {
 	if (!getIsGeneratedMutex()) { 
 		return 0;
 	}
@@ -668,4 +665,96 @@ void ChunkRLE::privGenerate(u_char *rawData)
 	}
 	return data[pos - 2];
 	return 0;
+}
+
+
+u_char *ChunkRLE::decompileRLE()
+{
+	u_char * data = (u_char*)calloc(sizeX * sizeY * sizeZ, sizeof(*data));
+	int pos = 0;
+	for (int y = 0; y < sizeY; y++)
+	{
+	for (int x = 0; x < sizeX; x++)
+	{
+		int pos = this->rubansIndexes[x][y];
+		int z_next = 0;
+		while (pos < rubans->size() && z_next < sizeZ)
+		{
+			int type = rubans->at(pos);
+			int start = z_next;
+			z_next += rubans->at(pos + 1);
+			for (int z = start; z < z_next && z < sizeZ; z++)
+			{
+				data[x * sizeZ + y * sizeX * sizeZ + z] = type;
+			}
+			pos += 2;
+		}
+		
+	}
+	}
+	return data;
+}
+
+bool ChunkRLE::privChangeBlock(int x, int y, int z, u_char type) {
+	if (x < 0 || x >= sizeX || y < 0 || y >= sizeY || z < 0 || z >= sizeZ) {
+		return false;
+	}
+
+	u_char *data = decompileRLE();
+
+	data[x * sizeZ + y * sizeX * sizeZ + z] = type;
+	privGenerate(data);
+	return true; // set the bool right
+}
+
+#include <fstream>
+#include <stdexcept>
+#include <iomanip> // For std::setw
+
+void ChunkRLE::printToFile() {
+	const std::string& filename = "COUPE_CHUNK.txt";
+    std::ofstream outFile(filename);
+    if (!outFile.is_open()) {
+        throw std::runtime_error("Failed to open file: " + filename);
+    }
+
+    u_char* data = rubans->data();
+    constexpr int sizeX = AChunk::sizeX; // 16
+    constexpr int sizeY = AChunk::sizeY; // 16
+    constexpr int sizeZ = AChunk::sizeZ; // Height of column
+
+    // Iterate over each column in the 16x16 grid
+    for (int x = 0; x < sizeX; x++) {
+        for (int y = 0; y < sizeY; y++) {
+            // Get the starting position of the RLE data for column (x, y)
+            int pos = rubansIndexes[x][y];
+
+            // Decode the RLE to reconstruct the column
+            int z = 0; // Current height in the column
+            std::vector<u_char> column(sizeZ, 0); // Store the column's data
+
+            while (z < sizeZ && pos < rubans->size()) {
+                u_char type = data[pos];     // Block type
+                u_char size = data[pos + 1]; // Run length
+
+                // Fill the column with 'size' number of 'type' blocks
+                for (int i = 0; i < size && z < sizeZ; i++) {
+                    column[z] = type;
+                    z++;
+                }
+                pos += 2; // Move to the next RLE pair (type, size)
+            }
+
+            // Write the column to the file, starting from the bottom (z = sizeZ - 1)
+            for (int z = sizeZ - 1; z >= 0; z--) {
+                outFile << static_cast<int>(column[z]) << "\n";
+            }
+
+            // Write the position in [x-y] format
+            outFile << "[" << std::setw(2) << x << "-" << std::setw(2) << y << "]\n";
+            outFile << "---\n"; // Separator after the position
+        }
+    }
+
+    outFile.close();
 }

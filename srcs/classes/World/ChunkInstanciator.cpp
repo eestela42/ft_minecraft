@@ -5,13 +5,15 @@ ChunkInstanciator::ChunkInstanciator(u_int renderDistance,
 										std::deque<info_VAO*> &to_VAO, 			std::mutex &to_VAO_mutex,
 										std::deque<glm::ivec2> &toDeleteVAO, 	std::mutex &toDeleteVAO_mutex,
 										bool &playerHasMoved, 					std::mutex &playerHasMoved_mutex,
-										bool &endThread, 						std::mutex &endThread_mutex)
+										bool &endThread, 						std::mutex &endThread_mutex,
+										bool& casse_block)
 	: renderDistance(renderDistance),
 		realPlayerPos(playerPos), realPlayerPos_mutex(playerPos_mutex),
 		to_VAO(to_VAO), to_VAO_mutex(to_VAO_mutex),
 		toDeleteVAO(toDeleteVAO), toDeleteVAO_mutex(toDeleteVAO_mutex),
 		playerHasMoved(playerHasMoved), playerHasMoved_mutex(playerHasMoved_mutex),
-		endThread(endThread), endThread_mutex(endThread_mutex)
+		endThread(endThread), endThread_mutex(endThread_mutex),
+		casse_block(casse_block)
 {
 	generationDistance = renderDistance + 1;
 	size_tab = generationDistance * 2 + 1;
@@ -203,30 +205,48 @@ void ChunkInstanciator::createGoodChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTab
 
 void ChunkInstanciator::updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
 {
-	if (!tabChunks[chunkTabPos.x][chunkTabPos.y]) //npt supposed to happen curently
+	AChunk *chunk = tabChunks[chunkTabPos.x][chunkTabPos.y];
+	if (!chunk) //npt supposed to happen curently
 		return ;
 	bool to_delete = (chunkPos.x - playerChunkPos.x > renderDistance || playerChunkPos.x - chunkPos.x < -renderDistance
 				|| chunkPos.y - playerChunkPos.y > renderDistance || playerChunkPos.y - chunkPos.y < -renderDistance);
-
-	if (to_delete && tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled())
+	if (to_delete && chunk->getIsCompiled())
 	{
 		toDeleteVAO_mutex.lock();
 
-		toDeleteVAO.push_back(tabChunks[chunkTabPos.x][chunkTabPos.y]->getPos());
+		toDeleteVAO.push_back(chunk->getPos());
 
 		toDeleteVAO_mutex.unlock();
 
-		tabChunks[chunkTabPos.x][chunkTabPos.y]->setIsCompiled(false);
-		return ;
+		chunk->setIsCompiled(false);
 	}
-	if (!to_delete && tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled() == false)
+	else if (!to_delete && chunk->getIsCompiled() == false)
 	{
-		compileChunksWithNeighbours(tabChunks[chunkTabPos.x][chunkTabPos.y], getNeighbours(chunkTabPos, chunkPos));
+		compileChunksWithNeighbours(chunk, getNeighbours(chunkTabPos, chunkPos));
+	}
+	else if (!to_delete && chunk->getToUpdate())
+	{
+		if (chunk->getIsCompiled())
+		{
+			toDeleteVAO_mutex.lock();
+
+			toDeleteVAO.push_back(chunk->getPos());
+
+			toDeleteVAO_mutex.unlock();
+			chunk->setIsCompiled(false);
+		}
+
+		chunk->setToUpdate(false);
+
+		compileChunksWithNeighbours(chunk, getNeighbours(chunkTabPos, chunkPos));
+
 	}
 
 }
  
-
+int t_x = 0;
+int t_y = 0;
+int t_z = 1;
 void ChunkInstanciator::update()
 {
 	bool debug = true ;
@@ -268,15 +288,16 @@ void ChunkInstanciator::update()
 
 				
 				glm::ivec2 chunkPos;
+				AChunk *chunk = tabChunks[chunkTabPos.x][chunkTabPos.y];
 
-				if (tabChunks[chunkTabPos.x][chunkTabPos.y] == NULL)
+				if (chunk == NULL)
 				{
 					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
 					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
 
 					continue ;
 				}
-				chunkPos = tabChunks[chunkTabPos.x][chunkTabPos.y]->getPos();
+				chunkPos = chunk->getPos();
 				
 				updateChunk(chunkPos, chunkTabPos, playerChunkPos);
 
@@ -288,6 +309,40 @@ void ChunkInstanciator::update()
 					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
 
 					continue ;
+				}
+				if (chunkPos.x == playerChunkPos.x && chunkPos.y == playerChunkPos.y
+					&& casse_block)
+				{
+					casse_block = false;
+					std::cout << "block" << std::endl;
+					bool modified = chunk->pubChangeBlock(t_x, t_y, t_z, 0);
+					if (t_x == 0 || t_x == AChunk::sizeX - 1
+						|| t_y == 0 || t_y == AChunk::sizeY - 1)
+					{
+						s_neighbours neigh = chunk->getNeighbours();
+						neigh.north->setToUpdate(true);
+						neigh.south->setToUpdate(true);
+						neigh.east->setToUpdate(true);
+						neigh.west->setToUpdate(true);
+					}
+					t_z++;
+					if (t_z == AChunk::sizeZ)
+					{
+						t_z = 1;
+						t_y++;
+						if (t_y == AChunk::sizeY)
+						{
+							t_y = 0;
+							t_x++;
+							if (t_x == AChunk::sizeX)
+							{
+								t_x = 0;
+								t_z = 1;
+								t_y = 0;
+
+							}
+						}
+					}
 				}
 
 		}

@@ -24,6 +24,7 @@ public:
 
 	void privGenerate(u_char *data) override;
 	void privCompile() override;
+	bool privChangeBlock(int x, int y, int z, u_char type) override;
 
 	t_vbo_data 					privGetPtrVertices() override;
 	std::vector<unsigned int>*	privGetPtrIndices() override;

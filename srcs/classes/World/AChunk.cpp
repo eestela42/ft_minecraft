@@ -83,6 +83,21 @@ u_char AChunk::pubBlockType(int x, int y, int z)
 	return ret;
 }
 
+bool AChunk::pubChangeBlock(int x, int y, int z, u_char type)
+{
+	std::cout << "pubChangeBlock x : " << std::endl;
+	mutex.lock();
+	if (!isGenerated)
+	{
+		mutex.unlock();
+		return false;
+	}
+	bool ret = false;
+	ret = privChangeBlock(x, y, z, type);
+	toUpdate = true;
+	mutex.unlock();
+	return ret;
+}
 
 /*Normal func*/
 
