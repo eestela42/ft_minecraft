@@ -101,19 +101,11 @@ class ChunkInstanciator
 	void changeSeed(long int seed);
 	void deleteAllChunks();
 
-	void setKeepUpdating(bool status) {
-		_keepUpdating_mutex.lock();
-		_keepupdating = status;
-		_keepUpdating_mutex.unlock();
-	};
+	void changeRenderDistance(int newRenderDistance);
 
-	bool getKeepUpdating() {
-		bool ret;
-		_keepUpdating_mutex.lock();
-		ret = _keepupdating;
-		_keepUpdating_mutex.unlock();
-		return ret;
-	};
+	void setKeepUpdating(bool status);
+
+	bool getKeepUpdating();
 };
 
 

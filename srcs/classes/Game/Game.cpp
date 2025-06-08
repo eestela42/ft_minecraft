@@ -208,6 +208,10 @@ void Game::manageUI()
 		ImGui::DragScalar("Seed", ImGuiDataType_S64, &seedUI, 0.1f);
 		if (ImGui::Button("Change seed"))
 		chunkInstanciator->changeSeed(seedUI);
+
+		ImGui::DragInt("Render distance", &renderDistance, 0.1f, 1, 100);
+		if (ImGui::Button("Change render distance"))
+			chunkInstanciator->changeRenderDistance(renderDistance);
 		
 		
 		if (ImGui::Button("Switch cursors mode"))
