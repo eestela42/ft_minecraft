@@ -11,6 +11,8 @@ NAME		=	ft_miencraft
 CPP_FILES = $(shell find $(SRCS_DIR) -name '*.cpp')
 C_FILES = $(shell find $(SRCS_DIR) -name '*.c')
 
+
+
 ################################################################################
 #                         Sources and objects directories                      #
 ################################################################################
@@ -19,12 +21,29 @@ SRCS_DIR = srcs
 OBJS_DIR = objects-dependances
 DEPS_DIR = $(OBJS_DIR)
 
+
+################################################################################
+#                                      ImGUI                                   #
+################################################################################
+
+IMGUI_DIR = imgui
+IMGUI_BACKENDS = $(IMGUI_DIR)/backends
+
+IMGUI_FILES = \
+	$(IMGUI_DIR)/imgui.cpp \
+	$(IMGUI_DIR)/imgui_draw.cpp \
+	$(IMGUI_DIR)/imgui_tables.cpp \
+	$(IMGUI_DIR)/imgui_widgets.cpp \
+	$(IMGUI_DIR)/imgui_demo.cpp \
+	$(IMGUI_BACKENDS)/imgui_impl_glfw.cpp \
+	$(IMGUI_BACKENDS)/imgui_impl_opengl3.cpp
+
 ################################################################################
 #                              Commands and arguments                          #
 ################################################################################
 
-CC			=	g++ 
-CFLAGS = -std=c++17 -g3 -Iincludes -MMD -MP
+CC	   =	g++ 
+CFLAGS = -std=c++17 -g3 -Iincludes -I$(IMGUI_DIR) -I$(IMGUI_BACKENDS) -MMD -MP
 OPENGL = -lglfw3 -lGL -lX11 -llmdb
 RM			=	rm -rf
 
@@ -89,7 +108,7 @@ init:
 
 $(NAME): $(CPP_OBJS) $(C_OBJS)
 	@ echo "\t$(_YELLOW)[Creating program]$(_NC)"
-	@$(CC) $(CFLAGS) $(CPP_OBJS) $(C_OBJS) $(OPENGL) -Llibs -o $(NAME) -ldl -lpthread
+	@$(CC) $(CFLAGS) $(CPP_OBJS) $(C_OBJS) $(IMGUI_FILES) $(OPENGL) -I$(IMGUI_DIR) -I$(IMGUI_BACKENDS) -Llibs -o $(NAME) -ldl -lpthread
 	@ echo "$(_GREEN)[program created & ready]$(_NC)"
 
 clean:

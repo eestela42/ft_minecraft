@@ -77,7 +77,7 @@ private :
 
 
 	//config
-	int renderDistance = 10;
+	int renderDistance = 32;
 
 	int chunkLoadingSize = renderDistance * 2 + 1;
 
@@ -131,6 +131,11 @@ private :
 	void manageVaoEntity();
 	void drawEntity();
 
+	void manageUI();
+	void drawUI();
+
+	long int seedUI;
+
 	std::unordered_map<std::pair<int, int>, u_int, pair_hash> map_VAO;
 
 
@@ -138,6 +143,11 @@ private :
 	std::map<std::pair<int, int>, VAO_data> pos_to_vao;
 
 	int vao_counter = 0;
+	bool firstMouse = true;
+	float lastX = 0.0f;
+	float lastY = 0.0f;
+
+	int fpsCounter = 0;
 
 public :
 

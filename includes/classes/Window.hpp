@@ -27,6 +27,9 @@ class Window : I_Input
         void Clear();
         void SwapBuffersAndPollEvents();
 		void SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) override;
+		void switchCursorMode();
+		void setCursorMode(int mode);
+		int getCursorMode();
     private:
         GLFWwindow *window;
 };
