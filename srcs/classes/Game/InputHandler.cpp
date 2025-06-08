@@ -66,6 +66,7 @@ void InputHandler::MapKeys() {
 	keyMap[GLFW_KEY_Q] = KEY_DELETE_ONE_BLOCK;
 	keyMap[GLFW_KEY_E] = KEY_DELETE_MORE_BLOCK;
 	keyMap[GLFW_KEY_P] = KEY_DISPLAY_INFO;
+	keyMap[GLFW_KEY_LEFT_ALT] = KEY_SWITCH_CURSOR_MODE;
 
 
 }

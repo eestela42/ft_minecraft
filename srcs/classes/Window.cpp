@@ -74,6 +74,25 @@ void Window::SendKeys(u_char *keyState, __attribute__((unused)) double mouseMove
         glfwSetWindowShouldClose(window, true);
 }
 
+void Window::setCursorMode(int mode) {
+	glfwSetInputMode(window, GLFW_CURSOR, mode);
+};
+
+void Window::switchCursorMode() {
+	int currentMode = glfwGetInputMode(window, GLFW_CURSOR);
+	if (currentMode == GLFW_CURSOR_DISABLED) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+	else {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+};
+
+int Window::getCursorMode() {
+	return glfwGetInputMode(window, GLFW_CURSOR);
+}
+
+
 Window::~Window() {}
 
 GLFWwindow *Window::GetWindow() const {

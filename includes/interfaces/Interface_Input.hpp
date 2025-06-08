@@ -29,9 +29,11 @@
 
 #define KEY_DISPLAY_INFO        17
 
+#define KEY_SWITCH_CURSOR_MODE	18
 
 
-#define KEY_LAST				18
+
+#define KEY_LAST				19
 
 
 

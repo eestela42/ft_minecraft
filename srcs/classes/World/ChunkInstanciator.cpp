@@ -24,11 +24,11 @@ ChunkInstanciator::ChunkInstanciator(u_int renderDistance,
 	}
 
 	std::srand(std::time(0));
-	long int seed;
-	seed = 1722331298;
-	seed = std::rand();
-	std::cout << "seed " << seed << std::endl;
-	ChunkGenerator::initNoise(seed);
+
+	_currentSeed = 1722331298;
+	_currentSeed = std::rand();
+	std::cout << "seed " << _currentSeed << std::endl;
+	ChunkGenerator::initNoise(_currentSeed);
 }
 
 ChunkInstanciator::~ChunkInstanciator()
@@ -149,7 +149,7 @@ void ChunkInstanciator::getNextPos(glm::ivec2 &pos)
 	
 }
 
-void ChunkInstanciator::deleteBadChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
+void ChunkInstanciator::deleteBadChunk(glm::ivec2 chunkTabPos)
 {
 	if (tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled())
 	{
@@ -225,6 +225,8 @@ void ChunkInstanciator::updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos,
 	}
 
 }
+
+
  
 
 void ChunkInstanciator::update()
@@ -234,7 +236,6 @@ void ChunkInstanciator::update()
 	endThread_mutex.lock();
 	while(endThread == false)
 	{
-	
 		endThread_mutex.unlock();
 		realPlayerPos_mutex.lock();
 		glm::vec3 playerPos = realPlayerPos;
@@ -249,8 +250,10 @@ void ChunkInstanciator::update()
 
 		glm::ivec2 zop = {0, 0};
 		resetGetNextPos();
-		for (int x1 = -generationDistance ; x1 <= generationDistance; x1++) {
-		for (int y1 = -generationDistance; y1 <= generationDistance; y1++) {
+		_updateMutex.lock();
+		for (int x1 = -generationDistance ; getKeepUpdating() && x1 <= generationDistance; x1++) {
+		for (int y1 = -generationDistance; getKeepUpdating() && y1 <= generationDistance; y1++) {
+
 				playerHasMoved_mutex.lock();
 				if (playerHasMoved)
 				{
@@ -283,7 +286,7 @@ void ChunkInstanciator::update()
 
 				if (chunkPos.x != playerChunkPos.x + x || chunkPos.y != playerChunkPos.y + y)
 				{	//Updatechunk fait deja le boulot nn ?
-					deleteBadChunk(chunkPos, chunkTabPos, playerChunkPos);
+					deleteBadChunk(chunkTabPos);
 					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
 					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
 
@@ -300,7 +303,48 @@ void ChunkInstanciator::update()
 			}
 			playerHasMoved_mutex.unlock();
 		}
+		_updateMutex.unlock();
 		endThread_mutex.lock();
 	}
 	endThread_mutex.unlock();
+}
+
+long int ChunkInstanciator::getCurrentSeed() const
+{
+	return _currentSeed;
+}
+
+void ChunkInstanciator::changeSeed(long int seed)
+{
+	std::cout << "Changing seed to " << seed << std::endl;
+	if (seed == _currentSeed)
+		return ;
+	_currentSeed = seed;
+	ChunkGenerator::initNoise(_currentSeed);
+	// generator = ChunkGenerator(_currentSeed);
+	deleteAllChunks();
+}
+
+void ChunkInstanciator::deleteAllChunks()
+{
+	setKeepUpdating(false);
+	_updateMutex.lock();
+	to_VAO_mutex.lock();
+
+	to_VAO.clear();
+
+	to_VAO_mutex.unlock();
+
+	for (int i = 0; i < size_tab; i++)
+	{
+		for (int j = 0; j < size_tab; j++)
+		{
+			if (tabChunks[i][j])
+			{
+				deleteBadChunk(glm::ivec2(i, j));
+			}
+		}
+	}
+	_updateMutex.unlock();
+	setKeepUpdating(true);
 }

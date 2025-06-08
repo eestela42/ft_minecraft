@@ -27,6 +27,8 @@ void ChunkGenerator::initNoise(u_int seed)
 	PerlinNoise *noise6 = new PerlinNoise(seed + 17);
 	PerlinNoise *noise7 = new PerlinNoise(seed + 19);
 
+	ChunkGenerator::noiseList.clear();
+
 	ChunkGenerator::noiseList.push_back(noise0);
 	ChunkGenerator::noiseList.push_back(noise1);
 	ChunkGenerator::noiseList.push_back(noise2);

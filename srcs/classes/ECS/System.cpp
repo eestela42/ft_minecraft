@@ -104,7 +104,7 @@ int collide(glm::vec3* pos,glm::vec3* movement, std::vector<std::vector<AChunk*>
 			chunkDirY->deleter();
 		if (chunkDirXY && chunkDirXY != chunk)
 			chunkDirXY->deleter();
-		std::cout << "chunk not found" << std::endl;
+		// std::cout << "chunk not found" << std::endl;
 		return 0;
 	}
 
@@ -290,7 +290,7 @@ void SystemMove::apply(std::vector<void*> &data)
 	bool collideX = false, collideY = false, collideZ = false;
 	if (!collide(pos, movement, tabChunks, tabChunks_mutex, chunk, collideX, collideY, collideZ))
 	{
-		std::cout << "move collide" << std::endl;
+		// std::cout << "move collide" << std::endl;
 		entityPos_mutex->unlock();
 		chunk->deleter();
 		return ;
@@ -351,7 +351,7 @@ void SystemChase::apply(std::vector<void*> &data)
 	bool collideX = false, collideY = false, collideZ = false;
 	if (!collide(&pos, movement, tabChunks, tabChunks_mutex, chunk, collideX, collideY, collideZ))
 	{
-		std::cout << "chase collide" << std::endl;
+		// std::cout << "chase collide" << std::endl;
 		tabChunks_mutex->lock();
 		chunk->deleter();
 		tabChunks_mutex->unlock();
