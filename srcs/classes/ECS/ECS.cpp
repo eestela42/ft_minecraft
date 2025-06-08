@@ -121,7 +121,7 @@ void ECS::update()
 			Profiler::StartTracking("ECS cycle");
 		nbr++;
 		cycle();
-		if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() >= 1000)
+		if (false && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() >= 1000)
 		{
 			std::cout << "ECS cycles : " << nbr << std::endl;
 			nbr = 0;
