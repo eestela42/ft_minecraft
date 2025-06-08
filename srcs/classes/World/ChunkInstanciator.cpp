@@ -326,6 +326,34 @@ void ChunkInstanciator::update()
 	endThread_mutex.unlock();
 }
 
+void ChunkInstanciator::deleteAllChunks()
+{
+	displayDistance = 0;
+	to_VAO_mutex.lock();
+
+	to_VAO.clear();
+
+	to_VAO_mutex.unlock();
+
+	for (int i = 0; i < tabChunks.size(); i++)
+	{
+		for (int j = 0; j < tabChunks[i].size(); j++)
+		{
+			if (tabChunks[i][j])
+			{
+				deleteBadChunk(glm::ivec2(i, j));
+			}
+		}
+	}
+	tabChunks.clear();
+	tabChunks.resize((size_tab), std::vector<AChunk*>());
+
+	for (u_int i = 0; i < size_tab; i++)
+	{
+		tabChunks[i].resize((size_tab), NULL);
+	}
+}
+
 long int ChunkInstanciator::getCurrentSeed() const
 {
 	return _currentSeed;
@@ -347,7 +375,6 @@ void ChunkInstanciator::changeSeed(long int seed)
 
 }
 
-
 void ChunkInstanciator::changeRenderDistance(int newRenderDistance)
 {
 	if (newRenderDistance == renderDistance)
@@ -355,42 +382,26 @@ void ChunkInstanciator::changeRenderDistance(int newRenderDistance)
 		
 	setKeepUpdating(false);
 	_updateMutex.lock();
-	deleteAllChunks();
 	renderDistance = newRenderDistance;
 	generationDistance = renderDistance + 1;
 	size_tab = generationDistance * 2 + 1;
 
-	tabChunks.clear();
-	tabChunks.resize((size_tab), std::vector<AChunk*>());
-
-	for (u_int i = 0; i < size_tab; i++)
-	{
-		tabChunks[i].resize((size_tab), NULL);
-	}
+	deleteAllChunks();
+	
 	_updateMutex.unlock();
 	setKeepUpdating(true);
 
 }
 
-void ChunkInstanciator::deleteAllChunks()
+void ChunkInstanciator::unloadAllChunks()
 {
-	displayDistance = 0;
-	to_VAO_mutex.lock();
+	setKeepUpdating(false);
+	_updateMutex.lock();
 
-	to_VAO.clear();
-
-	to_VAO_mutex.unlock();
-
-	for (int i = 0; i < size_tab; i++)
-	{
-		for (int j = 0; j < size_tab; j++)
-		{
-			if (tabChunks[i][j])
-			{
-				deleteBadChunk(glm::ivec2(i, j));
-			}
-		}
-	}
+	deleteAllChunks();
+	
+	_updateMutex.unlock();
+	setKeepUpdating(true);
 }
 
 

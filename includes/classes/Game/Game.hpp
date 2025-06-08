@@ -77,7 +77,7 @@ private :
 
 
 	//config
-	int renderDistance = 32;
+	int renderDistance = 100;
 
 	TextureArray blockTextureArray;
 

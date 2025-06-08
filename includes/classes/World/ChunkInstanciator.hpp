@@ -100,15 +100,18 @@ class ChunkInstanciator
 
 	
 	void update();
+	void deleteAllChunks();
 	
 	long int getCurrentSeed() const;
+
+	void unloadAllChunks();
+
 	void changeSeed(long int seed);
-	void deleteAllChunks();
-
+	
 	void changeRenderDistance(int newRenderDistance);
-
+	
 	void setKeepUpdating(bool status);
-
+	
 	bool getKeepUpdating();
 };
 

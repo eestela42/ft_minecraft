@@ -313,7 +313,7 @@ void Game::manageUI()
 	if (ImGui::CollapsingHeader("Actions"))
 	{
 		if (ImGui::Button("Unload all chunks"))
-		chunkInstanciator->deleteAllChunks();
+			chunkInstanciator->unloadAllChunks();
 		
 		
 		
@@ -327,7 +327,7 @@ void Game::manageUI()
 		ImGui::DragInt("Render distance", &renderDistance, 0.1f, 1, 100);
 		if (ImGui::Button("Change render distance"))
 		{
-			currentDisplayDistance = 0.f;
+			// currentDisplayDistance = 0.f;
 			chunkInstanciator->changeRenderDistance(renderDistance);
 		}
 		
