@@ -43,13 +43,19 @@ class ChunkInstanciator
 	std::mutex 							&endThread_mutex;
 	bool 								&endThread;
 
+	std::mutex							_keepUpdating_mutex;
+	bool								_keepupdating = true;
+	bool								&casse_block;
+
+
+	std::mutex							_updateMutex;
 	int 								&displayDistance;
 
 
 
 	
 	
-	void 								deleteBadChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos);
+	void 								deleteBadChunk(glm::ivec2 chunkTabPos);
 	void 								createGoodChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos);
 	void 								updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos);
 
@@ -74,6 +80,8 @@ class ChunkInstanciator
 	int getNextPos(glm::ivec2 &pos);
 	void resetGetNextPos();
 
+	long int _currentSeed;
+
 	public :
 
 	ChunkInstanciator(u_int renderDistance,
@@ -82,6 +90,7 @@ class ChunkInstanciator
 						std::deque<glm::ivec2> &toDeleteVAO, std::mutex &toDeleteVAO_mutex,
 						bool &playerHasMoved, std::mutex &playerHasMoved_mutex,
 						bool &windoeShouldClose, std::mutex &windowShouldClose_mutex,
+						bool& casse_block,
 						int &displayDistance);
 
 	~ChunkInstanciator();
@@ -89,8 +98,18 @@ class ChunkInstanciator
 	std::mutex 							&getTabChunks_mutex();
 	std::vector<std::vector<AChunk*>> 	&getTabChunks();
 
+	
 	void update();
+	
+	long int getCurrentSeed() const;
+	void changeSeed(long int seed);
+	void deleteAllChunks();
 
+	void changeRenderDistance(int newRenderDistance);
+
+	void setKeepUpdating(bool status);
+
+	bool getKeepUpdating();
 };
 
 

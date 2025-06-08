@@ -56,6 +56,7 @@ private:
 	std::mutex mutex;
 
 	u_char *data = NULL;
+	u_char *modifData = NULL;
 
 
 	
@@ -74,6 +75,8 @@ private:
 
 	virtual bool privIsFilled(int x, int y, int z) = 0;
 	virtual u_char privBlockType(int x, int y, int z) = 0;
+
+	virtual bool privChangeBlock(int x, int y, int z, u_char type) = 0;
 
 
 public :
@@ -104,6 +107,8 @@ public :
 	
 	bool pubIsFilled(int x, int y, int z);
 	u_char pubBlockType(int x, int y, int z);
+
+	bool pubChangeBlock(int x, int y, int z, u_char type);
 
 	/*Public Setter and Getters*/
 

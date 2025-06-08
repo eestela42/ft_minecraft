@@ -1,6 +1,9 @@
 #include <classes/Game/Game.hpp>
 #include <classes/Game/mesh.hpp>
 #include <algorithm>
+#include "../../../imgui/imgui.h"
+#include "../../../imgui/backends/imgui_impl_glfw.h"
+#include "../../../imgui/backends/imgui_impl_opengl3.h"
 
 unsigned int depthMapFBO;
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
@@ -43,6 +46,7 @@ Game::Game()
 													dequeueDeleteVAO, dequeueDeleteVAO_mutex,
 													playerHasMoved, playerHasMoved_mutex,
 													endThreads, endThreads_mutex,
+													casse_block,
 													displayDistance);
 
 
@@ -111,6 +115,24 @@ Game::Game()
 	glVertexAttribDivisor(4, 1);
 
 	glBindVertexArray(0);
+
+	IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    ImGui::StyleColorsDark(); // Optional
+
+	const GLubyte* version = glGetString(GL_SHADING_LANGUAGE_VERSION);
+    if (version) {
+        std::cout << "GLSL version: " << version << std::endl;
+    } else {
+        std::cout << "Failed to get GLSL version (no GL context?)" << std::endl;
+    }
+
+    ImGui_ImplGlfw_InitForOpenGL(window->GetWindow(), true);
+    ImGui_ImplOpenGL3_Init("#version 330 core");
+
+	seedUI = chunkInstanciator->getCurrentSeed();
 
 
 	// configure compute shader
@@ -247,18 +269,19 @@ void Game::StartLoop() {
 	std::thread chunkThread(&ChunkInstanciator::update, chunkInstanciator);
 	std::thread ecsThread(&ECS::update, ecs);
 	
-	int i = 0;
+	static auto lastTime = std::chrono::steady_clock::now();
+
 	while(window->ShouldContinue())
 	{
 		fps++;
 		Loop();
-		if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() >= 500)
-		{
-			std::cout << "FPS: " << fps * 2 << std::endl;
-			// std::cout << "pos : " << cameraPosition.x << " " << cameraPosition.y << " " << cameraPosition.z << std::endl;
-			fps = 0;
-			begin = std::chrono::steady_clock::now();
-		}
+
+		//fps
+		auto now = std::chrono::steady_clock::now();
+		float deltaSeconds = std::chrono::duration<float>(now - lastTime).count();
+		lastTime = now;
+
+		fpsCounter = 1.0f / deltaSeconds;
 	}
 
 	endThreads_mutex.lock();
@@ -269,12 +292,85 @@ void Game::StartLoop() {
 	playerHasMoved = true;
 	playerHasMoved_mutex.unlock();
 
+	std::cout << "Joining threads..." << std::endl;
 	chunkThread.join();
+	std::cout << "Chunk thread joined." << std::endl;
 	ecsThread.join();
+}
+
+void Game::manageUI()
+{
+	/*
+		Render distance
+		Seed
+		Speed
+		Number of Entities
+		Chunk Type
+		
+	
+	
+	*/
+	ImGui::Begin("This is nice UI", nullptr, ImGuiWindowFlags_AlwaysAutoResize);;
+
+	ImGui::Text("FPS: %d", fpsCounter);
+	ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", cameraPosition.x, cameraPosition.y, cameraPosition.z);
+	ImGui::Text("Seed: %ld", chunkInstanciator->getCurrentSeed());
+	ImGui::Text("Entities: %d", amount);
+
+	if (ImGui::CollapsingHeader("Actions"))
+	{
+		if (ImGui::Button("Unload all chunks"))
+		chunkInstanciator->deleteAllChunks();
+		
+		
+		
+		ImGui::DragScalar("Seed", ImGuiDataType_S64, &seedUI, 0.1f);
+		if (ImGui::Button("Change seed"))
+		chunkInstanciator->changeSeed(seedUI);
+
+		ImGui::DragInt("Render distance", &renderDistance, 0.1f, 1, 100);
+		if (ImGui::Button("Change render distance"))
+			chunkInstanciator->changeRenderDistance(renderDistance);
+		
+		
+		if (ImGui::Button("Switch cursors mode"))
+		window->switchCursorMode();
+	}
+
+	
+	ImGui::Text("Toogle free mouse: Press left.ALT");
+	if (ImGui::CollapsingHeader("Inputs"))
+	{
+		ImGui::Text("WASD: Move");
+		ImGui::Text("Space: Go up");
+		ImGui::Text("Left Control: Go down");
+		ImGui::Text("Left Shift: Sprint");
+		ImGui::Text("Left ALT: Toggle free mouse");
+	}
+
+
+	ImGui::End();
+}
+
+void Game::drawUI()
+{
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void Game::Loop() {
 	window->Clear();
+
+	
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// Your UI
+	manageUI();
+
+	// Render
+	ImGui::Render();
+
 	
 	inputHandler->HandleInput();
 	
@@ -356,7 +452,7 @@ void Game::Loop() {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	drawUI();
 	window->SwapBuffersAndPollEvents();
 }
 
@@ -507,20 +603,14 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 		cameraPosition += 2 * speed * speedMultiplier * flatDrirection;
 		mouseMoveX += 0.5;
 	}
+	if (keyState[KEY_SWITCH_CURSOR_MODE] & KEY_PRESS)
+	{
+		window->switchCursorMode();
+	}
 
+	
 	playerPos_mutex.unlock();
-
-	yaw += mouseMoveX * sensitivity;
-	pitch -= mouseMoveY * sensitivity;
-	if(pitch > 89.0f)
-		pitch =  89.0f;
-	if(pitch < -89.0f)
-		pitch = -89.0f;
-
-	cameraDirection.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	cameraDirection.y = sin(glm::radians(pitch));
-	cameraDirection.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
+	
 	if (oldCamPos.x / AChunk::sizeX != cameraPosition.x / AChunk::sizeX || oldCamPos.z / AChunk::sizeY != cameraPosition.z / AChunk::sizeY)
 	{
 		playerHasMoved_mutex.lock();
@@ -528,7 +618,53 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 		playerHasMoved_mutex.unlock();
 	}
 
+
+	// if (window->getCursorMode() == GLFW_CURSOR_DISABLED)
+	// {
+
+	// 	yaw += mouseMoveX * sensitivity;
+	// 	pitch -= mouseMoveY * sensitivity;
+	// 	if(pitch > 89.0f)
+	// 		pitch =  89.0f;
+	// 	if(pitch < -89.0f)
+	// 		pitch = -89.0f;
+	// }
+
+	double xpos, ypos;
+	glfwGetCursorPos(window->GetWindow(), &xpos, &ypos);
+
+
+	if (window->getCursorMode() == GLFW_CURSOR_DISABLED)
+	{
+		if (firstMouse)
+		{
+			lastX = xpos;
+			lastY = ypos;
+			firstMouse = false;
+		}
+
+		mouseMoveX = xpos - lastX;
+		mouseMoveY = ypos - lastY;
+
+		lastX = xpos;
+		lastY = ypos;
+
+		yaw += mouseMoveX * sensitivity;
+		pitch -= mouseMoveY * sensitivity;
+		pitch = glm::clamp(pitch, -89.0f, 89.0f);
+	}
+	else
+	{
+		firstMouse = true;  // Reset when leaving FPS mode
+	}
+	cameraDirection.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraDirection.y = sin(glm::radians(pitch));
+	cameraDirection.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
 	view = glm::lookAt(	cameraPosition, 
 						cameraPosition + glm::normalize(cameraDirection),
 						cameraUp);
+						
+
+
 }
