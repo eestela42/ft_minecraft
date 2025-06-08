@@ -133,6 +133,7 @@ private :
 	void drawUI();
 
 	long int seedUI;
+	bool instantChange = false;
 
 	std::unordered_map<std::pair<int, int>, u_int, pair_hash> map_VAO;
 
@@ -150,7 +151,10 @@ private :
 	GLuint frontGroundFBO, frontColorTexture, frontDepthTexture;
 	GLuint backgroundFBO, backColorTexture,  backDepthTexture;
 	GLuint outFBO, outTexture;
-	int displayDistance = 10;
+	int displayDistance = 0;
+	float currentDisplayDistance = 0;
+	float minDisplaySpeed = 0.2f;
+	float maxDisplaySpeed = 160;
 	float displayDist_f = 0.f;
 	int sizeFog = 100;
 

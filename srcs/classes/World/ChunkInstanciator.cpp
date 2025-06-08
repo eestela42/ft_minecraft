@@ -274,17 +274,15 @@ void ChunkInstanciator::update()
 		glm::ivec2 zop = {0, 0};
 		resetGetNextPos();
 		_updateMutex.lock();
-		int size_direction = 0;
 		bool sizeDisplayable = true;
-		int actualDisplayDistance = 0;
+		int tmpDisplayDistance = 0;
 		//temp
-		displayDistance = renderDistance;
-		for (int x1 = -generationDistance ; getKeepUpdating() && x1 <= generationDistance; x1++) {
-		for (int y1 = -generationDistance; getKeepUpdating() && y1 <= generationDistance; y1++) {
-
+		// displayDistance = renderDistance;
+		for (int x1 = 0 ; getKeepUpdating() && x1 <= generationDistance * generationDistance; x1++) {
 			playerHasMoved_mutex.lock();
 			if (playerHasMoved)
 			{
+				playerHasMoved = false;
 				playerHasMoved_mutex.unlock();
 				break ;
 			}
@@ -301,6 +299,7 @@ void ChunkInstanciator::update()
 			glm::ivec2 chunkPos;
 			AChunk *chunk = tabChunks[chunkTabPos.x][chunkTabPos.y];
 
+
 			if (chunk == NULL)
 			{
 				chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
@@ -313,28 +312,16 @@ void ChunkInstanciator::update()
 			updateChunk(chunkPos, chunkTabPos, playerChunkPos);
 
 
-				if (chunkPos.x != playerChunkPos.x + x || chunkPos.y != playerChunkPos.y + y)
-				{	//Updatechunk fait deja le boulot nn ?
-					deleteBadChunk(chunkTabPos);
-					chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
-					createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
-				}
-				if (!tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled())
-					sizeDisplayable = false;
-
-		}
-			playerHasMoved_mutex.lock();
-			if (playerHasMoved)
-			{
-				playerHasMoved = false;
-				playerHasMoved_mutex.unlock();
-				break ;
+			if (chunkPos.x != playerChunkPos.x + x || chunkPos.y != playerChunkPos.y + y)
+			{	//Updatechunk fait deja le boulot nn ?
+				deleteBadChunk(chunkTabPos);
+				chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
+				createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
 			}
-			playerHasMoved_mutex.unlock();
+			
 		}
 		_updateMutex.unlock();
 		endThread_mutex.lock();
-		// displayDistance = actualDisplayDistance;
 	}
 	endThread_mutex.unlock();
 }
@@ -346,18 +333,18 @@ long int ChunkInstanciator::getCurrentSeed() const
 
 void ChunkInstanciator::changeSeed(long int seed)
 {
-	std::cout << "Changing seed to " << seed << std::endl;
 	if (seed == _currentSeed)
 		return ;
+	std::cout << "Changing seed to " << seed << std::endl;
 	setKeepUpdating(false); 
 	
 	_currentSeed = seed;
 	ChunkGenerator::initNoise(_currentSeed);
 	_updateMutex.lock();
 	deleteAllChunks();
+	_updateMutex.unlock();
 	setKeepUpdating(true);
 
-	_updateMutex.unlock();
 }
 
 
@@ -380,13 +367,14 @@ void ChunkInstanciator::changeRenderDistance(int newRenderDistance)
 	{
 		tabChunks[i].resize((size_tab), NULL);
 	}
+	_updateMutex.unlock();
 	setKeepUpdating(true);
 
-	_updateMutex.unlock();
 }
 
 void ChunkInstanciator::deleteAllChunks()
 {
+	displayDistance = 0;
 	to_VAO_mutex.lock();
 
 	to_VAO.clear();

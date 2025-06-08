@@ -162,11 +162,7 @@ Game::Game()
     glDrawBuffers(1, drawBuffers);
 
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "frontGroundFBO incomplete: " << status << std::endl;
-    } else {
-        std::cout << "frontGroundFBO complete!" << std::endl;
-    }
+  
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -234,23 +230,20 @@ Game::Game()
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &work_grp_cnt[0]);
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &work_grp_cnt[1]);
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &work_grp_cnt[2]);
-	std::cout << "Max work groups per compute shader" << 
-		" x:" << work_grp_cnt[0] <<
-		" y:" << work_grp_cnt[1] <<
-		" z:" << work_grp_cnt[2] << "\n";
+
 
 	int work_grp_size[3];
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &work_grp_size[0]);
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &work_grp_size[1]);
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &work_grp_size[2]);
-	std::cout << "Max work group sizes" <<
-		" x:" << work_grp_size[0] <<
-		" y:" << work_grp_size[1] <<
-		" z:" << work_grp_size[2] << "\n";
+	// std::cout << "Max work group sizes" <<
+	// 	" x:" << work_grp_size[0] <<
+	// 	" y:" << work_grp_size[1] <<
+	// 	" z:" << work_grp_size[2] << "\n";
 
 	int work_grp_inv;
 	glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &work_grp_inv);
-	std::cout << "Max invocations count per work group: " << work_grp_inv << "\n";
+	// std::cout << "Max invocations count per work group: " << work_grp_inv << "\n";
 	
 }
 
@@ -325,12 +318,18 @@ void Game::manageUI()
 		
 		
 		ImGui::DragScalar("Seed", ImGuiDataType_S64, &seedUI, 0.1f);
-		if (ImGui::Button("Change seed"))
-		chunkInstanciator->changeSeed(seedUI);
+		ImGui::Checkbox("Instant update seed", &instantChange);
+		if (instantChange || ImGui::Button("Change seed"))
+		{
+			chunkInstanciator->changeSeed(seedUI);
+		}
 
 		ImGui::DragInt("Render distance", &renderDistance, 0.1f, 1, 100);
 		if (ImGui::Button("Change render distance"))
+		{
+			currentDisplayDistance = 0.f;
 			chunkInstanciator->changeRenderDistance(renderDistance);
+		}
 		
 		
 		if (ImGui::Button("Switch cursors mode"))
@@ -428,11 +427,15 @@ void Game::Loop() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (displayDist_f < displayDistance - 1)
-		displayDist_f += 0.05f;
-	else if (displayDist_f > displayDistance - 1 + 0.05)
-		displayDist_f -= 0.1f;
-	int startFog = displayDist_f * 16;
+	
+	currentDisplayDistance += (float)renderDistance/360.f * 16;
+	
+	int startFog = currentDisplayDistance;
+	sizeFog = 100;
+	
+	
+	
+
 	
 	shaderHandler->Use("compute");
 	if (Shader::GetActiveShader())
@@ -452,6 +455,7 @@ void Game::Loop() {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	drawUI();
 	window->SwapBuffersAndPollEvents();
 }
