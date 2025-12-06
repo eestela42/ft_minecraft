@@ -1,8 +1,17 @@
+# objects and dependances
 objects-dependances/*
-data.mdb
-lock.mdb
+
+# build
 ft_miencraft
 ft_miencraft.d
+
+# imgui
 imgui.ini
-.vscode/
+
+# profiler
 .vscode
+
+# profiler
+Profiler.log
+data.mdb
+lock.mdb
