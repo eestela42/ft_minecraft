@@ -2,8 +2,8 @@
 objects-dependances/*
 
 # build
-ft_miencraft
-ft_miencraft.d
+ft_minecraft
+ft_minecraft.d
 
 # imgui
 imgui.ini
