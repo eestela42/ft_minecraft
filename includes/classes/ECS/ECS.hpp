@@ -1,81 +1,75 @@
 #ifndef ECS_HPP
 #define ECS_HPP
 
-# include <vector>
-# include <unordered_map>
-# include <classes/ECS/Entity.hpp>
-# include <classes/ECS/Component.hpp>
-# include <classes/ECS/System.hpp>
-# include <mutex>
-# include <classes/World/AChunk.hpp>
+#include <vector>
+#include <unordered_map>
+#include <classes/ECS/Entity.hpp>
+#include <classes/ECS/Component.hpp>
+#include <classes/ECS/System.hpp>
+#include <mutex>
+#include <classes/World/AChunk.hpp>
 #include <deque>
 #include <thread>
 #include <map>
 #include <classes/Game/mesh.hpp>
 #include <classes/VAO/VertexArrayObject.hpp>
 
-
 class ECS
 {
-	private :
-		std::vector<Entity> entities;
+private:
+	std::vector<Entity> entities;
 
-		std::vector<Component*> components;
+	std::vector<Component *> components;
 
-		std::vector<ASystem*> systems;
+	std::vector<ASystem *> systems;
 
-		//stockage chunks needed
-		std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal> chunks_needed;
-		std::vector<std::vector<AChunk*>> tabChunks_needed;
+	// stockage chunks needed
+	std::unordered_map<glm::ivec2, AChunk *, IVec2Hash, IVec2Equal> chunks_needed;
+	std::vector<std::vector<AChunk *>> tabChunks_needed;
 
-		unsigned int playerEntity;
+	unsigned int playerEntity;
 
-		std::vector<std::vector<AChunk*>> 	&tabChunks;
-		std::mutex 							&tabChunks_mutex;
+	std::vector<std::vector<AChunk *>> &tabChunks;
+	std::mutex &tabChunks_mutex;
 
-		glm::vec3 							&playerPos;
-		std::mutex 							&playerPos_mutex;
+	glm::vec3 &playerPos;
+	std::mutex &playerPos_mutex;
 
-		std::vector<unsigned char> 				**entityPos;
-		std::mutex 							&entityPos_mutex;
+	std::vector<unsigned char> **entityPos;
+	std::mutex &entityPos_mutex;
 
-		bool &endThread;
-		std::mutex &endThread_mutex;
+	bool &endThread;
+	std::mutex &endThread_mutex;
 
-	public :
-		ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mutex,
-			glm::vec3 &playerPos, std::mutex &playerPos_mutex,
-			bool &endThread, std::mutex &endThread_mutex,
-			std::vector<unsigned char> **entityPos, std::mutex &entityPos_mutex);
-		~ECS();
+public:
+	ECS(std::vector<std::vector<AChunk *>> &tabChunks, std::mutex &tabChunks_mutex,
+		glm::vec3 &playerPos, std::mutex &playerPos_mutex,
+		bool &endThread, std::mutex &endThread_mutex,
+		std::vector<unsigned char> **entityPos, std::mutex &entityPos_mutex);
+	~ECS();
 
-		void Initialize(int amount, Shader *entityShader,
-		std::vector<glm::mat4> &modelMatrices,
-		VertexArrayObject **model_VAO,
-		glm::vec3 **oldPos,
-		unsigned int &buffer);
-		
-		void addEntity();
-		void addEntity(int x, int y, int z);
-		void removeEntity(int index);
+	void Initialize(int amount, Shader *entityShader,
+					std::vector<glm::mat4> &modelMatrices,
+					VertexArrayObject **model_VAO,
+					glm::vec3 **oldPos,
+					unsigned int &buffer);
 
-		void update();
-		void cycle();
+	void addEntity();
+	void addEntity(int x, int y, int z);
+	void removeEntity(int index);
 
-		void makeData(int i, std::vector<void*> &data, std::vector<int> &order, glm::vec3 &cp_playerPose,
-			std::vector<Component*> &vec_components, std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal> &chunks_needed);
+	void update();
+	void cycle();
 
-		void printAll();
+	void makeData(int i, std::vector<void *> &data, std::vector<int> &order, glm::vec3 &cp_playerPose,
+				  std::vector<Component *> &vec_components, std::unordered_map<glm::ivec2, AChunk *, IVec2Hash, IVec2Equal> &chunks_needed);
 
-		// std::vector<glm::mat4> modelMatrices;
-		// VertexArrayObject *model_VAO;
-		// glm::vec3 *oldPos = NULL;
-		// unsigned int buffer;
+	void printAll();
 
-
-
-
+	// std::vector<glm::mat4> modelMatrices;
+	// VertexArrayObject *model_VAO;
+	// glm::vec3 *oldPos = NULL;
+	// unsigned int buffer;
 };
-
 
 #endif

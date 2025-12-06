@@ -29,4 +29,4 @@ RUN make clean && make
 
 # Command to run the application
 # We use the environment variables we found earlier to ensure compatibility
-CMD ["sh", "-c", "MESA_GL_VERSION_OVERRIDE=4.6COMPAT MESA_GLSL_VERSION_OVERRIDE=460 ./ft_miencraft"]
+CMD ["sh", "-c", "MESA_GL_VERSION_OVERRIDE=4.6COMPAT MESA_GLSL_VERSION_OVERRIDE=460 ./ft_minecraft"]

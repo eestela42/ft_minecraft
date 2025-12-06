@@ -2,10 +2,10 @@
 #include <classes/Profiler.hpp>
 #include <thread>
 
-int main() {
-
+int main()
+{
 	Game game;
-	
+
 	game.StartLoop();
 
 	if (PROFILER_ON)

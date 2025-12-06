@@ -1,5 +1,5 @@
 #ifndef GAME_HPP
-# define GAME_HPP
+#define GAME_HPP
 
 #include <iostream>
 #include <iostream>
@@ -16,7 +16,6 @@
 #include <classes/Game/InputHandler.hpp>
 #include <classes/ShaderHandler.hpp>
 
-
 #include <classes/Texture/TextureLoader.hpp>
 #include <classes/Texture/TextureArray.hpp>
 #include <classes/Texture/TextureHandler.hpp>
@@ -32,7 +31,6 @@
 
 #include <thread>
 
-
 struct DrawInfo
 {
 	u_int VAO;
@@ -40,30 +38,28 @@ struct DrawInfo
 	glm::ivec2 pos;
 };
 
-
-
-struct pair_hash {
-    template <class T1, class T2>
-    std::size_t operator () (const std::pair<T1,T2> &p) const {
-        auto h1 = std::hash<T1>{}(p.first);
-        auto h2 = std::hash<T2>{}(p.second);
-        return h1 ^ h2; 
-    }
+struct pair_hash
+{
+	template <class T1, class T2>
+	std::size_t operator()(const std::pair<T1, T2> &p) const
+	{
+		auto h1 = std::hash<T1>{}(p.first);
+		auto h2 = std::hash<T2>{}(p.second);
+		return h1 ^ h2;
+	}
 };
 
-class Game: public I_Input
+class Game : public I_Input
 {
-	//tmp
+	// tmp
 	unsigned int buffer;
 	VertexArrayObject *model_VAO;
 	int amount = 10;
 
 	std::vector<glm::mat4> modelMatrices;
 	glm::vec3 *oldPos = NULL;
-	
 
-private :
-
+private:
 	Window *window;
 	InputHandler *inputHandler;
 	ShaderHandler *shaderHandler;
@@ -71,21 +67,20 @@ private :
 	VertexArrayObjectHandler *vertexArrayObjectHandler;
 	TextureHandler *textureHandler;
 
-	std::vector<std::vector<AChunk*>> *tabChunks;
+	std::vector<std::vector<AChunk *>> *tabChunks;
 	std::mutex *tabChunks_mutex;
 
 	ECS *ecs;
 	bool casse_block = false;
-	
+
 	void SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) /*override*/;
 
-
-	//config
+	// config
 	int renderDistance = 30;
 
 	TextureArray blockTextureArray;
 
-	//player
+	// player
 
 	const float speed = 0.35f;
 	const float sensitivity = 0.05f;
@@ -97,36 +92,31 @@ private :
 
 	glm::vec3 const cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::vec3 cameraPosition = glm::vec3(0, 200, 0);
-	glm::vec3 cameraDirection = glm::vec3(	cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-											sin(glm::radians(pitch)),
-											sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
+	glm::vec3 cameraDirection = glm::vec3(cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+										  sin(glm::radians(pitch)),
+										  sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
 
-	glm::mat4 view = glm::lookAt(	cameraPosition,
-									cameraPosition + cameraDirection,
-									glm::vec3(0, 1, 0));
+	glm::mat4 view = glm::lookAt(cameraPosition,
+								 cameraPosition + cameraDirection,
+								 glm::vec3(0, 1, 0));
 
+	std::mutex playerHasMoved_mutex;
+	bool playerHasMoved = false;
 
-	
+	std::mutex dequeueVAO_mutex;
+	std::deque<info_VAO *> dequeueVAO;
 
+	std::mutex dequeueDeleteVAO_mutex;
+	std::deque<glm::ivec2> dequeueDeleteVAO;
 
-	std::mutex 					playerHasMoved_mutex;
-	bool 						playerHasMoved = false;
+	std::mutex endThreads_mutex;
+	bool endThreads = false;
 
-	std::mutex					dequeueVAO_mutex;
-	std::deque<info_VAO*>		dequeueVAO;
-
-	std::mutex					dequeueDeleteVAO_mutex;
-	std::deque<glm::ivec2> 		dequeueDeleteVAO;
-
-	std::mutex					endThreads_mutex;
-	bool 						endThreads = false;
-
-	std::mutex					entityPos_mutex;
-	std::vector<unsigned char>		*entityPos = NULL;
+	std::mutex entityPos_mutex;
+	std::vector<unsigned char> *entityPos = NULL;
 
 	std::vector<DrawInfo> Vao_draw;
-	
-	
+
 	void manageVAO();
 	void draw();
 
@@ -141,8 +131,7 @@ private :
 
 	std::unordered_map<std::pair<int, int>, u_int, pair_hash> map_VAO;
 
-
-	//HOTFIX
+	// HOTFIX
 	std::map<std::pair<int, int>, VAO_data> pos_to_vao;
 
 	int vao_counter = 0;
@@ -153,7 +142,7 @@ private :
 	int fpsCounter = 0;
 
 	GLuint frontGroundFBO, frontColorTexture, frontDepthTexture;
-	GLuint backgroundFBO, backColorTexture,  backDepthTexture;
+	GLuint backgroundFBO, backColorTexture, backDepthTexture;
 	GLuint outFBO, outTexture;
 	int displayDistance = 0;
 	float currentDisplayDistance = 0;
@@ -162,19 +151,15 @@ private :
 	float displayDist_f = 0.f;
 	int sizeFog = 100;
 
-
-public :
-
+public:
 	Game();
 	~Game();
 
 	void StartLoop();
 	void Loop();
-	std::vector<AChunk*> chunks;
+	std::vector<AChunk *> chunks;
 
 	SkyBox *skyBox;
-
-
 };
 
 #endif

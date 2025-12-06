@@ -79,8 +79,6 @@ public:
 	void randomGen(int &pos, int x, int y);
 	void printToFile();
 	u_char *decompileRLE();
-
-
 };
 
 #endif

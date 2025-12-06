@@ -20,7 +20,6 @@ class Window : I_Input
 {
     public:
         Window(const char *name, DrawMode drawMode);
-        virtual ~Window();
 
         GLFWwindow *GetWindow() const;
         int ShouldContinue();

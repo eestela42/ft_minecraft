@@ -1,11 +1,12 @@
 #include <classes/Game/mesh.hpp>
 
-
 mesh::~mesh()
-{}
+{
+}
 
 mesh::mesh()
-{}
+{
+}
 
 mesh::mesh(const mesh &copy)
 {
@@ -14,32 +15,9 @@ mesh::mesh(const mesh &copy)
 
 mesh::mesh(std::string file_name)
 {
-	std::cout << std::endl;
-
-	std::cout << "--start extracting info from file" << std::endl;
-
 	parseFromFile(file_name);
-
-	std::cout << "--end extracting info from file" << std::endl;
-	
-	std::cout << std::endl;
-
-	std::cout << "--start managing raw info from file" << std::endl;
-
 	EcoDupVertex();
 	// center_around_orgin();
-
-	std::cout << "--end managing raw info from file" << std::endl;
-
-	std::cout << std::endl;
-
-	std::cout << "base_vertexes : 	" << base_vertexes.size() << std::endl;
-	std::cout << "base_faces : 		" << base_faces.size() << std::endl;
-	std::cout << "vertexes : 		" << vertexes.size() << std::endl;
-	std::cout << "triangles : 		" << triangles.size() << std::endl;
-
-	std::cout << std::endl;
-
 	// addInfoToVertexesEco();
 	dataStruct.data = (u_char *)vertexes.data();
 	// dataStruct.size = vertexes.size() * sizeof(glm::vec3) * 2;
@@ -52,107 +30,105 @@ mesh::mesh(std::string file_name)
 	}
 }
 
-void	mesh::parseFromFile(std::string file_name)
+void mesh::parseFromFile(std::string file_name)
 {
 	std::ifstream file(file_name);
-    if (!file.is_open())
-    {
-        std::cout << "Error opening file : " << file_name << std::endl;
-        exit(1);
-    }
-
-    std::string line;
-	int count = 0;
-	try {
-  while (std::getline(file, line))
+	if (!file.is_open())
 	{
-		count++;
-		// std::cout << "line : " << count++ << std::endl;
-		if (line.size() <= 2)
-			continue;
-        if (line[0] == 'v' && line[1] == ' ')
-        {
-			bool point = false;
-            glm::vec3 vert;
-            std::string str[3];
-            int i = 2;
-			for (int pos = 0; pos < 3; pos++)
+		std::cout << "Error opening file : " << file_name << std::endl;
+		exit(1);
+	}
+
+	std::string line;
+	int count = 0;
+	try
+	{
+		while (std::getline(file, line))
+		{
+			count++;
+			// std::cout << "line : " << count++ << std::endl;
+			if (line.size() <= 2)
+				continue;
+			if (line[0] == 'v' && line[1] == ' ')
 			{
-				while (line[i] && line[i] == ' ')
-					{i++;}
-				if (line[i] && line[i] == '-')
-					str[pos] += line[i++];
-				while (line[i] && ((line[i] >= '0' && line[i] <= '9') || line[i] == '.' ))
-				{
-					if (line[i] == '.')
-					{
-						if (!point)
-							point = true;
-						else
-						{
-							std::cout << "Error line " << count << " : 2 points in a number" << std::endl;
-							str[pos].clear();
-							break ;
-						}
-					}
-					str[pos] += line[i];
-					i++;
-				}
-				point = false;
-			}
-			if (str[0].empty() || str[0] == "." || str[1].empty() || str[1] == "." || str[2].empty() || str[2] == ".")
-			{
-				std::cout << "Error line " << count << " : missing number" << std::endl;
-			}
-			else 
-			{
+				bool point = false;
+				glm::vec3 vert;
+				std::string str[3];
+				int i = 2;
 				for (int pos = 0; pos < 3; pos++)
-					vert[pos] = std::stof(str[pos]);
-				this->base_vertexes.push_back(vert);
-			}
-            str[0].clear();
-			str[1].clear();
-			str[2].clear();
-			
-			
-        }
-        else if (line[0] == 'f' && line[1] == ' ')
-        {
-			// std::cout << "line : " << line << std::endl;
-			std::vector<unsigned int>face;
-			int i = 2;
-			while(line[i] && line[i] == ' '){i++;}
-			// for(int num = 0; line[i] && num < 3; num++)
-			while (line[i])
-			{
-				std::string tmp;
-				while(line[i] && line[i] <= '9' && line[i] >= '0')
 				{
-					tmp += line[i];
-					i++;
+					while (line[i] && line[i] == ' ')
+						i++;
+					if (line[i] && line[i] == '-')
+						str[pos] += line[i++];
+					while (line[i] && ((line[i] >= '0' && line[i] <= '9') || line[i] == '.'))
+					{
+						if (line[i] == '.')
+						{
+							if (!point)
+								point = true;
+							else
+							{
+								std::cout << "Error line " << count << " : 2 points in a number" << std::endl;
+								str[pos].clear();
+								break;
+							}
+						}
+						str[pos] += line[i];
+						i++;
+					}
+					point = false;
 				}
-				if (!tmp.empty())
-					face.push_back(std::stoi(tmp));
-				while(line[i] && line[i] != ' '){i++;}
-				while(line[i] && line[i] == ' '){i++;}
+				if (str[0].empty() || str[0] == "." || str[1].empty() || str[1] == "." || str[2].empty() || str[2] == ".")
+					std::cout << "Error line " << count << " : missing number" << std::endl;
+				else
+				{
+					for (int pos = 0; pos < 3; pos++)
+						vert[pos] = std::stof(str[pos]);
+					this->base_vertexes.push_back(vert);
+				}
+				str[0].clear();
+				str[1].clear();
+				str[2].clear();
 			}
-			if (face.size() < 3)
+			else if (line[0] == 'f' && line[1] == ' ')
 			{
-				std::cout << "Error line " << count << " : face with less than 3 vertexes" << std::endl;
+				// std::cout << "line : " << line << std::endl;
+				std::vector<unsigned int> face;
+				int i = 2;
+				while (line[i] && line[i] == ' ')
+					i++;
+				// for(int num = 0; line[i] && num < 3; num++)
+				while (line[i])
+				{
+					std::string tmp;
+					while (line[i] && line[i] <= '9' && line[i] >= '0')
+					{
+						tmp += line[i];
+						i++;
+					}
+					if (!tmp.empty())
+						face.push_back(std::stoi(tmp));
+					while (line[i] && line[i] != ' ')
+						i++;
+					while (line[i] && line[i] == ' ')
+						i++;
+				}
+				if (face.size() < 3)
+					std::cout << "Error line " << count << " : face with less than 3 vertexes" << std::endl;
+				else
+					this->base_faces.push_back(face);
 			}
-			else
-				this->base_faces.push_back(face);
 		}
 	}
-	}
-	catch(const std::exception& e) {
-			std::cout << " a standard exception was caught, with message: '"
-                  << e.what() << "'\n";
+	catch (const std::exception &e)
+	{
+		std::cout << " a standard exception was caught, with message: '"
+				  << e.what() << "'\n";
 	}
 
-    file.close();
+	file.close();
 }
-
 
 std::vector<t_triangle> mesh::facesToTriangles()
 {
@@ -205,7 +181,7 @@ void mesh::facesToTrianglesDupVertexes()
 		}
 	}
 	this->vertexes = new_vertexes;
-	
+
 	int i = 0;
 	int max = this->vertexes.size();
 	while (i < max)
@@ -217,7 +193,7 @@ void mesh::facesToTrianglesDupVertexes()
 		new_triangles.push_back(triangle);
 		i += 3;
 	}
-	
+
 	this->triangles = new_triangles;
 }
 
@@ -227,7 +203,7 @@ void mesh::addInfoToVertexesDup()
 	glm::vec3 colors[] = {
 		{1.0f, 0.0f, 0.0f}, // red
 		{0.0f, 1.0f, 0.0f}, // green
-		{0.0f, 0.0f, 1.0f}  // blue
+		{0.0f, 0.0f, 1.0f}	// blue
 	};
 	glm::vec3 textureCoo[] = {
 		{1.0f, 1.0f, 0.0f},
@@ -239,7 +215,7 @@ void mesh::addInfoToVertexesDup()
 	int last_face = -1;
 	for (std::size_t i = 0; i < this->vertexes.size(); i++)
 	{
-		
+
 		new_vbo.push_back(this->vertexes[i]);
 		new_vbo.push_back(colors[colorIndex]);
 
@@ -258,32 +234,30 @@ void mesh::addInfoToVertexesDup()
 	this->vertexes = new_vbo;
 }
 
-
 void mesh::EcoDupVertex()
 {
-	std::vector<glm::vec3> new_vertexes/* = this->base_vertexes*/;
+	std::vector<glm::vec3> new_vertexes /* = this->base_vertexes*/;
 	std::vector<t_triangle> new_triangles;
 
 	int i = 0;
 	for (std::vector<std::vector<unsigned int>>::iterator it = this->base_faces.begin(); it != this->base_faces.end(); ++it)
 	{
-		//barre de prog
-		// std::cout << "face : " << i << " / " << this->base_faces.size() << " = " << ((float)i / (float)this->base_faces.size()) * 100 << "%"<< std::endl;
-		
-		
-		//Check face  >3 vertexes
+		// barre de prog
+		//  std::cout << "face : " << i << " / " << this->base_faces.size() << " = " << ((float)i / (float)this->base_faces.size()) * 100 << "%"<< std::endl;
+
+		// Check face  >3 vertexes
 		if (it->size() < 3)
 		{
 			std::cout << "Error : face with less than 3 vertexes" << std::endl;
 			exit(1);
 		}
 
-		//create triangle from the face
+		// create triangle from the face
 		std::vector<t_triangle> base_face_triangles;
 		base_face_triangles = createTriangleFromFace(*it);
 
-		//create triangles with shared vertexes by face
-		std::vector<t_triangle>	new_face_triangles;
+		// create triangles with shared vertexes by face
+		std::vector<t_triangle> new_face_triangles;
 		int j = 0;
 		for (std::vector<t_triangle>::iterator it2 = base_face_triangles.begin(); it2 != base_face_triangles.end(); ++it2)
 		{
@@ -296,7 +270,7 @@ void mesh::EcoDupVertex()
 		for (std::size_t y = 0; y < new_face_triangles.size(); y++)
 		{
 			new_triangles.push_back(new_face_triangles[y]);
-			for(int z = 0; z < 3; z++)
+			for (int z = 0; z < 3; z++)
 			{
 				bool to_push = true;
 				for (std::size_t x = 0; x < tmp.size(); x++)
@@ -312,20 +286,18 @@ void mesh::EcoDupVertex()
 			}
 		}
 
-		
 		this->vertByFace.push_back(tmp);
 		base_triangles.push_back(base_face_triangles);
 
 		i++;
 	}
-	
 
 	this->triangles = new_triangles;
 	this->vertexes = new_vertexes;
 }
 
 t_triangle mesh::getSemioptiVerticesTriangle(t_triangle &triangle, std::size_t pos, std::vector<glm::vec3> *new_vertexes,
-						std::vector<t_triangle> *base_face_triangles, std::vector<t_triangle> *new_face_triangles)
+											 std::vector<t_triangle> *base_face_triangles, std::vector<t_triangle> *new_face_triangles)
 {
 	t_triangle ret;
 	bool found = false;
@@ -338,10 +310,10 @@ t_triangle mesh::getSemioptiVerticesTriangle(t_triangle &triangle, std::size_t p
 			for (int z = 0; !found && z < 3; z++)
 			{
 				if (base_face_triangles->at(y).v[z] == triangle.v[i])
-					{
-						ret.v[i] = new_face_triangles->at(y).v[z];
-						found = true;
-					}
+				{
+					ret.v[i] = new_face_triangles->at(y).v[z];
+					found = true;
+				}
 			}
 		}
 		if (!found)
@@ -353,8 +325,7 @@ t_triangle mesh::getSemioptiVerticesTriangle(t_triangle &triangle, std::size_t p
 	return (ret);
 }
 
-
-glm::vec3 sub_vec(glm::vec3& a, glm::vec3& b);
+glm::vec3 sub_vec(glm::vec3 &a, glm::vec3 &b);
 
 std::vector<t_triangle> mesh::createTriangleFromFace(std::vector<unsigned int> face)
 {
@@ -378,27 +349,25 @@ void mesh::addInfoToVertexesEco()
 	glm::vec3 colors[] = {
 		{0.1f, 0.1f, 0.1f}, // red
 		{0.2f, 0.2f, 0.2f}, // green
-		{0.3f, 0.3f, 0.3f}  // blue
+		{0.3f, 0.3f, 0.3f}	// blue
 	};
 	glm::vec3 textureCoo[] = {
 		{1.0f, 1.0f, 1.0f},
 		{1.0f, 0.0f, 1.0f},
 		{0.0f, 0.0f, 1.0f},
-		{0.0f, 1.0f, 1.0f}
-	};
-
+		{0.0f, 1.0f, 1.0f}};
 
 	int pos = 0;
-	
+
 	for (std::size_t face = 0; face < this->vertByFace.size(); face++)
 	{
 		for (std::size_t vertInFace = 0; vertInFace < this->vertByFace[face].size(); vertInFace++)
 		{
 			// std::cout << "face : " << face << " | vertInFace : " << vertInFace << std::endl;
 			new_vbo.push_back(this->vertexes[this->vertByFace[face][vertInFace]]);
-			//new_vbo.push_back(colors[face % 3]);
-			float clor = (face % 50) * 0.01 ;
-			glm::vec3 tmp = { clor, clor,clor};
+			// new_vbo.push_back(colors[face % 3]);
+			float clor = (face % 50) * 0.01;
+			glm::vec3 tmp = {clor, clor, clor};
 			// glm::vec3 tmp = colors[face % 3];
 			new_vbo.push_back(tmp);
 			new_vbo.push_back(textureCoo[vertInFace % 4]);
@@ -406,13 +375,13 @@ void mesh::addInfoToVertexesEco()
 		}
 	}
 
-
 	this->vertexes = new_vbo;
 }
 
-void mesh::min_max_bounds(glm::vec3& min_bound, glm::vec3& max_bound)
+void mesh::min_max_bounds(glm::vec3 &min_bound, glm::vec3 &max_bound)
 {
-	for (std::vector<glm::vec3>::iterator vert = this->vertexes.begin(); vert != this->vertexes.end();)  {
+	for (std::vector<glm::vec3>::iterator vert = this->vertexes.begin(); vert != this->vertexes.end();)
+	{
 		min_bound[0] = std::min(min_bound[0], (*vert)[0]);
 		min_bound[1] = std::min(min_bound[1], (*vert)[1]);
 		min_bound[2] = std::min(min_bound[2], (*vert)[2]);
@@ -424,7 +393,7 @@ void mesh::min_max_bounds(glm::vec3& min_bound, glm::vec3& max_bound)
 	}
 }
 
-void	mesh::center_around_orgin()
+void mesh::center_around_orgin()
 {
 	glm::vec3 min_bound = {0, 0, 0};
 	glm::vec3 max_bound = {0, 0, 0};
@@ -434,19 +403,19 @@ void	mesh::center_around_orgin()
 	// std::cout << "min : " << min_bound.v[0] << " " << min_bound.v[1] << " " << min_bound.v[2] << std::endl;
 	// std::cout << "max : " << max_bound.v[0] << " " << max_bound.v[1] << " " << max_bound.v[2] << std::endl;
 	glm::vec3 center = {0, 0, 0};
-	
+
 	center[0] = (min_bound[0] + max_bound[0]) / 2;
 	center[1] = (min_bound[1] + max_bound[1]) / 2;
 	center[2] = (min_bound[2] + max_bound[2]) / 2;
 	// std::cout << "center : " << center.v[0] << " " << center.v[1] << " " << center.v[2] << std::endl;
 
-	for (std::vector<glm::vec3>::iterator vert = this->vertexes.begin(); vert != this->vertexes.end(); ++vert)  {
+	for (std::vector<glm::vec3>::iterator vert = this->vertexes.begin(); vert != this->vertexes.end(); ++vert)
+	{
 		(*vert)[0] -= center[0];
 		(*vert)[1] -= center[1];
 		(*vert)[2] -= center[2];
 	}
 }
-
 
 mesh &mesh::operator=(const mesh &copy)
 {

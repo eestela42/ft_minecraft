@@ -1,16 +1,15 @@
 #include <classes/ECS/ECS.hpp>
 #include <glm/glm.hpp>
 
+ECS::ECS(std::vector<std::vector<AChunk *>> &tabChunks, std::mutex &tabChunks_mutex,
+		 glm::vec3 &playerPos, std::mutex &playerPos_mutex,
+		 bool &endThread, std::mutex &endThread_mutex,
+		 std::vector<unsigned char> **entityPos, std::mutex &entityPos_mutex)
 
-ECS::ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mutex,
-			glm::vec3 &playerPos, std::mutex &playerPos_mutex,
-			bool &endThread, std::mutex &endThread_mutex,
-			std::vector<unsigned char> **entityPos, std::mutex &entityPos_mutex)
-
-		: tabChunks(tabChunks), 	tabChunks_mutex(tabChunks_mutex),
-		playerPos(playerPos), 		playerPos_mutex(playerPos_mutex),
-		endThread(endThread), 		endThread_mutex(endThread_mutex),
-		entityPos(entityPos), 		entityPos_mutex(entityPos_mutex)
+	: tabChunks(tabChunks), tabChunks_mutex(tabChunks_mutex),
+	  playerPos(playerPos), playerPos_mutex(playerPos_mutex),
+	  endThread(endThread), endThread_mutex(endThread_mutex),
+	  entityPos(entityPos), entityPos_mutex(entityPos_mutex)
 {
 	// systems.push_back(new SystemGetChunk());
 	systems.push_back(new SystemIsOnGround());
@@ -28,22 +27,21 @@ ECS::ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mu
 }
 
 void ECS::Initialize(int amount, Shader *entityShader,
-		std::vector<glm::mat4> &modelMatrices,
-		VertexArrayObject **model_VAO,
-		glm::vec3 **oldPos,
-		unsigned int &buffer)
+					 std::vector<glm::mat4> &modelMatrices,
+					 VertexArrayObject **model_VAO,
+					 glm::vec3 **oldPos,
+					 unsigned int &buffer)
 {
 	for (int i = 0; i < amount; i++)
-		addEntity(playerPos.x + std::rand() % 500 - 250,playerPos.z + std::rand() % 500 - 250, 250 + std::rand() % 20);
-	
+		addEntity(playerPos.x + std::rand() % 500 - 250, playerPos.z + std::rand() % 500 - 250, 250 + std::rand() % 20);
 	modelMatrices.resize(amount);
 
 	// move to texture handler
 	mesh *mesh42 = new mesh("object3d/cube.obj");
 
-	t_vertexData dataStruct = {(u_char*)(mesh42->vertexes.data()), mesh42->vertexes.size() * (sizeof(glm::vec3) + 4 * sizeof(glm::vec4))};
+	t_vertexData dataStruct = {(u_char *)(mesh42->vertexes.data()), mesh42->vertexes.size() * (sizeof(glm::vec3) + 4 * sizeof(glm::vec4))};
 
-	std::vector<unsigned int>* indices = new std::vector<unsigned int>();
+	std::vector<unsigned int> *indices = new std::vector<unsigned int>();
 	for (std::size_t i = 0; i < mesh42->triangles.size(); i++)
 	{
 		indices->push_back(mesh42->triangles[i].v[0]);
@@ -60,7 +58,6 @@ void ECS::Initialize(int amount, Shader *entityShader,
 		model = glm::translate(model, glm::vec3(0, 0, 0));
 		modelMatrices[i] = model;
 	}
-	
 
 	*oldPos = new glm::vec3[amount];
 	memcpy(*oldPos, (*entityPos)->data(), amount * sizeof(glm::vec3));
@@ -68,7 +65,7 @@ void ECS::Initialize(int amount, Shader *entityShader,
 	entityPos_mutex.unlock();
 
 	// configure instanced array
-	
+
 	buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -77,13 +74,13 @@ void ECS::Initialize(int amount, Shader *entityShader,
 	glBindVertexArray(VAO);
 
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)0);
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(sizeof(glm::vec4)));
 	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(2 * sizeof(glm::vec4)));
 	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(3 * sizeof(glm::vec4)));
 
 	glVertexAttribDivisor(1, 1);
 	glVertexAttribDivisor(2, 1);
@@ -113,8 +110,8 @@ void ECS::printAll()
 				if (id.type == compo->getId())
 				{
 					found = true;
-					glm::vec3 *pos = (glm::vec3*)compo->getComponent(id.value);
-					std::cout << "value : " << (*pos).x << " "  << (*pos).y << " " << (*pos).z << std::endl;
+					glm::vec3 *pos = (glm::vec3 *)compo->getComponent(id.value);
+					std::cout << "value : " << (*pos).x << " " << (*pos).y << " " << (*pos).z << std::endl;
 				}
 			}
 			if (!found)
@@ -148,7 +145,7 @@ void ECS::addEntity(int x, int y, int z)
 
 void ECS::removeEntity(int index)
 {
-	//not working i guess
+	// not working i guess
 	entities.erase(entities.begin() + index);
 }
 
@@ -182,8 +179,8 @@ void ECS::update()
 		endThread_mutex.unlock();
 		if (std::chrono::steady_clock::now() - lastFrame < std::chrono::milliseconds(timeSleepToTick))
 		{
-			//sleep remainign time
-			std::this_thread::sleep_for(std::chrono::milliseconds(timeSleepToTick) - ( std::chrono::steady_clock::now() - lastFrame));
+			// sleep remainign time
+			std::this_thread::sleep_for(std::chrono::milliseconds(timeSleepToTick) - (std::chrono::steady_clock::now() - lastFrame));
 		}
 		lastFrame = std::chrono::steady_clock::now();
 
@@ -203,17 +200,16 @@ void ECS::update()
 		endThread_mutex.lock();
 	}
 	endThread_mutex.unlock();
-
 }
 
-void ECS::makeData(int i, std::vector<void*> &data, std::vector<int> &order, glm::vec3 &cp_playerPose,
-					std::vector<Component*> &vec_components, std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal> &chunks_needed)
+void ECS::makeData(int i, std::vector<void *> &data, std::vector<int> &order, glm::vec3 &cp_playerPose,
+				   std::vector<Component *> &vec_components, std::unordered_map<glm::ivec2, AChunk *, IVec2Hash, IVec2Equal> &chunks_needed)
 {
 
 	std::vector<id> compo_id = entities[i].getComponents();
 	data.clear();
 
-	data.push_back((void*)entities[i].getFlagInfoAddr()); //data[0] == flag_info
+	data.push_back((void *)entities[i].getFlagInfoAddr()); // data[0] == flag_info
 	for (int id : order)
 	{
 		if (id >= 0)
@@ -237,15 +233,15 @@ void ECS::makeData(int i, std::vector<void*> &data, std::vector<int> &order, glm
 		{
 			if (id == -1)
 			{
-				data.push_back((void*)&tabChunks);
-				data.push_back((void*)&tabChunks_mutex);
+				data.push_back((void *)&tabChunks);
+				data.push_back((void *)&tabChunks_mutex);
 			}
 			if (id == -2)
-				data.push_back((void*)&entityPos_mutex);
+				data.push_back((void *)&entityPos_mutex);
 			if (id == -3)
-				data.push_back((void*)&cp_playerPose);
+				data.push_back((void *)&cp_playerPose);
 			if (id == -4)
-				data.push_back((void*)&chunks_needed);
+				data.push_back((void *)&chunks_needed);
 		}
 	}
 }
@@ -258,10 +254,8 @@ void ECS::cycle()
 
 	std::vector<const char *> systemeNames = {"SystemGetChunk", "SystemIsOnGround", "SystemChase", "SystemGarvity", "SystemMove"};
 
-	
-
 	cp_playerPose = {cp_playerPose.x, cp_playerPose.z, cp_playerPose.y};
-	
+
 	int y = 0;
 	for (auto system : systems)
 	{
@@ -270,21 +264,21 @@ void ECS::cycle()
 		// std::cout << "system : " << y++ << std::endl;
 		std::bitset<8> system_flag_compo = system->getFlagCompo();
 		std::bitset<8> system_flag_info = system->getFlagInfo();
-		
+
 		for (int i = 0; i < entities.size(); i++)
 		{
-			std::vector<void*> data =std::vector<void*>();
+			std::vector<void *> data = std::vector<void *>();
 			std::bitset<8> flag_compo;
 
 			flag_compo = entities[i].getFlagCompo();
 
 			if ((flag_compo & system_flag_compo) != system_flag_compo)
 				continue;
-			
+
 			std::vector<int> order = getDataOrder(system_flag_compo, system_flag_info);
 
 			makeData(i, data, order, cp_playerPose, components, chunks_needed);
-			
+
 			system->apply(data);
 		}
 		if (PROFILER_ON)
@@ -300,5 +294,3 @@ void ECS::cycle()
 	// chunks_needed.clear();
 	// tabChunks_mutex.unlock();
 }
-
-
