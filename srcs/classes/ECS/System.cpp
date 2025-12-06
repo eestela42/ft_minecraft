@@ -1,6 +1,5 @@
 #include <classes/ECS/System.hpp>
 
-
 AChunk *getChunk(std::vector<std::vector<AChunk*>> &tabChunks, std::mutex &tabChunks_mutex, glm::vec3 pos)
 {
 	tabChunks_mutex.lock();
@@ -8,7 +7,7 @@ AChunk *getChunk(std::vector<std::vector<AChunk*>> &tabChunks, std::mutex &tabCh
 
 	glm::vec3 posChunk = glm::vec3((int)pos.x / 16, (int)pos.y / 16, (int)pos.z / 256);
 
-	AChunk* chunk = tabChunks[mod_floor(posChunk.x, size_tab)][mod_floor(posChunk.y, size_tab)];
+	AChunk* chunk = tabChunks[mod_floor((int)posChunk.x, size_tab)][mod_floor((int)posChunk.y, size_tab)];
 	if (chunk == NULL)
 	{
 		tabChunks_mutex.unlock();

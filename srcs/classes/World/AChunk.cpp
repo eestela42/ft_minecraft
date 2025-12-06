@@ -1,11 +1,5 @@
 #include <classes/World/AChunk.hpp>
 
-int mod_floor(int a, int n) {
-	if (a < 0)
-		a += (-a / n + 1) * n; 
-    return (a % n);
-}
-
 AChunk::AChunk(int x, int y, int z) : posX(x), posY(y), posZ(z)
 {
 }
@@ -14,7 +8,7 @@ AChunk::~AChunk()
 {
 	if (neighbours.north)
 		neighbours.north->setNeighbour(NEIGHB_SOUTH, NULL);
-	if (neighbours.south)	
+	if (neighbours.south)
 		neighbours.south->setNeighbour(NEIGHB_NORTH, NULL);
 	if (neighbours.east)
 		neighbours.east->setNeighbour(NEIGHB_WEST, NULL);
@@ -23,8 +17,6 @@ AChunk::~AChunk()
 
 	mutex.unlock();
 }
-
-
 
 /*Public func*/
 void AChunk::pubGenerate(u_char *data)
@@ -59,10 +51,10 @@ t_vbo_data AChunk::pubGetPtrVertices()
 	return ret;
 }
 
-std::vector<unsigned int>* AChunk::pubGetPtrIndices()
+std::vector<unsigned int> *AChunk::pubGetPtrIndices()
 {
 	mutex.lock();
-	std::vector<unsigned int>* ret = privGetPtrIndices();
+	std::vector<unsigned int> *ret = privGetPtrIndices();
 	mutex.unlock();
 	return ret;
 }
@@ -85,7 +77,6 @@ u_char AChunk::pubBlockType(int x, int y, int z)
 
 bool AChunk::pubChangeBlock(int x, int y, int z, u_char type)
 {
-	std::cout << "pubChangeBlock x : " << std::endl;
 	mutex.lock();
 	if (!isGenerated)
 	{
@@ -99,15 +90,12 @@ bool AChunk::pubChangeBlock(int x, int y, int z, u_char type)
 	return ret;
 }
 
-/*Normal func*/
-
 void AChunk::borrow()
 {
 	mutex.lock();
 	sharedHolder++;
 	mutex.unlock();
 }
-
 
 glm::ivec2 AChunk::getPos()
 {
@@ -138,13 +126,11 @@ u_char *AChunk::getDataMutex()
 	mutex.unlock();
 }
 
-
 void AChunk::setIsGenerated(bool isGenerated)
 {
 	mutex.lock();
 	this->isGenerated = isGenerated;
 	mutex.unlock();
-	
 }
 
 bool AChunk::getIsGenerated()
@@ -193,9 +179,7 @@ bool AChunk::getToUpdate()
 
 s_neighbours AChunk::getNeighbours()
 {
-	// mutex.lock();
-	s_neighbours ret =  neighbours;
-	// mutex.unlock();
+	s_neighbours ret = neighbours;
 	return ret;
 }
 
@@ -222,11 +206,10 @@ void AChunk::setNeighbour(int direction, AChunk *chunk)
 	case NEIGHB_EAST:
 		neighbours.east = chunk;
 		break;
-	
+
 	case NEIGHB_WEST:
 		neighbours.west = chunk;
 		break;
 	}
 	mutex.unlock();
 }
-

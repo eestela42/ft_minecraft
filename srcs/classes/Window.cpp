@@ -48,7 +48,7 @@ Window::Window(const char *name, DrawMode drawMode) {
     else {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // default draw (filled)
     }
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); // We tell glfw which function to call whenever window is resized
 }
 
