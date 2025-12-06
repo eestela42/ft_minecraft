@@ -21,6 +21,76 @@ ECS::ECS(std::vector<std::vector<AChunk*>> 	&tabChunks, std::mutex &tabChunks_mu
 	components.push_back(new Component(0, sizeof(glm::vec3)));
 	components.push_back(new Component(1, sizeof(glm::vec3)));
 	*entityPos = components[0]->getComponents();
+
+
+
+	
+}
+
+void ECS::Initialize(int amount, Shader *entityShader,
+		std::vector<glm::mat4> &modelMatrices,
+		VertexArrayObject **model_VAO,
+		glm::vec3 **oldPos,
+		unsigned int &buffer)
+{
+	for (int i = 0; i < amount; i++)
+		addEntity(playerPos.x + std::rand() % 500 - 250,playerPos.z + std::rand() % 500 - 250, 250 + std::rand() % 20);
+	
+	modelMatrices.resize(amount);
+
+	// move to texture handler
+	mesh *mesh42 = new mesh("object3d/cube.obj");
+
+	t_vertexData dataStruct = {(u_char*)(mesh42->vertexes.data()), mesh42->vertexes.size() * (sizeof(glm::vec3) + 4 * sizeof(glm::vec4))};
+
+	std::vector<unsigned int>* indices = new std::vector<unsigned int>();
+	for (std::size_t i = 0; i < mesh42->triangles.size(); i++)
+	{
+		indices->push_back(mesh42->triangles[i].v[0]);
+		indices->push_back(mesh42->triangles[i].v[1]);
+		indices->push_back(mesh42->triangles[i].v[2]);
+	}
+
+	*model_VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*indices), entityShader);
+	modelMatrices;
+	entityPos_mutex.lock();
+	for (unsigned int i = 0; i < amount; i++)
+	{
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0, 0, 0));
+		modelMatrices[i] = model;
+	}
+	
+
+	*oldPos = new glm::vec3[amount];
+	memcpy(*oldPos, (*entityPos)->data(), amount * sizeof(glm::vec3));
+
+	entityPos_mutex.unlock();
+
+	// configure instanced array
+	
+	buffer;
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+	unsigned int VAO = (*model_VAO)->GetVAO();
+	glBindVertexArray(VAO);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+	glVertexAttribDivisor(1, 1);
+	glVertexAttribDivisor(2, 1);
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
+
+	glBindVertexArray(0);
 }
 
 ECS::~ECS()

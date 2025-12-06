@@ -56,7 +56,7 @@ class Game: public I_Input
 	//tmp
 	unsigned int buffer;
 	VertexArrayObject *model_VAO;
-	int amount = 0;
+	int amount = 10;
 
 	std::vector<glm::mat4> modelMatrices;
 	glm::vec3 *oldPos = NULL;

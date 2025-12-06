@@ -11,7 +11,8 @@
 #include <deque>
 #include <thread>
 #include <map>
-
+#include <classes/Game/mesh.hpp>
+#include <classes/VAO/VertexArrayObject.hpp>
 
 
 class ECS
@@ -47,6 +48,12 @@ class ECS
 			bool &endThread, std::mutex &endThread_mutex,
 			std::vector<unsigned char> **entityPos, std::mutex &entityPos_mutex);
 		~ECS();
+
+		void Initialize(int amount, Shader *entityShader,
+		std::vector<glm::mat4> &modelMatrices,
+		VertexArrayObject **model_VAO,
+		glm::vec3 **oldPos,
+		unsigned int &buffer);
 		
 		void addEntity();
 		void addEntity(int x, int y, int z);
@@ -59,6 +66,13 @@ class ECS
 			std::vector<Component*> &vec_components, std::unordered_map<glm::ivec2, AChunk*,  IVec2Hash, IVec2Equal> &chunks_needed);
 
 		void printAll();
+
+		// std::vector<glm::mat4> modelMatrices;
+		// VertexArrayObject *model_VAO;
+		// glm::vec3 *oldPos = NULL;
+		// unsigned int buffer;
+
+
 
 
 };
