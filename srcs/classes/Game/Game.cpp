@@ -39,7 +39,6 @@ Game::Game()
 				  cameraPosition, playerPos_mutex,
 				  endThreads, endThreads_mutex,
 				  &entityPos, entityPos_mutex);
-	std::cout << "bffr  ecs init" << std::endl;
 
 	ecs->Initialize(amount, shaderHandler->GetShader("entity"),
 					modelMatrices,
@@ -47,7 +46,6 @@ Game::Game()
 					&oldPos,
 					buffer);
 
-	std::cout << "aftar ecs init" << std::endl;
 
 	// Move to UI
 	{
@@ -427,7 +425,6 @@ void interpolatePositions(const glm::vec3 *oldPos,
 
 void Game::manageVaoEntity()
 {
-	std::cout << "Managing VAO Entity" << std::endl;
 	std::vector<glm::mat4> usedModelMatrices(amount);
 	entityPos_mutex.lock();
 	glm::vec3 *newPos = (glm::vec3 *)entityPos->data();
@@ -468,7 +465,6 @@ void Game::manageVaoEntity()
 	glVertexAttribDivisor(2, 1);
 	glVertexAttribDivisor(3, 1);
 	glVertexAttribDivisor(4, 1);
-	std::cout << "OUT ---- Managing VAO Entity" << std::endl;
 }
 
 void Game::manageVAO()
