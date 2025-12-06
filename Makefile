@@ -43,7 +43,7 @@ IMGUI_FILES = \
 ################################################################################
 
 CC	   =	g++ 
-CFLAGS = -std=c++17 -g3 -Iincludes -I$(IMGUI_DIR) -I$(IMGUI_BACKENDS) -MMD -MP -DGLFW_INCLUDE_NONE
+CFLAGS = -std=c++17 -O3 -g3 -Iincludes -I$(IMGUI_DIR) -I$(IMGUI_BACKENDS) -MMD -MP -DGLFW_INCLUDE_NONE
 OPENGL = -lglfw3 -lX11 -llmdb
 RM			=	rm -rf
 
