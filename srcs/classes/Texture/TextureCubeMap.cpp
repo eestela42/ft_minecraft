@@ -1,14 +1,16 @@
 #include <classes/Texture/TextureCubeMap.hpp>
 
 TextureCubeMap::~TextureCubeMap()
-{}
+{
+}
 
 TextureCubeMap::TextureCubeMap()
-{}
+{
+}
 
-TextureCubeMap::TextureCubeMap(u_int id) :
-	Texture(id, 0, 0, 0)
-{}
+TextureCubeMap::TextureCubeMap(u_int id) : Texture(id, 0, 0, 0)
+{
+}
 
 TextureCubeMap::TextureCubeMap(const TextureCubeMap &other)
 {
@@ -17,4 +19,3 @@ TextureCubeMap::TextureCubeMap(const TextureCubeMap &other)
     height = other.height;
     nrChannels = other.nrChannels;
 }
-

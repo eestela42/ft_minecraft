@@ -11,30 +11,32 @@
 #include <classes/VertexBufferObject.hpp>
 #include <classes/Shader.hpp>
 
-class VertexArrayObject {
+class VertexArrayObject
+{
 public:
     VertexArrayObject(VertexBufferObject *VBO, ElementBufferObject *EBO, Shader *shader);
-	
+
     void Bind();
     void Unbind();
-	unsigned int GetVAO();
+    unsigned int GetVAO();
     VertexBufferObject *GetVBO();
     ElementBufferObject *GetEBO();
-	size_t GetIndicesSize();
+    size_t GetIndicesSize();
     size_t GetIndicesDataSize();
-	float posX;
-	float posY;
+    float posX;
+    float posY;
 
-	~VertexArrayObject();
+    ~VertexArrayObject();
+
 private:
     unsigned int VAO;
     VertexBufferObject *VBO;
     ElementBufferObject *EBO;
-	Shader *shader;
-	size_t indicesSize;
+    Shader *shader;
+    size_t indicesSize;
     size_t indicesDataSize;
     std::vector<glm::uvec4> locationList;
     int totalStride = 0;
 
-	void AddVertexAttributes(std::vector<t_vertexAttribute> &vertexAttributes);
+    void AddVertexAttributes(std::vector<t_vertexAttribute> &vertexAttributes);
 };

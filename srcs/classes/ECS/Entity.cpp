@@ -41,9 +41,7 @@ int Entity::getComponent(int type)
 	for (auto id : ids)
 	{
 		if (id.type == type)
-		{
 			return id.value;
-		}
 	}
 	return -1;
 }
@@ -58,13 +56,12 @@ std::bitset<8> Entity::getFlagCompo()
 	return flag_compo;
 }
 
-
 std::bitset<8> Entity::getFlagInfo()
 {
 	return flag_info;
 }
 
-std::bitset<8>* Entity::getFlagInfoAddr()
+std::bitset<8> *Entity::getFlagInfoAddr()
 {
 	return &flag_info;
 }

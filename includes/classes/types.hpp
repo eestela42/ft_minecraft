@@ -6,8 +6,8 @@
 
 struct Vertex
 {
-    glm::vec3   Position;
-	int 		light;
+	glm::vec3 Position;
+	int light;
 };
 
 struct t_vbo_data
@@ -18,17 +18,16 @@ struct t_vbo_data
 
 struct info_VAO
 {
-	t_vbo_data					vertices;
-	std::vector<unsigned int>*	indices;
-	glm::ivec2 					pos;
+	t_vbo_data vertices;
+	std::vector<unsigned int> *indices;
+	glm::ivec2 pos;
 };
 
 struct VAO_data
 {
-	void*						vertices;
-	std::vector<unsigned int>*	indices;
-	u_int 						VAO;
+	void *vertices;
+	std::vector<unsigned int> *indices;
+	u_int VAO;
 };
-
 
 #endif

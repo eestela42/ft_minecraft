@@ -26,7 +26,6 @@ class Shader
 	public:
 		/** @brief Compiles the shader program found at the path.*/ 
 		Shader(const std::string &folderPath);
-		~Shader();
 		void Use();
 
 		void SetBool(const std::string &name, bool value) const;  

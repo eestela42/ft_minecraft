@@ -15,20 +15,21 @@
 
 class InputHandler
 {
-    public:
-        InputHandler(GLFWwindow *window);
-        ~InputHandler();
+public:
+    InputHandler(GLFWwindow *window);
+    ~InputHandler();
 
-        void AddCallback(I_Input*);
-		void HandleInput();
-    private:
-        std::vector<I_Input*> callbackVector;
-        GLFWwindow *window;
-        int keyMap[GLFW_KEY_LAST + 1] = {0};
-		u_char keyState[KEY_LAST + 1] = {0};
-		double posX, posY;
+    void AddCallback(I_Input *);
+    void HandleInput();
 
-        void MapKeys();
+private:
+    std::vector<I_Input *> callbackVector;
+    GLFWwindow *window;
+    int keyMap[GLFW_KEY_LAST + 1] = {0};
+    u_char keyState[KEY_LAST + 1] = {0};
+    double posX, posY;
+
+    void MapKeys();
 };
 
 #endif

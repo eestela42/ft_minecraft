@@ -1,18 +1,17 @@
 #ifndef MESH_HPP
-# define MESH_HPP
+#define MESH_HPP
 
-# include <iostream>
-# include <string.h>
-# include <sstream>
-# include <fstream>
-# include <math.h>
-# include <chrono>
-# include <iostream>
-# include <string.h>
-# include <sstream>
-# include <fstream>
-# include <vector>
-
+#include <iostream>
+#include <string.h>
+#include <sstream>
+#include <fstream>
+#include <math.h>
+#include <chrono>
+#include <iostream>
+#include <string.h>
+#include <sstream>
+#include <fstream>
+#include <vector>
 
 #include <interfaces/Interface_Input.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -21,17 +20,14 @@
 #include <glm/gtx/quaternion.hpp>
 #include <classes/vertexData.hpp>
 
-
-
 typedef struct s_triangle
 {
 	unsigned int v[3];
-}				t_triangle;
+} t_triangle;
 
 class mesh
 {
 public:
-
 	std::vector<glm::vec3> base_vertexes;
 	std::vector<std::vector<unsigned int>> base_faces;
 
@@ -49,29 +45,22 @@ public:
 	mesh(const mesh &copy);
 	mesh(std::string file_name);
 
-	void	parseFromFile(std::string file_name);
-
+	void parseFromFile(std::string file_name);
 
 	std::vector<t_triangle> facesToTriangles();
-	void	facesToTrianglesDupVertexes();
-	void	addInfoToVertexesDup();
+	void facesToTrianglesDupVertexes();
+	void addInfoToVertexesDup();
 
-
-
-
-	void 					EcoDupVertex();
-	t_triangle 				getSemioptiVerticesTriangle(t_triangle &triangle, std::size_t pos,  std::vector<glm::vec3> *new_vertexes,
-												std::vector<t_triangle> *base_face_triangles, std::vector<t_triangle> *new_face_triangles);
+	void EcoDupVertex();
+	t_triangle getSemioptiVerticesTriangle(t_triangle &triangle, std::size_t pos, std::vector<glm::vec3> *new_vertexes,
+										   std::vector<t_triangle> *base_face_triangles, std::vector<t_triangle> *new_face_triangles);
 	std::vector<t_triangle> createTriangleFromFace(std::vector<unsigned int> face);
-	void 					addInfoToVertexesEco();
+	void addInfoToVertexesEco();
 
+	void center_around_orgin();
+	void min_max_bounds(glm::vec3 &min_bound, glm::vec3 &max_bound);
 
-	void 	center_around_orgin();
-	void	min_max_bounds(glm::vec3& min_bound, glm::vec3& max_bound);
-
-	mesh&	operator=(const mesh &copy);
+	mesh &operator=(const mesh &copy);
 };
-
-
 
 #endif
