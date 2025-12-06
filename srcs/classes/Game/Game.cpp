@@ -10,39 +10,36 @@ const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
 unsigned int depthMap;
 
-
 Game::Game()
 {
 	window = new Window("Minecraft", DrawMode::FILL);
 	inputHandler = new InputHandler(window->GetWindow());
-	inputHandler->AddCallback((I_Input*)this); // c'est quoi c'truc
-	inputHandler->AddCallback((I_Input*)window);
+	inputHandler->AddCallback((I_Input *)this); // c'est quoi c'truc
+	inputHandler->AddCallback((I_Input *)window);
 	shaderHandler = new ShaderHandler("shaders");
 	textureHandler = new TextureHandler("file");
 
 	vertexArrayObjectHandler = new VertexArrayObjectHandler();
 
-	blockTextureArray = *(TextureArray*)textureHandler->getTexture("blockTextureArray");
+	blockTextureArray = *(TextureArray *)textureHandler->getTexture("blockTextureArray");
 
 	// Move this in pipeline rendering
-	skyBox = new SkyBox(shaderHandler->GetShader("cubemap"), 
+	skyBox = new SkyBox(shaderHandler->GetShader("cubemap"),
 						textureHandler->getTexture("skyboxTextureCubeMap")->id);
 
-
 	chunkInstanciator = new ChunkInstanciator(renderDistance, cameraPosition, playerPos_mutex,
-													dequeueVAO, dequeueVAO_mutex,
-													dequeueDeleteVAO, dequeueDeleteVAO_mutex,
-													playerHasMoved, playerHasMoved_mutex,
-													endThreads, endThreads_mutex,
-													casse_block,
-													displayDistance);
-
+											  dequeueVAO, dequeueVAO_mutex,
+											  dequeueDeleteVAO, dequeueDeleteVAO_mutex,
+											  playerHasMoved, playerHasMoved_mutex,
+											  endThreads, endThreads_mutex,
+											  casse_block,
+											  displayDistance);
 
 	ecs = new ECS(chunkInstanciator->getTabChunks(), chunkInstanciator->getTabChunks_mutex(),
-					cameraPosition, playerPos_mutex,
-					endThreads, endThreads_mutex,
-					&entityPos, entityPos_mutex);
-		std::cout << "bffr  ecs init" << std::endl;
+				  cameraPosition, playerPos_mutex,
+				  endThreads, endThreads_mutex,
+				  &entityPos, entityPos_mutex);
+	std::cout << "bffr  ecs init" << std::endl;
 
 	ecs->Initialize(amount, shaderHandler->GetShader("entity"),
 					modelMatrices,
@@ -50,21 +47,24 @@ Game::Game()
 					&oldPos,
 					buffer);
 
-		std::cout << "aftar ecs init" << std::endl;
-	
+	std::cout << "aftar ecs init" << std::endl;
 
 	// Move to UI
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		ImGuiIO &io = ImGui::GetIO();
+		(void)io;
 
 		ImGui::StyleColorsDark(); // Optional
 
-		const GLubyte* version = glGetString(GL_SHADING_LANGUAGE_VERSION);
-		if (version) {
+		const GLubyte *version = glGetString(GL_SHADING_LANGUAGE_VERSION);
+		if (version)
+		{
 			std::cout << "GLSL version: " << version << std::endl;
-		} else {
+		}
+		else
+		{
 			std::cout << "Failed to get GLSL version (no GL context?)" << std::endl;
 		}
 
@@ -74,12 +74,9 @@ Game::Game()
 		seedUI = chunkInstanciator->getCurrentSeed();
 	}
 
-	
 	// Move to rendering Pipeline init
 	{
 		// configure compute shader
-
-
 
 		glGenFramebuffers(1, &frontGroundFBO);
 		glBindFramebuffer(GL_FRAMEBUFFER, frontGroundFBO);
@@ -95,18 +92,17 @@ Game::Game()
 
 		glGenTextures(1, &frontDepthTexture);
 		glBindTexture(GL_TEXTURE_2D, frontDepthTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, frontDepthTexture, 0);
 
-		GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+		GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
 		glDrawBuffers(1, drawBuffers);
 
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -117,7 +113,7 @@ Game::Game()
 
 		glGenTextures(1, &backColorTexture);
 		glBindTexture(GL_TEXTURE_2D, backColorTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -126,7 +122,7 @@ Game::Game()
 
 		glGenTextures(1, &backDepthTexture);
 		glBindTexture(GL_TEXTURE_2D, backDepthTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -136,9 +132,12 @@ Game::Game()
 		glDrawBuffers(1, drawBuffers);
 
 		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if (status != GL_FRAMEBUFFER_COMPLETE) {
+		if (status != GL_FRAMEBUFFER_COMPLETE)
+		{
 			std::cerr << "backgroundFBO incomplete: " << status << std::endl;
-		} else {
+		}
+		else
+		{
 			std::cout << "backgroundFBO complete!" << std::endl;
 		}
 
@@ -147,34 +146,33 @@ Game::Game()
 
 		glGenTextures(1, &outTexture);
 		glBindTexture(GL_TEXTURE_2D, outTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outTexture, 0);
 
-
 		glDrawBuffers(1, drawBuffers);
 
 		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if (status != GL_FRAMEBUFFER_COMPLETE) {
+		if (status != GL_FRAMEBUFFER_COMPLETE)
+		{
 			std::cerr << "outFBO incomplete: " << status << std::endl;
-		} else {
+		}
+		else
+		{
 			std::cout << "outFBO complete!" << std::endl;
 		}
 
-
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 
 		shaderHandler->Use("compute");
 		int work_grp_cnt[3];
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &work_grp_cnt[0]);
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &work_grp_cnt[1]);
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &work_grp_cnt[2]);
-
 
 		int work_grp_size[3];
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &work_grp_size[0]);
@@ -189,10 +187,10 @@ Game::Game()
 		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &work_grp_inv);
 		// std::cout << "Max invocations count per work group: " << work_grp_inv << "\n";
 	}
-	
 }
 
-Game::~Game() {
+Game::~Game()
+{
 	std::cout << "start game destructor" << std::endl;
 	delete window;
 	delete inputHandler;
@@ -200,21 +198,22 @@ Game::~Game() {
 	std::cout << "end game destructor" << std::endl;
 }
 
-void Game::StartLoop() {
+void Game::StartLoop()
+{
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	u_int fps = 0;
 
 	std::thread chunkThread(&ChunkInstanciator::update, chunkInstanciator);
 	std::thread ecsThread(&ECS::update, ecs);
-	
+
 	static auto lastTime = std::chrono::steady_clock::now();
 
-	while(window->ShouldContinue())
+	while (window->ShouldContinue())
 	{
 		fps++;
 		Loop();
 
-		//fps
+		// fps
 		auto now = std::chrono::steady_clock::now();
 		float deltaSeconds = std::chrono::duration<float>(now - lastTime).count();
 		lastTime = now;
@@ -225,7 +224,7 @@ void Game::StartLoop() {
 	endThreads_mutex.lock();
 	endThreads = true;
 	endThreads_mutex.unlock();
-	
+
 	playerHasMoved_mutex.lock();
 	playerHasMoved = true;
 	playerHasMoved_mutex.unlock();
@@ -244,11 +243,12 @@ void Game::manageUI()
 		Speed
 		Number of Entities
 		Chunk Type
-		
-	
-	
+
+
+
 	*/
-	ImGui::Begin("This is nice UI", nullptr, ImGuiWindowFlags_AlwaysAutoResize);;
+	ImGui::Begin("This is nice UI", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+	;
 
 	ImGui::Text("FPS: %d", fpsCounter);
 	ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", cameraPosition.x, cameraPosition.y, cameraPosition.z);
@@ -259,9 +259,7 @@ void Game::manageUI()
 	{
 		if (ImGui::Button("Unload all chunks"))
 			chunkInstanciator->unloadAllChunks();
-		
-		
-		
+
 		ImGui::DragScalar("Seed", ImGuiDataType_S64, &seedUI, 0.1f);
 		ImGui::Checkbox("Instant update seed", &instantChange);
 		if (instantChange || ImGui::Button("Change seed"))
@@ -275,13 +273,11 @@ void Game::manageUI()
 			// currentDisplayDistance = 0.f;
 			chunkInstanciator->changeRenderDistance(renderDistance);
 		}
-		
-		
+
 		if (ImGui::Button("Switch cursors mode"))
-		window->switchCursorMode();
+			window->switchCursorMode();
 	}
 
-	
 	ImGui::Text("Toogle free mouse: Press left.ALT");
 	if (ImGui::CollapsingHeader("Inputs"))
 	{
@@ -292,7 +288,6 @@ void Game::manageUI()
 		ImGui::Text("Left ALT: Toggle free mouse");
 	}
 
-
 	ImGui::End();
 }
 
@@ -301,10 +296,10 @@ void Game::drawUI()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void Game::Loop() {
+void Game::Loop()
+{
 	window->Clear();
 
-	
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -315,36 +310,35 @@ void Game::Loop() {
 	// Render
 	ImGui::Render();
 
-	
 	inputHandler->HandleInput();
-	
+
 	glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, cameraUp);
-	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)DEFAULT_WINDOW_WIDTH/(float)DEFAULT_WINDOW_HEIGHT, 0.1f, 16000.0f);
+	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)DEFAULT_WINDOW_WIDTH / (float)DEFAULT_WINDOW_HEIGHT, 0.1f, 16000.0f);
 	glm::mat4 matrix = glm::mat4(1.0f);
 	matrix = proj * view;
-	
+
 	glBindFramebuffer(GL_FRAMEBUFFER, backgroundFBO);
-    glViewport(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+	glViewport(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	skyBox->drawSkybox(view, proj, cameraPosition);
 
 	GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL error: " << err << std::endl;
-    }
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		std::cerr << "OpenGL error: " << err << std::endl;
+	}
 
-    glBindFramebuffer(GL_FRAMEBUFFER, frontGroundFBO);
-    glViewport(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDepthFunc(GL_LESS);
-	
-	
+	glBindFramebuffer(GL_FRAMEBUFFER, frontGroundFBO);
+	glViewport(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDepthFunc(GL_LESS);
 
 	shaderHandler->Use("RLE-Geometry");
-	if (Shader::GetActiveShader()) {
+	if (Shader::GetActiveShader())
+	{
 		Shader::GetActiveShader()->SetFloat4("cameraPos", cameraPosition.x, cameraPosition.y, cameraPosition.z, 0);
 		Shader::GetActiveShader()->Setmat4("matrix", matrix);
 		Shader::GetActiveShader()->SetInt("chunk_size_x", AChunk::sizeX);
@@ -355,9 +349,9 @@ void Game::Loop() {
 	manageVAO();
 	draw();
 
-
 	shaderHandler->Use("entity");
-	if (Shader::GetActiveShader()) {
+	if (Shader::GetActiveShader())
+	{
 		Shader::GetActiveShader()->Setmat4("view", view);
 		Shader::GetActiveShader()->Setmat4("proj", proj);
 		Shader::GetActiveShader()->Setmat4("model", matrix);
@@ -368,16 +362,15 @@ void Game::Loop() {
 	drawEntity();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, outFBO);
-    glViewport(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	
-	currentDisplayDistance += (float)renderDistance/360.f * 16;
-	
+	currentDisplayDistance += (float)renderDistance / 360.f * 16;
+
 	int startFog = currentDisplayDistance;
 	sizeFog = 100;
-	
+
 	shaderHandler->Use("compute");
 	if (Shader::GetActiveShader())
 	{
@@ -404,23 +397,23 @@ void Game::Loop() {
 void Game::draw()
 {
 	vertexArrayObjectHandler->DrawAll(1);
-
 }
 
 void Game::drawEntity()
 {
 	glBindVertexArray(model_VAO->GetVAO());
-	
+
 	glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(model_VAO->GetEBO()->GetSize()), GL_UNSIGNED_INT, 0, amount);
 	glDisableVertexAttribArray(1);
 	glBindVertexArray(0);
 }
 
-void interpolatePositions(const glm::vec3* oldPos, 
-	const glm::vec3* newPos, 
-	std::vector<glm::vec3>& interpolatedPos, 
-	float alpha,
-	int amount) {
+void interpolatePositions(const glm::vec3 *oldPos,
+						  const glm::vec3 *newPos,
+						  std::vector<glm::vec3> &interpolatedPos,
+						  float alpha,
+						  int amount)
+{
 	// Ensure vectors have the same size
 	// if (!oldPos || !newPos || oldPos->size() != newPos->size()) return;
 
@@ -428,9 +421,8 @@ void interpolatePositions(const glm::vec3* oldPos,
 	interpolatedPos.resize(amount);
 
 	// Perform interpolation
-	for (size_t i = 0; i < amount; i++) {
+	for (size_t i = 0; i < amount; i++)
 		interpolatedPos[i] = glm::mix((oldPos)[i], (newPos)[i], alpha);
-}
 }
 
 void Game::manageVaoEntity()
@@ -438,7 +430,7 @@ void Game::manageVaoEntity()
 	std::cout << "Managing VAO Entity" << std::endl;
 	std::vector<glm::mat4> usedModelMatrices(amount);
 	entityPos_mutex.lock();
-	glm::vec3 *newPos = (glm::vec3*)entityPos->data();
+	glm::vec3 *newPos = (glm::vec3 *)entityPos->data();
 
 	// float alpha = (currentTime - lastTickTime) / tickInterval;
 
@@ -446,7 +438,8 @@ void Game::manageVaoEntity()
 	interpolatePositions(oldPos, newPos, interpolatedPos, 0.5f, amount);
 	memcpy(oldPos, newPos, amount * sizeof(glm::vec3));
 
-	for (unsigned int i = 0; i < amount; i++) {
+	for (unsigned int i = 0; i < amount; i++)
+	{
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::vec3 pos = interpolatedPos[i];
 
@@ -456,20 +449,20 @@ void Game::manageVaoEntity()
 	entityPos_mutex.unlock();
 
 	unsigned int VAO = model_VAO->GetVAO();
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
-	
+	glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+
 	glBindVertexArray(VAO);
 	// set attribute pointers for matrix (4 times vec4)
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)0);
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(sizeof(glm::vec4)));
 	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(2 * sizeof(glm::vec4)));
 	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(3 * sizeof(glm::vec4)));
 
 	glVertexAttribDivisor(1, 1);
 	glVertexAttribDivisor(2, 1);
@@ -504,9 +497,9 @@ void Game::manageVAO()
 		info_VAO *info = dequeueVAO.front();
 		dequeueVAO.pop_front();
 
-		t_vertexData dataStruct = {(u_char*)(info->vertices.data), info->vertices.size};
+		t_vertexData dataStruct = {(u_char *)(info->vertices.data), info->vertices.size};
 		VertexArrayObject *VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*(info->indices)), shaderHandler->GetShader("RLE-Geometry"));
-		
+
 		u_int VAO_id = vertexArrayObjectHandler->AddVAO(VAO);
 
 		pos_to_vao.insert({std::make_pair(info->pos.x, info->pos.y), {info->vertices.data, info->indices, VAO_id}});
@@ -515,30 +508,28 @@ void Game::manageVAO()
 	vao_counter += i;
 }
 
-//for the stream, auto-move
+// for the stream, auto-move
 bool Gogogo = false;
 
-void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
+void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY)
+{
 	float speedMultiplier = (keyState[KEY_MOVE_UPWARD] & KEY_HOLD) ? 20 : 1;
 
 	glm::vec3 oldCamPos = cameraPosition;
 
 	playerPos_mutex.lock();
-	if(keyState[KEY_MOVE_FORWARD] & KEY_HOLD)
-  		cameraPosition += speed * speedMultiplier * cameraDirection;
-	if(keyState[KEY_MOVE_BACKWARD] & KEY_HOLD)
-			cameraPosition -= speed * speedMultiplier * cameraDirection;
-	if(keyState[KEY_MOVE_RIGHTWARD] & KEY_HOLD)
-			cameraPosition += speed * speedMultiplier * glm::normalize(glm::cross(cameraDirection, cameraUp));
-	if(keyState[KEY_MOVE_LEFTWARD] & KEY_HOLD)
-	{
-			cameraPosition -= speed * speedMultiplier * glm::normalize(glm::cross(cameraDirection, cameraUp));
-	}
-	if(keyState[KEY_SPACE] & KEY_HOLD)
-			cameraPosition += glm::vec3(0, speed * speedMultiplier, 0);
-	if(keyState[KEY_MOVE_DOWNWARD] & KEY_HOLD)
-			cameraPosition += glm::vec3(0, -speed * speedMultiplier, 0);
-	
+	if (keyState[KEY_MOVE_FORWARD] & KEY_HOLD)
+		cameraPosition += speed * speedMultiplier * cameraDirection;
+	if (keyState[KEY_MOVE_BACKWARD] & KEY_HOLD)
+		cameraPosition -= speed * speedMultiplier * cameraDirection;
+	if (keyState[KEY_MOVE_RIGHTWARD] & KEY_HOLD)
+		cameraPosition += speed * speedMultiplier * glm::normalize(glm::cross(cameraDirection, cameraUp));
+	if (keyState[KEY_MOVE_LEFTWARD] & KEY_HOLD)
+		cameraPosition -= speed * speedMultiplier * glm::normalize(glm::cross(cameraDirection, cameraUp));
+	if (keyState[KEY_SPACE] & KEY_HOLD)
+		cameraPosition += glm::vec3(0, speed * speedMultiplier, 0);
+	if (keyState[KEY_MOVE_DOWNWARD] & KEY_HOLD)
+		cameraPosition += glm::vec3(0, -speed * speedMultiplier, 0);
 
 	if (keyState[KEY_DELETE_ONE_BLOCK] & KEY_PRESS)
 		Gogogo = !Gogogo;
@@ -550,20 +541,16 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 		mouseMoveX += 0.5;
 	}
 	if (keyState[KEY_SWITCH_CURSOR_MODE] & KEY_PRESS)
-	{
 		window->switchCursorMode();
-	}
 
-	
 	playerPos_mutex.unlock();
-	
+
 	if (oldCamPos.x / AChunk::sizeX != cameraPosition.x / AChunk::sizeX || oldCamPos.z / AChunk::sizeY != cameraPosition.z / AChunk::sizeY)
 	{
 		playerHasMoved_mutex.lock();
 		playerHasMoved = true;
 		playerHasMoved_mutex.unlock();
 	}
-
 
 	// if (window->getCursorMode() == GLFW_CURSOR_DISABLED)
 	// {
@@ -578,7 +565,6 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 
 	double xpos, ypos;
 	glfwGetCursorPos(window->GetWindow(), &xpos, &ypos);
-
 
 	if (window->getCursorMode() == GLFW_CURSOR_DISABLED)
 	{
@@ -601,16 +587,13 @@ void Game::SendKeys(u_char *keyState, double mouseMoveX, double mouseMoveY) {
 	}
 	else
 	{
-		firstMouse = true;  // Reset when leaving FPS mode
+		firstMouse = true; // Reset when leaving FPS mode
 	}
 	cameraDirection.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraDirection.y = sin(glm::radians(pitch));
 	cameraDirection.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 
-	view = glm::lookAt(	cameraPosition, 
-						cameraPosition + glm::normalize(cameraDirection),
-						cameraUp);
-						
-
-
+	view = glm::lookAt(cameraPosition,
+					   cameraPosition + glm::normalize(cameraDirection),
+					   cameraUp);
 }

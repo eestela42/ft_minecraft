@@ -1,15 +1,17 @@
 #include <classes/Texture/TextureArray.hpp>
 
 TextureArray::~TextureArray()
-{}
+{
+}
 
 TextureArray::TextureArray()
-{}
+{
+}
 
-TextureArray::TextureArray(u_int id, int width, int height, int nrChannels, int depth) :
-	Texture(id, width, height, nrChannels) ,
-	depth(depth)
-{}
+TextureArray::TextureArray(u_int id, int width, int height, int nrChannels, int depth) : Texture(id, width, height, nrChannels),
+                                                                                         depth(depth)
+{
+}
 
 TextureArray::TextureArray(const TextureArray &other)
 {
@@ -19,4 +21,3 @@ TextureArray::TextureArray(const TextureArray &other)
     nrChannels = other.nrChannels;
     depth = other.depth;
 }
-

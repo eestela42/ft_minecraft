@@ -13,14 +13,14 @@
 
 class TextureLoader
 {
-    public:
-        static Texture LoadTexture(std::string fileName);
-        static TextureArray LoadTextureArray(std::vector<std::string> fileNames);
-		static TextureCubeMap LoadTextureCubeMap(std::vector<std::string> fileNames);
+public:
+    static Texture LoadTexture(std::string fileName);
+    static TextureArray LoadTextureArray(std::vector<std::string> fileNames);
+    static TextureCubeMap LoadTextureCubeMap(std::vector<std::string> fileNames);
 
-    private:
-        static bool isReady;
-        static void Init();
+private:
+    static bool isReady;
+    static void Init();
 };
 
 #endif
