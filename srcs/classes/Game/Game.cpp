@@ -18,28 +18,16 @@ Game::Game()
 	inputHandler->AddCallback((I_Input*)this); // c'est quoi c'truc
 	inputHandler->AddCallback((I_Input*)window);
 	shaderHandler = new ShaderHandler("shaders");
+	textureHandler = new TextureHandler("file");
 
 	vertexArrayObjectHandler = new VertexArrayObjectHandler();
 
-	blockTextureArray = TextureLoader::LoadTextureArray(
-	{
-	std::filesystem::path("textures/texturePack/dirt.jpg"),
-	std::filesystem::path("textures/texturePack/dirt.jpg"),
-	std::filesystem::path("textures/texturePack/grass.jpg"),
-	std::filesystem::path("textures/texturePack/stone.jpg"),
-	std::filesystem::path("textures/texturePack/sand.jpg"),
-	std::filesystem::path("textures/texturePack/oak_wood_side.jpg"),
-	std::filesystem::path("textures/texturePack/leaves_2.jpg"),
-	std::filesystem::path("textures/texturePack/bedrock.jpg"),
-	std::filesystem::path("textures/texturePack/water.jpg"),
-	std::filesystem::path("textures/texturePack/snow.jpg"),
-	std::filesystem::path("textures/texturePack/iron_ore.jpg"),
-	std::filesystem::path("textures/texturePack/gold_ore.jpg"),
-	std::filesystem::path("textures/texturePack/diamond_ore.jpg"),
-	std::filesystem::path("textures/texturePack/UNKNOWN.jpg"),
-	});
+	blockTextureArray = *(TextureArray*)textureHandler->getTexture("blockTextureArray");
 
-	skyBox = new SkyBox(shaderHandler->GetShader("cubemap"));
+	// Move this in pipeline rendering
+	skyBox = new SkyBox(shaderHandler->GetShader("cubemap"), 
+						textureHandler->getTexture("skyboxTextureCubeMap")->id);
+
 
 	chunkInstanciator = new ChunkInstanciator(renderDistance, cameraPosition, playerPos_mutex,
 													dequeueVAO, dequeueVAO_mutex,
@@ -56,194 +44,204 @@ Game::Game()
 					&entityPos, entityPos_mutex);
 
 
-
-	for (int i = 0; i < amount; i++)
-		ecs->addEntity(cameraPosition.x + std::rand() % 500 - 250,cameraPosition.z + std::rand() % 500 - 250, 250 + std::rand() % 20);
-	
-	modelMatrices.resize(amount);
-
-
-	mesh *mesh42 = new mesh("object3d/cube.obj");
-
-	t_vertexData dataStruct = {(u_char*)(mesh42->vertexes.data()), mesh42->vertexes.size() * (sizeof(glm::vec3) + 4 * sizeof(glm::vec4))};
-
-	std::vector<unsigned int>* indices = new std::vector<unsigned int>();
-	for (std::size_t i = 0; i < mesh42->triangles.size(); i++)
+	// move to ecs init
 	{
-		indices->push_back(mesh42->triangles[i].v[0]);
-		indices->push_back(mesh42->triangles[i].v[1]);
-		indices->push_back(mesh42->triangles[i].v[2]);
+		for (int i = 0; i < amount; i++)
+			ecs->addEntity(cameraPosition.x + std::rand() % 500 - 250,cameraPosition.z + std::rand() % 500 - 250, 250 + std::rand() % 20);
+		
+		modelMatrices.resize(amount);
+
+		// move to texture handler
+		mesh *mesh42 = new mesh("object3d/cube.obj");
+
+		t_vertexData dataStruct = {(u_char*)(mesh42->vertexes.data()), mesh42->vertexes.size() * (sizeof(glm::vec3) + 4 * sizeof(glm::vec4))};
+
+		std::vector<unsigned int>* indices = new std::vector<unsigned int>();
+		for (std::size_t i = 0; i < mesh42->triangles.size(); i++)
+		{
+			indices->push_back(mesh42->triangles[i].v[0]);
+			indices->push_back(mesh42->triangles[i].v[1]);
+			indices->push_back(mesh42->triangles[i].v[2]);
+		}
+
+		model_VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*indices), shaderHandler->GetShader("entity"));
+		modelMatrices;
+		entityPos_mutex.lock();
+		for (unsigned int i = 0; i < amount; i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(0, 0, 0));
+			modelMatrices[i] = model;
+		}
+		
+
+		oldPos = new glm::vec3[amount];
+		memcpy(oldPos, entityPos->data(), amount * sizeof(glm::vec3));
+
+		entityPos_mutex.unlock();
+
+		// configure instanced array
+		
+		buffer;
+		glGenBuffers(1, &buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+		unsigned int VAO = model_VAO->GetVAO();
+		glBindVertexArray(VAO);
+
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+		glVertexAttribDivisor(1, 1);
+		glVertexAttribDivisor(2, 1);
+		glVertexAttribDivisor(3, 1);
+		glVertexAttribDivisor(4, 1);
+
+		glBindVertexArray(0);
 	}
 
-	model_VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*indices), shaderHandler->GetShader("entity"));
-	modelMatrices;
-	entityPos_mutex.lock();
-    for (unsigned int i = 0; i < amount; i++)
-    {
-        glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0, 0, 0));
-		modelMatrices[i] = model;
-    }
+	// Move to UI
+	{
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+		ImGui::StyleColorsDark(); // Optional
+
+		const GLubyte* version = glGetString(GL_SHADING_LANGUAGE_VERSION);
+		if (version) {
+			std::cout << "GLSL version: " << version << std::endl;
+		} else {
+			std::cout << "Failed to get GLSL version (no GL context?)" << std::endl;
+		}
+
+		ImGui_ImplGlfw_InitForOpenGL(window->GetWindow(), true);
+		ImGui_ImplOpenGL3_Init("#version 330 core");
+
+		seedUI = chunkInstanciator->getCurrentSeed();
+	}
+
+	
+	// Move to rendering Pipeline init
+	{
+		// configure compute shader
+
+
+
+		glGenFramebuffers(1, &frontGroundFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, frontGroundFBO);
+
+		glGenTextures(1, &frontColorTexture);
+		glBindTexture(GL_TEXTURE_2D, frontColorTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frontColorTexture, 0);
+
+		glGenTextures(1, &frontDepthTexture);
+		glBindTexture(GL_TEXTURE_2D, frontDepthTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, frontDepthTexture, 0);
+
+		GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+		glDrawBuffers(1, drawBuffers);
+
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	
 
-	oldPos = new glm::vec3[amount];
-	memcpy(oldPos, entityPos->data(), amount * sizeof(glm::vec3));
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	entityPos_mutex.unlock();
+		// Setup backgroundFBO (backColorTexture, backDepthTexture)
+		glGenFramebuffers(1, &backgroundFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, backgroundFBO);
 
-    // configure instanced array
-	
-    buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
-	unsigned int VAO = model_VAO->GetVAO();
-	glBindVertexArray(VAO);
+		glGenTextures(1, &backColorTexture);
+		glBindTexture(GL_TEXTURE_2D, backColorTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, backColorTexture, 0);
 
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+		glGenTextures(1, &backDepthTexture);
+		glBindTexture(GL_TEXTURE_2D, backDepthTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, backDepthTexture, 0);
 
-	glVertexAttribDivisor(1, 1);
-	glVertexAttribDivisor(2, 1);
-	glVertexAttribDivisor(3, 1);
-	glVertexAttribDivisor(4, 1);
+		glDrawBuffers(1, drawBuffers);
 
-	glBindVertexArray(0);
+		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			std::cerr << "backgroundFBO incomplete: " << status << std::endl;
+		} else {
+			std::cout << "backgroundFBO complete!" << std::endl;
+		}
 
-	IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+		glGenFramebuffers(1, &outFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, outFBO);
 
-    ImGui::StyleColorsDark(); // Optional
-
-	const GLubyte* version = glGetString(GL_SHADING_LANGUAGE_VERSION);
-    if (version) {
-        std::cout << "GLSL version: " << version << std::endl;
-    } else {
-        std::cout << "Failed to get GLSL version (no GL context?)" << std::endl;
-    }
-
-    ImGui_ImplGlfw_InitForOpenGL(window->GetWindow(), true);
-    ImGui_ImplOpenGL3_Init("#version 330 core");
-
-	seedUI = chunkInstanciator->getCurrentSeed();
+		glGenTextures(1, &outTexture);
+		glBindTexture(GL_TEXTURE_2D, outTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outTexture, 0);
 
 
-	// configure compute shader
+		glDrawBuffers(1, drawBuffers);
 
-    glGenFramebuffers(1, &frontGroundFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, frontGroundFBO);
-
-    glGenTextures(1, &frontColorTexture);
-    glBindTexture(GL_TEXTURE_2D, frontColorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frontColorTexture, 0);
-
-    glGenTextures(1, &frontDepthTexture);
-    glBindTexture(GL_TEXTURE_2D, frontDepthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, frontDepthTexture, 0);
-
-    GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
-    glDrawBuffers(1, drawBuffers);
-
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-  
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // Setup backgroundFBO (backColorTexture, backDepthTexture)
-    glGenFramebuffers(1, &backgroundFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, backgroundFBO);
-
-    glGenTextures(1, &backColorTexture);
-    glBindTexture(GL_TEXTURE_2D, backColorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, backColorTexture, 0);
-
-    glGenTextures(1, &backDepthTexture);
-    glBindTexture(GL_TEXTURE_2D, backDepthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, backDepthTexture, 0);
-
-    glDrawBuffers(1, drawBuffers);
-
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "backgroundFBO incomplete: " << status << std::endl;
-    } else {
-        std::cout << "backgroundFBO complete!" << std::endl;
-    }
-
-	glGenFramebuffers(1, &outFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, outFBO);
-
-    glGenTextures(1, &outTexture);
-    glBindTexture(GL_TEXTURE_2D, outTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F,  DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outTexture, 0);
+		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			std::cerr << "outFBO incomplete: " << status << std::endl;
+		} else {
+			std::cout << "outFBO complete!" << std::endl;
+		}
 
 
-    glDrawBuffers(1, drawBuffers);
-
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "outFBO incomplete: " << status << std::endl;
-    } else {
-        std::cout << "outFBO complete!" << std::endl;
-    }
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		shaderHandler->Use("compute");
+		int work_grp_cnt[3];
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &work_grp_cnt[0]);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &work_grp_cnt[1]);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &work_grp_cnt[2]);
 
 
-	shaderHandler->Use("compute");
-	int work_grp_cnt[3];
-	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &work_grp_cnt[0]);
-	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &work_grp_cnt[1]);
-	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &work_grp_cnt[2]);
+		int work_grp_size[3];
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &work_grp_size[0]);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &work_grp_size[1]);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &work_grp_size[2]);
+		// std::cout << "Max work group sizes" <<
+		// 	" x:" << work_grp_size[0] <<
+		// 	" y:" << work_grp_size[1] <<
+		// 	" z:" << work_grp_size[2] << "\n";
 
-
-	int work_grp_size[3];
-	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &work_grp_size[0]);
-	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &work_grp_size[1]);
-	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &work_grp_size[2]);
-	// std::cout << "Max work group sizes" <<
-	// 	" x:" << work_grp_size[0] <<
-	// 	" y:" << work_grp_size[1] <<
-	// 	" z:" << work_grp_size[2] << "\n";
-
-	int work_grp_inv;
-	glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &work_grp_inv);
-	// std::cout << "Max invocations count per work group: " << work_grp_inv << "\n";
+		int work_grp_inv;
+		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &work_grp_inv);
+		// std::cout << "Max invocations count per work group: " << work_grp_inv << "\n";
+	}
 	
 }
 
@@ -432,10 +430,6 @@ void Game::Loop() {
 	
 	int startFog = currentDisplayDistance;
 	sizeFog = 100;
-	
-	
-	
-
 	
 	shaderHandler->Use("compute");
 	if (Shader::GetActiveShader())

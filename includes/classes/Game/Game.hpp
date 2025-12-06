@@ -16,7 +16,10 @@
 #include <classes/Game/InputHandler.hpp>
 #include <classes/ShaderHandler.hpp>
 
+
 #include <classes/Texture/TextureLoader.hpp>
+#include <classes/Texture/TextureArray.hpp>
+#include <classes/Texture/TextureHandler.hpp>
 
 #include <classes/World/ChunkClassic.hpp>
 #include <classes/World/ChunkInstanciator.hpp>
@@ -66,6 +69,7 @@ private :
 	ShaderHandler *shaderHandler;
 	ChunkInstanciator *chunkInstanciator;
 	VertexArrayObjectHandler *vertexArrayObjectHandler;
+	TextureHandler *textureHandler;
 
 	std::vector<std::vector<AChunk*>> *tabChunks;
 	std::mutex *tabChunks_mutex;

@@ -6,7 +6,9 @@ TextureArray::~TextureArray()
 TextureArray::TextureArray()
 {}
 
-TextureArray::TextureArray(u_int id, int width, int height, int nrChannels, int depth) : id(id), width(width), height(height), nrChannels(nrChannels), depth(depth)
+TextureArray::TextureArray(u_int id, int width, int height, int nrChannels, int depth) :
+	Texture(id, width, height, nrChannels) ,
+	depth(depth)
 {}
 
 TextureArray::TextureArray(const TextureArray &other)

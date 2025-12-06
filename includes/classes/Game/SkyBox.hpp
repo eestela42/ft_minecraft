@@ -22,7 +22,7 @@
 class SkyBox
 {
 	public:
-		SkyBox(Shader *skyBoxShader);
+		SkyBox(Shader *skyBoxShader, unsigned int cubemapTexture);
 		~SkyBox();
 
 

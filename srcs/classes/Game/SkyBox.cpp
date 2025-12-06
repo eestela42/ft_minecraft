@@ -49,44 +49,6 @@ float skyboxVertices[] = {
 
 unsigned int skyShape[] = {0, 1, 2, 2, 3, 0};
 
-unsigned int loadCubemap(std::vector<std::string> faces)
-{
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-    int width, height, nrChannels;
-    for (unsigned int i = 0; i < faces.size(); i++)
-    {
-        unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-		GLenum format;
-		if (nrChannels == 1)
-			format = GL_RED;
-		else if (nrChannels == 3)
-			format = GL_RGB;
-		else if (nrChannels == 4)
-			format = GL_RGBA;
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                         0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-            stbi_image_free(data);
-        }
-        else
-        {
-            std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
-            stbi_image_free(data);
-        }
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    return textureID;
-}
-
 SkyBox::~SkyBox()
 {
 	if (skyboxVAO){
@@ -99,7 +61,8 @@ SkyBox::~SkyBox()
 
 }
 
-SkyBox::SkyBox(Shader *skyBoxShader)
+SkyBox::SkyBox(Shader *skyBoxShader, unsigned int cubemapTexture) :
+	cubemapTexture(cubemapTexture)
 {
 
 	this->shader = skyBoxShader;
@@ -113,17 +76,8 @@ SkyBox::SkyBox(Shader *skyBoxShader)
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-	std::vector<std::string> faces
-    {
-        std::filesystem::path("textures/skybox/right.jpg"),
-        std::filesystem::path("textures/skybox/left.jpg"),
-        std::filesystem::path("textures/skybox/bottom.jpg"),
-        std::filesystem::path("textures/skybox/top.jpg"),
-        std::filesystem::path("textures/skybox/front.jpg"),
-        std::filesystem::path("textures/skybox/back.jpg")
-    };
+	
 
-	cubemapTexture = loadCubemap(faces);
 }
 
 void SkyBox::drawSkybox(glm::mat4 view, glm::mat4 proj, __attribute__((unused)) glm::vec3 pos)

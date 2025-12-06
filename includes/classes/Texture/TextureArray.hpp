@@ -1,9 +1,10 @@
 # ifndef TEXTUREARRAY_HPP
 # define TEXTUREARRAY_HPP
 
+#include "Texture.hpp"
 #include <iostream>
 
-class TextureArray
+class TextureArray : private Texture
 {
     public:
         TextureArray();
@@ -12,10 +13,6 @@ class TextureArray
 
         ~TextureArray();
 
-        unsigned int id;
-        int width;
-        int height;
-        int nrChannels;
         int depth;
 };
 
