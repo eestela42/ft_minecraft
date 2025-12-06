@@ -85,12 +85,12 @@ void ChunkRLE::CreateFaceRLERegular(int orientation, std::vector<int> &vData, st
 
 void ChunkRLE::CreateFaceRLE(int orientation, std::vector<int> &vData, std::vector<u_int> &iData, int x, int y, int z, int offset, u_char type, int sizeX, int sizeY)
 {
-	if (this->shaderName == (char *)"RLE-Geometry")
+	if (std::strcmp(this->shaderName, "RLE-Geometry") == 0)
 	{
 		CreateFaceRLEGeometry(orientation, vData, iData, x, y, z, offset, type, sizeX, sizeY);
 		return;
 	}
-	else if (this->shaderName == (char *)"RLE-Regular")
+	if (std::strcmp(this->shaderName, "RLE-Regular") == 0)
 	{
 		CreateFaceRLERegular(orientation, vData, iData, x, y, z, offset, type);
 		return;
@@ -265,9 +265,7 @@ void ChunkRLE::makeTopBotFaces(std::vector<std::vector<std::vector<u_int>>> &too
 			if (tool[x][y][face_type] == 4)
 			{
 				CreateFaceRLE(tool[x][y][face_type], vertexData, indices, x, y, tool[x][y][height], vertexData.size(), tool[x][y][block_type], longX, longY);
-
 				tool[x][y][face_type] = 5;
-
 				continue;
 			}
 
@@ -308,7 +306,6 @@ void ChunkRLE::CompileTopBotFaces()
 {
 	std::vector<std::vector<std::vector<u_int>>> tool;
 
-	// std::cout << "chunk : " << this->posX << " " << this->posY << std::endl;
 	toolInit(tool);
 	u_char map[AChunk::sizeX * AChunk::sizeY];
 	for (u_int y = 0; y < AChunk::sizeY; y++)
@@ -324,7 +321,6 @@ void ChunkRLE::CompileTopBotFaces()
 		{
 			for (u_int x = 0; x < AChunk::sizeX; x++)
 			{
-				// find next face to draw in ruban
 				while (map[x + y * AChunk::sizeX] && tool[x][y][height] < sizeZ - 1)
 				{
 
@@ -685,9 +681,7 @@ void ChunkRLE::printToFile()
 
 			// Write the column to the file, starting from the bottom (z = sizeZ - 1)
 			for (int z = sizeZ - 1; z >= 0; z--)
-			{
 				outFile << static_cast<int>(column[z]) << "\n";
-			}
 
 			// Write the position in [x-y] format
 			outFile << "[" << std::setw(2) << x << "-" << std::setw(2) << y << "]\n";

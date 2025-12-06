@@ -134,7 +134,6 @@ std::vector<unsigned int> *ChunkClassic::privGetPtrIndices()
 
 bool ChunkClassic::privIsFilled(int x, int y, int z)
 {
-	std::cout << "Classic priv is filled" << std::endl;
 	return getData()[z + y * sizeZ + x * sizeY * sizeZ] != 0;
 }
 

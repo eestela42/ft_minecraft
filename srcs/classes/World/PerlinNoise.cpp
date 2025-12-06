@@ -26,19 +26,6 @@ double PerlinNoise::grad(int hash, double x, double y, double z)
 
 /*****	1 - constructors 		*****/
 
-PerlinNoise::~PerlinNoise()
-{
-}
-
-PerlinNoise::PerlinNoise()
-{
-}
-
-PerlinNoise::PerlinNoise(const PerlinNoise &copy)
-{
-	*this = copy;
-}
-
 PerlinNoise::PerlinNoise(unsigned int seed)
 {
 	p.resize(size * size);
@@ -111,42 +98,14 @@ double PerlinNoise::newNoise3d(double x, double y, double z)
 	double v = fade(y);
 	double w = fade(z);
 
-	// Hash coordinates of the 8 cube corners
-	// std::cout << "A" << std::endl;
-	// std::cout << "X " << X << " Y " << Y  << std::endl;
-	// std::cout << "p.size " << p.size() << std::endl;
-	// std::cout << "size " << size << std::endl;
-
-	// printf("address = %p\n", &p);
-	// printf("address = %p\n", p.data());
-
-	// for (int i = 0; i < p.size(); i++)
-	// {
-	// 	std::cout << p[i] << std::endl;
-	// }
 	int A = p[X] + Y;
-
 	int AA = p[A] + Z;
-
 	int AB = p[A + 1] + Z;
 	int B = p[X + 1] + Y;
 	int BA = p[B] + Z;
 	int BB = p[B + 1] + Z;
 
-	// Add blended results from 8 corners of cube
 	double res = lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z), grad(p[BA], x - 1, y, z)), lerp(u, grad(p[AB], x, y - 1, z), grad(p[BB], x - 1, y - 1, z))), lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1), grad(p[BA + 1], x - 1, y, z - 1)), lerp(u, grad(p[AB + 1], x, y - 1, z - 1), grad(p[BB + 1], x - 1, y - 1, z - 1))));
-	// std::cout << "res " << res << std::endl;
 
 	return (res + 1.0) / 2.0;
-}
-
-/*****	3 - data getters 		*****/
-
-/*****	4 - operators 		*****/
-
-PerlinNoise &PerlinNoise::operator=(const PerlinNoise &copy)
-{
-	if (this != &copy)
-		*this = copy;
-	return (*this);
 }

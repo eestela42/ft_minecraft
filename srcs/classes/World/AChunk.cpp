@@ -1,12 +1,5 @@
 #include <classes/World/AChunk.hpp>
 
-int mod_floor(int a, int n)
-{
-	if (a < 0)
-		a += (-a / n + 1) * n;
-	return (a % n);
-}
-
 AChunk::AChunk(int x, int y, int z) : posX(x), posY(y), posZ(z)
 {
 }
@@ -84,7 +77,6 @@ u_char AChunk::pubBlockType(int x, int y, int z)
 
 bool AChunk::pubChangeBlock(int x, int y, int z, u_char type)
 {
-	std::cout << "pubChangeBlock x : " << std::endl;
 	mutex.lock();
 	if (!isGenerated)
 	{
@@ -97,8 +89,6 @@ bool AChunk::pubChangeBlock(int x, int y, int z, u_char type)
 	mutex.unlock();
 	return ret;
 }
-
-/*Normal func*/
 
 void AChunk::borrow()
 {
@@ -189,9 +179,7 @@ bool AChunk::getToUpdate()
 
 s_neighbours AChunk::getNeighbours()
 {
-	// mutex.lock();
 	s_neighbours ret = neighbours;
-	// mutex.unlock();
 	return ret;
 }
 

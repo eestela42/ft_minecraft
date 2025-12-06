@@ -23,20 +23,13 @@ ChunkInstanciator::ChunkInstanciator(u_int renderDistance,
 	tabChunks.resize((size_tab), std::vector<AChunk *>());
 
 	for (u_int i = 0; i < size_tab; i++)
-	{
 		tabChunks[i].resize((size_tab), NULL);
-	}
 
 	std::srand(std::time(0));
-
 	_currentSeed = 1722331298;
 	_currentSeed = std::rand();
 	std::cout << "seed " << _currentSeed << std::endl;
 	ChunkGenerator::initNoise(_currentSeed);
-}
-
-ChunkInstanciator::~ChunkInstanciator()
-{
 }
 
 std::mutex &ChunkInstanciator::getTabChunks_mutex()
@@ -68,9 +61,7 @@ bool ChunkInstanciator::compileChunksWithNeighbours(AChunk *chunk, s_neighbours 
 	*info = {chunk->pubGetPtrVertices(), chunk->pubGetPtrIndices(), chunk->getPos()};
 
 	to_VAO_mutex.lock();
-
 	to_VAO.push_back(info);
-
 	to_VAO_mutex.unlock();
 
 	return true;
@@ -148,11 +139,8 @@ void ChunkInstanciator::deleteBadChunk(glm::ivec2 chunkTabPos)
 	if (tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsCompiled())
 	{
 		toDeleteVAO_mutex.lock();
-
 		toDeleteVAO.push_back(tabChunks[chunkTabPos.x][chunkTabPos.y]->getPos());
-
 		toDeleteVAO_mutex.unlock();
-
 		tabChunks[chunkTabPos.x][chunkTabPos.y]->setIsCompiled(false);
 	}
 
@@ -167,7 +155,6 @@ void ChunkInstanciator::deleteBadChunk(glm::ivec2 chunkTabPos)
 
 void ChunkInstanciator::createGoodChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos, glm::ivec2 playerChunkPos)
 {
-
 	if (!tabChunks[chunkTabPos.x][chunkTabPos.y] || tabChunks[chunkTabPos.x][chunkTabPos.y]->getIsGeneratedMutex() == false)
 	{
 		tabChunks[chunkTabPos.x][chunkTabPos.y] = new ChunkRLE(chunkPos.x, chunkPos.y, 0);
@@ -183,8 +170,8 @@ void ChunkInstanciator::createGoodChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTab
 
 			glm::ivec2 neighbPos = neighb[i]->getPos();
 			glm::ivec2 neighbTabPos;
-			neighbTabPos.x = mod_floor(neighbPos.x, size_tab);
-			neighbTabPos.y = mod_floor(neighbPos.y, size_tab);
+			neighbTabPos.x = mod_floor(neighbPos.x, (int)size_tab);
+			neighbTabPos.y = mod_floor(neighbPos.y, (int)size_tab);
 
 			updateChunk(neighbPos, neighbTabPos, playerChunkPos);
 		}
@@ -202,38 +189,26 @@ void ChunkInstanciator::updateChunk(glm::ivec2 chunkPos, glm::ivec2 chunkTabPos,
 	if (to_delete && chunk->getIsCompiled())
 	{
 		toDeleteVAO_mutex.lock();
-
 		toDeleteVAO.push_back(chunk->getPos());
-
 		toDeleteVAO_mutex.unlock();
-
 		chunk->setIsCompiled(false);
 	}
 	else if (!to_delete && chunk->getIsCompiled() == false)
-	{
 		compileChunksWithNeighbours(chunk, getNeighbours(chunkTabPos, chunkPos));
-	}
 	else if (!to_delete && chunk->getToUpdate())
 	{
 		if (chunk->getIsCompiled())
 		{
 			toDeleteVAO_mutex.lock();
-
 			toDeleteVAO.push_back(chunk->getPos());
-
 			toDeleteVAO_mutex.unlock();
 			chunk->setIsCompiled(false);
 		}
-
 		chunk->setToUpdate(false);
-
 		compileChunksWithNeighbours(chunk, getNeighbours(chunkTabPos, chunkPos));
 	}
 }
 
-int t_x = 0;
-int t_y = 0;
-int t_z = 1;
 void ChunkInstanciator::update()
 {
 	bool debug = true;
@@ -257,8 +232,7 @@ void ChunkInstanciator::update()
 		_updateMutex.lock();
 		bool sizeDisplayable = true;
 		int tmpDisplayDistance = 0;
-		// temp
-		//  displayDistance = renderDistance;
+
 		for (int x1 = 0; getKeepUpdating() && x1 <= generationDistance * generationDistance; x1++)
 		{
 			playerHasMoved_mutex.lock();
@@ -284,7 +258,6 @@ void ChunkInstanciator::update()
 			{
 				chunkPos = glm::ivec2(playerChunkPos.x + x, playerChunkPos.y + y);
 				createGoodChunk(chunkPos, chunkTabPos, playerChunkPos);
-
 				continue;
 			}
 			chunkPos = chunk->getPos();
@@ -308,9 +281,7 @@ void ChunkInstanciator::deleteAllChunks()
 {
 	displayDistance = 0;
 	to_VAO_mutex.lock();
-
 	to_VAO.clear();
-
 	to_VAO_mutex.unlock();
 
 	for (int i = 0; i < tabChunks.size(); i++)
@@ -318,18 +289,14 @@ void ChunkInstanciator::deleteAllChunks()
 		for (int j = 0; j < tabChunks[i].size(); j++)
 		{
 			if (tabChunks[i][j])
-			{
 				deleteBadChunk(glm::ivec2(i, j));
-			}
 		}
 	}
 	tabChunks.clear();
 	tabChunks.resize((size_tab), std::vector<AChunk *>());
 
 	for (u_int i = 0; i < size_tab; i++)
-	{
 		tabChunks[i].resize((size_tab), NULL);
-	}
 }
 
 long int ChunkInstanciator::getCurrentSeed() const

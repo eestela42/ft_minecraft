@@ -7,10 +7,6 @@ int ChunkGenerator::seed;
 #define GEN_NOISE3D false
 #define GEN_WATER true
 
-ChunkGenerator::~ChunkGenerator()
-{
-}
-
 void ChunkGenerator::initNoise(u_int seed)
 {
 	ChunkGenerator::seed = seed;
@@ -35,10 +31,6 @@ void ChunkGenerator::initNoise(u_int seed)
 	ChunkGenerator::noiseList.push_back(noise6);
 	ChunkGenerator::noiseList.push_back(noise7);
 }
-
-ChunkGenerator::ChunkGenerator() {}
-
-ChunkGenerator::ChunkGenerator(__attribute__((unused)) u_int seed) {}
 
 void ChunkGenerator::generateTree(int x, int y, int z)
 {
@@ -197,9 +189,7 @@ int ChunkGenerator::gen2DCave(int hill_height, int pos, int &z)
 		int start = noiseList[6]->Octave2D(0.0056 * p_x, 0.0045 * p_y, 3, 0.3) * (hill_height - 8);
 		int size = noiseList[7]->Octave2D(0.0126 * p_x, 0.0135 * p_y, 4, 0.5) * 9;
 		for (z = start; z < start + size; z++)
-		{
 			data[pos + z] = AIR;
-		}
 	}
 	tunel = noiseList[6]->Octave2D(0.0076 * p_x, 0.0065 * p_y, 3, 0.3);
 	if ((tunel > 0.33 && tunel < 0.36) || (tunel > 0.64 && tunel < 0.67) || (tunel > 0.94 && tunel < 0.97))
@@ -207,14 +197,12 @@ int ChunkGenerator::gen2DCave(int hill_height, int pos, int &z)
 		int start = noiseList[7]->Octave2D(0.0056 * p_x, 0.0045 * p_y, 3, 0.3) * (hill_height - 8);
 		int size = noiseList[5]->Octave2D(0.0126 * p_x, 0.0135 * p_y, 4, 0.5) * 9;
 		for (z = start; z < start + size; z++)
-		{
 			data[pos + z] = AIR;
-		}
 	}
 	return 0;
 }
 
-int ChunkGenerator::genWater(int pos, __attribute__((unused)) int &z)
+int ChunkGenerator::genWater(int pos)
 {
 	int posWater = 60;
 
@@ -260,11 +248,6 @@ int ChunkGenerator::gen3DCave(int hill_height, int pos, int &z)
 			data[pos + z] = AIR;
 			continue;
 		}
-		// double spag_factor = noiseList[0]->Octave3D(0.0256 * p_x, 0.0295 * p_y, z * 0.039, 1, 0.5);
-		// if ((spag_factor > 0.41  && spag_factor < 0.44)) {
-		// 	data[pos + z] = AIR;
-		// 	continue ;
-		// }
 	}
 	return 0;
 }
@@ -281,7 +264,11 @@ u_char *ChunkGenerator::generator(glm::ivec2 tmp_pos)
 	posY = tmp_pos.y;
 	data = (u_char *)calloc(sizeX * sizeY * sizeZ, sizeof(*data));
 	if (!data)
+	{
 		std::cout << "raw map calloc failed !" << std::endl;
+		return NULL;
+		// should throw exception and be caught in ChunkManager
+	}
 
 	engine.seed(seed * posX * posY);
 
@@ -289,7 +276,6 @@ u_char *ChunkGenerator::generator(glm::ivec2 tmp_pos)
 	{
 		for (int x = 0; x < sizeX; x++)
 		{
-
 			ground_height = 0;
 			hill_height = 0;
 
@@ -299,23 +285,11 @@ u_char *ChunkGenerator::generator(glm::ivec2 tmp_pos)
 
 			int z = genBedrock(data, x, y);
 
-			/***FLAT WORLD***/
-
-			// int minus = 1;
-			// if (tmp_pos.x < 0)
-			// 	minus = -1;
-			// for (; z < 10 + (posX % 2 && posY % 2) && z < sizeZ ; z++)
-			// {
-			// 	data[x * sizeZ + y * sizeX * sizeZ + z] = STONE + (posX % 2 && posY %2);
-			// }
-			// continue ;
-
 			genUnderLayer(pos, z);
-
 			genOverLayer(pos, z);
 
 			if (GEN_WATER)
-				genWater(pos, z);
+				genWater(pos);
 
 			if (GEN_NOISE3D)
 				gen3DCave(hill_height, pos, z);

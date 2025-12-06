@@ -9,6 +9,9 @@
 #include <classes/World/AChunk.hpp>
 #include <map>
 
+#include <classes/Math/utils.hpp>
+
+
 class ECS;
 
 AChunk *getChunk(std::vector<std::vector<AChunk*>> &tabChunks, std::mutex &tabChunks_mutex, glm::vec3 pos);
