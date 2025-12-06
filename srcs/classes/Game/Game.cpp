@@ -1,5 +1,5 @@
 #include <classes/Game/Game.hpp>
-#include <classes/Game/mesh.hpp>
+
 #include <algorithm>
 #include "../../../imgui/imgui.h"
 #include "../../../imgui/backends/imgui_impl_glfw.h"
@@ -42,69 +42,16 @@ Game::Game()
 					cameraPosition, playerPos_mutex,
 					endThreads, endThreads_mutex,
 					&entityPos, entityPos_mutex);
+		std::cout << "bffr  ecs init" << std::endl;
 
+	ecs->Initialize(amount, shaderHandler->GetShader("entity"),
+					modelMatrices,
+					&model_VAO,
+					&oldPos,
+					buffer);
 
-	// move to ecs init
-	{
-		for (int i = 0; i < amount; i++)
-			ecs->addEntity(cameraPosition.x + std::rand() % 500 - 250,cameraPosition.z + std::rand() % 500 - 250, 250 + std::rand() % 20);
-		
-		modelMatrices.resize(amount);
-
-		// move to texture handler
-		mesh *mesh42 = new mesh("object3d/cube.obj");
-
-		t_vertexData dataStruct = {(u_char*)(mesh42->vertexes.data()), mesh42->vertexes.size() * (sizeof(glm::vec3) + 4 * sizeof(glm::vec4))};
-
-		std::vector<unsigned int>* indices = new std::vector<unsigned int>();
-		for (std::size_t i = 0; i < mesh42->triangles.size(); i++)
-		{
-			indices->push_back(mesh42->triangles[i].v[0]);
-			indices->push_back(mesh42->triangles[i].v[1]);
-			indices->push_back(mesh42->triangles[i].v[2]);
-		}
-
-		model_VAO = new VertexArrayObject(new VertexBufferObject(dataStruct), new ElementBufferObject(*indices), shaderHandler->GetShader("entity"));
-		modelMatrices;
-		entityPos_mutex.lock();
-		for (unsigned int i = 0; i < amount; i++)
-		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(0, 0, 0));
-			modelMatrices[i] = model;
-		}
-		
-
-		oldPos = new glm::vec3[amount];
-		memcpy(oldPos, entityPos->data(), amount * sizeof(glm::vec3));
-
-		entityPos_mutex.unlock();
-
-		// configure instanced array
-		
-		buffer;
-		glGenBuffers(1, &buffer);
-		glBindBuffer(GL_ARRAY_BUFFER, buffer);
-		glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
-		unsigned int VAO = model_VAO->GetVAO();
-		glBindVertexArray(VAO);
-
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-
-		glVertexAttribDivisor(1, 1);
-		glVertexAttribDivisor(2, 1);
-		glVertexAttribDivisor(3, 1);
-		glVertexAttribDivisor(4, 1);
-
-		glBindVertexArray(0);
-	}
+		std::cout << "aftar ecs init" << std::endl;
+	
 
 	// Move to UI
 	{
@@ -488,6 +435,7 @@ void interpolatePositions(const glm::vec3* oldPos,
 
 void Game::manageVaoEntity()
 {
+	std::cout << "Managing VAO Entity" << std::endl;
 	std::vector<glm::mat4> usedModelMatrices(amount);
 	entityPos_mutex.lock();
 	glm::vec3 *newPos = (glm::vec3*)entityPos->data();
@@ -527,7 +475,7 @@ void Game::manageVaoEntity()
 	glVertexAttribDivisor(2, 1);
 	glVertexAttribDivisor(3, 1);
 	glVertexAttribDivisor(4, 1);
-
+	std::cout << "OUT ---- Managing VAO Entity" << std::endl;
 }
 
 void Game::manageVAO()
