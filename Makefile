@@ -43,8 +43,8 @@ IMGUI_FILES = \
 ################################################################################
 
 CC	   =	g++ 
-CFLAGS = -std=c++17 -g3 -Iincludes -I$(IMGUI_DIR) -I$(IMGUI_BACKENDS) -MMD -MP
-OPENGL = -lglfw3 -lGL -lX11 -llmdb
+CFLAGS = -std=c++17 -g3 -Iincludes -I$(IMGUI_DIR) -I$(IMGUI_BACKENDS) -MMD -MP -DGLFW_INCLUDE_NONE
+OPENGL = -lglfw3 -lX11 -llmdb
 RM			=	rm -rf
 
 ################################################################################
@@ -121,6 +121,9 @@ fclean: clean
 	@$(RM) $(NAME)
 
 re: fclean all
+
+run: all
+	@MESA_GL_VERSION_OVERRIDE=4.6COMPAT MESA_GLSL_VERSION_OVERRIDE=460 ./$(NAME)
 
 .SILENT:
 		all
