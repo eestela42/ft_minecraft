@@ -1,4 +1,5 @@
 #include <classes/Texture/TextureLoader.hpp>
+#include <classes/Tools/Logger.hpp>
 
 bool TextureLoader::isReady = false;
 
@@ -30,7 +31,7 @@ Texture TextureLoader::LoadTexture(std::string fileName)
     }
     else
     {
-        std::cout << "Failed to load texture : " << fileName << std::endl;
+        Logger::error("Failed to load texture : " + fileName);
         assert(!"TextureLoader::LoadTexture stbi failed to load the texture");
     }
 }
@@ -66,7 +67,7 @@ TextureArray TextureLoader::LoadTextureArray(std::vector<std::string> fileNames)
             }
             else
             {
-                std::cout << "Failed to load texture : " << fileNames[i] << std::endl;
+                Logger::error("Failed to load texture : " + fileNames[i]);
                 assert(!"TextureLoader::LoadTextureArray stbi failed to load the texture");
             }
         }
@@ -75,7 +76,7 @@ TextureArray TextureLoader::LoadTextureArray(std::vector<std::string> fileNames)
     }
     else
     {
-        std::cout << "Failed to load texture : " << fileNames[0] << std::endl;
+        Logger::error("Failed to load texture : " + fileNames[0]);
         assert(!"TextureLoader::LoadTextureArray stbi failed to load the texture");
     }
 }
@@ -106,7 +107,7 @@ TextureCubeMap TextureLoader::LoadTextureCubeMap(std::vector<std::string> fileNa
             }
             else
             {
-                std::cout << "Cubemap tex failed to load at path: " << fileNames[i] << std::endl;
+                Logger::error("Cubemap tex failed to load at path: " + fileNames[i]);
                 stbi_image_free(data);
             }
         }
@@ -124,7 +125,7 @@ void TextureLoader::Init()
 {
     if (!glfwGetCurrentContext())
     {
-        std::cout << "TextureLoader cannot be used before a glfw context has been initialized" << std::endl;
+        Logger::error("TextureLoader cannot be used before a glfw context has been initialized");
         assert(!"TextureLoader::Init() glfwGetCurrentContext failed to load the current context");
     }
     stbi_set_flip_vertically_on_load(true);

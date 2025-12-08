@@ -1,4 +1,5 @@
 #include <classes/Shader.hpp>
+#include <classes/Tools/Logger.hpp>
 
 #define VRTX 1 << 0
 #define FGMT 1 << 1
@@ -77,7 +78,7 @@ u_int Shader::CompileSingleShader(const char *path, GLenum type, std::string sTy
 	}
 	catch (std::ifstream::failure &e)
 	{
-		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+		Logger::error("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " + std::string(e.what()));
 	}
 
 	const char *cShaderCode = shaderCode.c_str();
@@ -95,10 +96,10 @@ void Shader::parseAttributes(const char *path)
 
 	if (!file.is_open())
 	{
-		std::cout << "Error opening file : " << path << std::endl;
+		Logger::error("Error opening file : " + std::string(path));
 		assert(0);
 	}
-	// std::cout << "Vertex Shader at " << path << std::endl;
+	// Logger::info("Vertex Shader at " + std::string(path));
 	std::string line;
 	while (std::getline(file, line))
 	{
@@ -112,11 +113,9 @@ void Shader::parseAttributes(const char *path)
 		{
 			t_vertexAttribute attribute;
 			std::string typeName;
-			while (lineStream >> token && token != "=")
-			{
-			}
-			lineStream >> attribute.location;
+			while (lineStream >> token && token != "=") {}
 
+			lineStream >> attribute.location;
 			lineStream >> token;
 			lineStream >> token;
 			lineStream >> token;
@@ -126,25 +125,24 @@ void Shader::parseAttributes(const char *path)
 			{
 				attribute.type = GL_INT;
 				attribute.size = 1;
-				// std::cout << "Int, size " << attribute.size << std::endl;
+				// Logger::debug("Int, size " + std::to_string(attribute.size));
 			}
 			else if (typeName == "float")
 			{
 				attribute.type = GL_FLOAT;
 				attribute.size = 1;
-				// std::cout << "Float, size " << attribute.size << std::endl;
+				// Logger::debug("Float, size " + std::to_string(attribute.size));
 			}
 			else if (typeName.find("vec") != std::string::npos)
 			{
 				attribute.type = GL_FLOAT;
 				attribute.size = typeName[3] - '0';
-				// std::cout << "Float, size " << attribute.size << std::endl;
+				// Logger::debug("Float, size " + std::to_string(attribute.size));
 			}
 			else
 			{
-				std::cout << "Type not supported by current codebase : " << typeName << std::endl;
+				Logger::error("Type not supported by current codebase : " + typeName);
 				continue;
-				// assert(0);
 			}
 			attributes.push_back(attribute);
 		}
@@ -220,8 +218,7 @@ void Shader::CheckCompileErrors(unsigned int shader, std::string type)
 		if (!success)
 		{
 			glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-			std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
-					  << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+			Logger::error("ERROR::SHADER_COMPILATION_ERROR of type: " + type + "\n" + infoLog + "\n -- --------------------------------------------------- -- ");
 			assert(0);
 		}
 	}
@@ -231,8 +228,7 @@ void Shader::CheckCompileErrors(unsigned int shader, std::string type)
 		if (!success)
 		{
 			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-			std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
-					  << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+			Logger::error("ERROR::PROGRAM_LINKING_ERROR of type: " + type + "\n" + infoLog + "\n -- --------------------------------------------------- -- ");
 			assert(0);
 		}
 	}

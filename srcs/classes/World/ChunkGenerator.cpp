@@ -1,4 +1,5 @@
 #include <classes/World/ChunkGenerator.hpp>
+#include <classes/Tools/Logger.hpp>
 
 std::vector<PerlinNoise *> ChunkGenerator::noiseList;
 std::map<position, std::vector<u_char> *> ChunkGenerator::modifMap;
@@ -265,7 +266,7 @@ u_char *ChunkGenerator::generator(glm::ivec2 tmp_pos)
 	data = (u_char *)calloc(sizeX * sizeY * sizeZ, sizeof(*data));
 	if (!data)
 	{
-		std::cout << "raw map calloc failed !" << std::endl;
+		Logger::error("raw map calloc failed !");
 		return NULL;
 		// should throw exception and be caught in ChunkManager
 	}

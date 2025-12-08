@@ -1,4 +1,5 @@
 #include <classes/Game/mesh.hpp>
+#include <classes/Tools/Logger.hpp>
 
 mesh::~mesh()
 {
@@ -35,7 +36,7 @@ void mesh::parseFromFile(std::string file_name)
 	std::ifstream file(file_name);
 	if (!file.is_open())
 	{
-		std::cout << "Error opening file : " << file_name << std::endl;
+		Logger::error("Error opening file : " + file_name);
 		exit(1);
 	}
 
@@ -46,7 +47,7 @@ void mesh::parseFromFile(std::string file_name)
 		while (std::getline(file, line))
 		{
 			count++;
-			// std::cout << "line : " << count++ << std::endl;
+			// Logger::debug("line : " + std::to_string(count++));
 			if (line.size() <= 2)
 				continue;
 			if (line[0] == 'v' && line[1] == ' ')
@@ -69,7 +70,7 @@ void mesh::parseFromFile(std::string file_name)
 								point = true;
 							else
 							{
-								std::cout << "Error line " << count << " : 2 points in a number" << std::endl;
+								Logger::error("Error line " + std::to_string(count) + " : 2 points in a number");
 								str[pos].clear();
 								break;
 							}
@@ -80,7 +81,7 @@ void mesh::parseFromFile(std::string file_name)
 					point = false;
 				}
 				if (str[0].empty() || str[0] == "." || str[1].empty() || str[1] == "." || str[2].empty() || str[2] == ".")
-					std::cout << "Error line " << count << " : missing number" << std::endl;
+					Logger::error("Error line " + std::to_string(count) + " : missing number");
 				else
 				{
 					for (int pos = 0; pos < 3; pos++)
@@ -93,7 +94,7 @@ void mesh::parseFromFile(std::string file_name)
 			}
 			else if (line[0] == 'f' && line[1] == ' ')
 			{
-				// std::cout << "line : " << line << std::endl;
+				// Logger::debug("line : " + line);
 				std::vector<unsigned int> face;
 				int i = 2;
 				while (line[i] && line[i] == ' ')
@@ -115,7 +116,7 @@ void mesh::parseFromFile(std::string file_name)
 						i++;
 				}
 				if (face.size() < 3)
-					std::cout << "Error line " << count << " : face with less than 3 vertexes" << std::endl;
+					Logger::error("Error line " + std::to_string(count) + " : face with less than 3 vertexes");
 				else
 					this->base_faces.push_back(face);
 			}
@@ -123,8 +124,7 @@ void mesh::parseFromFile(std::string file_name)
 	}
 	catch (const std::exception &e)
 	{
-		std::cout << " a standard exception was caught, with message: '"
-				  << e.what() << "'\n";
+		Logger::error(" a standard exception was caught, with message: '" + std::string(e.what()) + "'");
 	}
 
 	file.close();
@@ -137,7 +137,7 @@ std::vector<t_triangle> mesh::facesToTriangles()
 	{
 		if (it->size() < 3)
 		{
-			std::cout << "Error : face with less than 3 vertexes" << std::endl;
+			Logger::error("Error : face with less than 3 vertexes");
 			exit(1);
 		}
 
@@ -163,7 +163,7 @@ void mesh::facesToTrianglesDupVertexes()
 	{
 		if (it->size() < 3)
 		{
-			std::cout << "Error : face with less than 3 vertexes" << std::endl;
+			Logger::error("Error : face with less than 3 vertexes");
 			exit(1);
 		}
 
@@ -222,10 +222,10 @@ void mesh::addInfoToVertexesDup()
 		new_vbo.push_back(textureCoo[i % 2]);
 		if (face < base_faces.size() && (i - last_face) == (base_faces[face].size() - 2) * 3)
 		{
-			// std::cout << "face : " << face << std::endl;
-			// std::cout << "size face : " << base_faces[face].size() << std::endl;
-			// std::cout << "i : " << i << std::endl;
-			// std::cout << "last_face : " << last_face << std::endl << std::endl;
+			// Logger::debug("face : " + std::to_string(face));
+			// Logger::debug("size face : " + std::to_string(base_faces[face].size()));
+			// Logger::debug("i : " + std::to_string(i));
+			// Logger::debug("last_face : " + std::to_string(last_face));
 			face++;
 			last_face = i;
 			colorIndex = (colorIndex + 1) % 3;
@@ -243,12 +243,12 @@ void mesh::EcoDupVertex()
 	for (std::vector<std::vector<unsigned int>>::iterator it = this->base_faces.begin(); it != this->base_faces.end(); ++it)
 	{
 		// barre de prog
-		//  std::cout << "face : " << i << " / " << this->base_faces.size() << " = " << ((float)i / (float)this->base_faces.size()) * 100 << "%"<< std::endl;
+		//  Logger::debug("face : " + std::to_string(i) + " / " + std::to_string(this->base_faces.size()) + " = " + std::to_string(((float)i / (float)this->base_faces.size()) * 100) + "%");
 
 		// Check face  >3 vertexes
 		if (it->size() < 3)
 		{
-			std::cout << "Error : face with less than 3 vertexes" << std::endl;
+			Logger::error("Error : face with less than 3 vertexes");
 			exit(1);
 		}
 
@@ -363,7 +363,7 @@ void mesh::addInfoToVertexesEco()
 	{
 		for (std::size_t vertInFace = 0; vertInFace < this->vertByFace[face].size(); vertInFace++)
 		{
-			// std::cout << "face : " << face << " | vertInFace : " << vertInFace << std::endl;
+			// Logger::debug("face : " + std::to_string(face) + " | vertInFace : " + std::to_string(vertInFace));
 			new_vbo.push_back(this->vertexes[this->vertByFace[face][vertInFace]]);
 			// new_vbo.push_back(colors[face % 3]);
 			float clor = (face % 50) * 0.01;
@@ -400,14 +400,14 @@ void mesh::center_around_orgin()
 
 	min_max_bounds(min_bound, max_bound);
 
-	// std::cout << "min : " << min_bound.v[0] << " " << min_bound.v[1] << " " << min_bound.v[2] << std::endl;
-	// std::cout << "max : " << max_bound.v[0] << " " << max_bound.v[1] << " " << max_bound.v[2] << std::endl;
+	// Logger::debug("min : " + std::to_string(min_bound[0]) + " " + std::to_string(min_bound[1]) + " " + std::to_string(min_bound[2]));
+	// Logger::debug("max : " + std::to_string(max_bound[0]) + " " + std::to_string(max_bound[1]) + " " + std::to_string(max_bound[2]));
 	glm::vec3 center = {0, 0, 0};
 
 	center[0] = (min_bound[0] + max_bound[0]) / 2;
 	center[1] = (min_bound[1] + max_bound[1]) / 2;
 	center[2] = (min_bound[2] + max_bound[2]) / 2;
-	// std::cout << "center : " << center.v[0] << " " << center.v[1] << " " << center.v[2] << std::endl;
+	// Logger::debug("center : " + std::to_string(center[0]) + " " + std::to_string(center[1]) + " " + std::to_string(center[2]));
 
 	for (std::vector<glm::vec3>::iterator vert = this->vertexes.begin(); vert != this->vertexes.end(); ++vert)
 	{

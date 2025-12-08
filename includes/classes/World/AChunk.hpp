@@ -8,7 +8,7 @@
 #include <mutex>
 #include <memory>
 
-#include <classes/Profiler.hpp>
+#include <classes/Tools/Profiler.hpp>
 
 #include <classes/types.hpp>
 

@@ -1,4 +1,5 @@
 #include <classes/Game/Game.hpp>
+#include <classes/Tools/Logger.hpp>
 
 #include <algorithm>
 #include "../../../imgui/imgui.h"
@@ -58,13 +59,9 @@ Game::Game()
 
 		const GLubyte *version = glGetString(GL_SHADING_LANGUAGE_VERSION);
 		if (version)
-		{
-			std::cout << "GLSL version: " << version << std::endl;
-		}
+			Logger::info("GLSL version: " + std::string((const char *)version));
 		else
-		{
-			std::cout << "Failed to get GLSL version (no GL context?)" << std::endl;
-		}
+			Logger::error("Failed to get GLSL version (no GL context?)");
 
 		ImGui_ImplGlfw_InitForOpenGL(window->GetWindow(), true);
 		ImGui_ImplOpenGL3_Init("#version 330 core");
@@ -131,13 +128,9 @@ Game::Game()
 
 		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE)
-		{
-			std::cerr << "backgroundFBO incomplete: " << status << std::endl;
-		}
+			Logger::error("backgroundFBO incomplete: " + std::to_string(status));
 		else
-		{
-			std::cout << "backgroundFBO complete!" << std::endl;
-		}
+			Logger::info("backgroundFBO complete!");
 
 		glGenFramebuffers(1, &outFBO);
 		glBindFramebuffer(GL_FRAMEBUFFER, outFBO);
@@ -156,11 +149,11 @@ Game::Game()
 		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE)
 		{
-			std::cerr << "outFBO incomplete: " << status << std::endl;
+			Logger::error("outFBO incomplete: " + std::to_string(status));
 		}
 		else
 		{
-			std::cout << "outFBO complete!" << std::endl;
+			Logger::info("outFBO complete!");
 		}
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -176,24 +169,24 @@ Game::Game()
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &work_grp_size[0]);
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &work_grp_size[1]);
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &work_grp_size[2]);
-		// std::cout << "Max work group sizes" <<
-		// 	" x:" << work_grp_size[0] <<
-		// 	" y:" << work_grp_size[1] <<
-		// 	" z:" << work_grp_size[2] << "\n";
+		// Logger::info("Max work group sizes" +
+		// 	" x:" + std::to_string(work_grp_size[0]) +
+		// 	" y:" + std::to_string(work_grp_size[1]) +
+		// 	" z:" + std::to_string(work_grp_size[2]));
 
 		int work_grp_inv;
 		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &work_grp_inv);
-		// std::cout << "Max invocations count per work group: " << work_grp_inv << "\n";
+		// Logger::info("Max invocations count per work group: " + std::to_string(work_grp_inv));
 	}
 }
 
 Game::~Game()
 {
-	std::cout << "start game destructor" << std::endl;
+	Logger::info("start game destructor");
 	delete window;
 	delete inputHandler;
 	delete shaderHandler;
-	std::cout << "end game destructor" << std::endl;
+	Logger::info("end game destructor");
 }
 
 void Game::StartLoop()
@@ -227,9 +220,9 @@ void Game::StartLoop()
 	playerHasMoved = true;
 	playerHasMoved_mutex.unlock();
 
-	std::cout << "Joining threads..." << std::endl;
+	Logger::info("Joining threads...");
 	chunkThread.join();
-	std::cout << "Chunk thread joined." << std::endl;
+	Logger::info("Chunk thread joined.");
 	ecsThread.join();
 }
 
@@ -261,9 +254,7 @@ void Game::manageUI()
 		ImGui::DragScalar("Seed", ImGuiDataType_S64, &seedUI, 0.1f);
 		ImGui::Checkbox("Instant update seed", &instantChange);
 		if (instantChange || ImGui::Button("Change seed"))
-		{
 			chunkInstanciator->changeSeed(seedUI);
-		}
 
 		ImGui::DragInt("Render distance", &renderDistance, 0.1f, 1, 100);
 		if (ImGui::Button("Change render distance"))
@@ -324,9 +315,7 @@ void Game::Loop()
 
 	GLenum err;
 	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		std::cerr << "OpenGL error: " << err << std::endl;
-	}
+		Logger::error("OpenGL error: " + std::to_string(err));
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frontGroundFBO);
 	glViewport(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);

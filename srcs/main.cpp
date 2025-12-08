@@ -1,5 +1,5 @@
 #include <classes/Game/Game.hpp>
-#include <classes/Profiler.hpp>
+#include <classes/Tools/Profiler.hpp>
 #include <thread>
 
 int main()
