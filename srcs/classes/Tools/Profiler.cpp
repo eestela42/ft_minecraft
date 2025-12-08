@@ -1,4 +1,4 @@
-#include <classes/Profiler.hpp>
+#include <classes/Tools/Profiler.hpp>
 
 /* *************** ProfilerObject class **************** */
 
