@@ -1,4 +1,5 @@
 #include <classes/World/ChunkRLE.hpp>
+#include <classes/Tools/Logger.hpp>
 #include <map>
 #include <classes/World/PerlinNoise.hpp>
 #include <iostream>
@@ -111,7 +112,7 @@ std::vector<u_char> *ChunkRLE::GetAdjacentRuban(int x, int y, int z, int &pos, u
 			neighbours = (ChunkRLE *)(getNeighbours().north);
 			if (!neighbours || (neighbours->posY != this->posY + 1 && neighbours->posX == this->posX))
 			{
-				std::cout << "no north neighbour" << std::endl;
+				Logger::warn("no north neighbour");
 				return (NULL);
 			}
 			pos = neighbours->GetRubanPos(x, 0, z);
@@ -127,7 +128,7 @@ std::vector<u_char> *ChunkRLE::GetAdjacentRuban(int x, int y, int z, int &pos, u
 			neighbours = (ChunkRLE *)(getNeighbours().east);
 			if (!neighbours || (neighbours->posX != this->posX + 1 && neighbours->posY == this->posY))
 			{
-				std::cout << "no east neighbour" << std::endl;
+				Logger::warn("no east neighbour");
 				return (NULL);
 			}
 			pos = neighbours->GetRubanPos(0, y, z);
@@ -143,7 +144,7 @@ std::vector<u_char> *ChunkRLE::GetAdjacentRuban(int x, int y, int z, int &pos, u
 			neighbours = (ChunkRLE *)(getNeighbours().south);
 			if (!neighbours || (neighbours->posY != this->posY - 1 && neighbours->posX == this->posX))
 			{
-				std::cout << "no south neighbour" << std::endl;
+				Logger::warn("no south neighbour");
 				return (NULL);
 			}
 			pos = neighbours->GetRubanPos(x, sizeY - 1, z);
@@ -159,7 +160,7 @@ std::vector<u_char> *ChunkRLE::GetAdjacentRuban(int x, int y, int z, int &pos, u
 			neighbours = (ChunkRLE *)(getNeighbours().west);
 			if (!neighbours || (neighbours->posX != this->posX - 1 && neighbours->posY == this->posY))
 			{
-				std::cout << "no west neighbour" << std::endl;
+				Logger::warn("no west neighbour");
 				return (NULL);
 			}
 			pos = neighbours->GetRubanPos(sizeX - 1, y, z);
@@ -513,7 +514,7 @@ void ChunkRLE::privGenerate(u_char *rawData)
 	u_int pos = 0;
 	if (!rawData)
 	{
-		std::cout << "GEN CORRUPTED" << std::endl;
+		Logger::error("GEN CORRUPTED");
 		exit(6);
 	}
 

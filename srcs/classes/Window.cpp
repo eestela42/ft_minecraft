@@ -1,4 +1,5 @@
 #include <classes/Window.hpp>
+#include <classes/Tools/Logger.hpp>
 
 void framebuffer_size_callback(__attribute__((unused)) GLFWwindow *window, int width, int height) // callback called by GLFW whevenever window is resized
 {
@@ -7,7 +8,7 @@ void framebuffer_size_callback(__attribute__((unused)) GLFWwindow *window, int w
 
 static void glfwError(__attribute__((unused)) int id, const char *description)
 {
-    std::cout << "func glfwError : " << description << std::endl;
+    Logger::error("func glfwError : " + std::string(description));
 }
 
 Window::Window(const char *name, DrawMode drawMode)
@@ -15,7 +16,7 @@ Window::Window(const char *name, DrawMode drawMode)
     glfwSetErrorCallback(&glfwError);
     if (!glfwInit())
     {
-        std::cout << "Failed to initialize GLFW" << std::endl;
+        Logger::error("Failed to initialize GLFW");
         assert(!"Window::Window glfwInit failed");
     }
 
@@ -27,7 +28,7 @@ Window::Window(const char *name, DrawMode drawMode)
     window = glfwCreateWindow(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, name, NULL, NULL); // Create a window
     if (window == NULL)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        Logger::error("Failed to create GLFW window");
         glfwTerminate();
         assert(!"Window::Window glfwCreateWindow failed");
     }
@@ -35,7 +36,7 @@ Window::Window(const char *name, DrawMode drawMode)
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) // Load OpenGL function pointers with GLFW OS pointer
     {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        Logger::error("Failed to initialize GLAD");
         assert(!"Window::Window gladLoadGLLoader failed");
     }
 

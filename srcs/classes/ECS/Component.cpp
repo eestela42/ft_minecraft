@@ -1,5 +1,5 @@
 #include <classes/ECS/Component.hpp>
-#include <iostream>
+#include <classes/Tools/Logger.hpp>
 #include <glm/glm.hpp>
 
 Component::Component(unsigned int id, unsigned int data_size) : id(id), data_size(data_size)
@@ -50,10 +50,10 @@ std::vector<unsigned char> *Component::getComponents()
 
 void Component::print()
 {
-	std::cout << "Component : " << id << std::endl;
+	Logger::info("Component : " + std::to_string(id));
 	for (int i = 0; i < values.size() / data_size; i += data_size)
 	{
-		std::cout << "Entity : " << i / data_size << std::endl;
-		std::cout << "Value : " << ((glm::vec3)((values[i]))).x << " " << ((glm::vec3)((values[i]))).y << " " << ((glm::vec3)((values[i]))).z << " " << std::endl;
+		Logger::info("Entity : " + std::to_string(i / data_size));
+		Logger::info("Value : " + std::to_string(((glm::vec3)((values[i]))).x) + " " + std::to_string(((glm::vec3)((values[i]))).y) + " " + std::to_string(((glm::vec3)((values[i]))).z));
 	}
 }

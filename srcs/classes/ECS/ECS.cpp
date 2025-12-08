@@ -1,4 +1,5 @@
 #include <classes/ECS/ECS.hpp>
+#include <classes/Tools/Logger.hpp>
 #include <glm/glm.hpp>
 
 ECS::ECS(std::vector<std::vector<AChunk *>> &tabChunks, std::mutex &tabChunks_mutex,
@@ -95,10 +96,10 @@ void ECS::printAll()
 	int i = 0;
 	for (auto entity : entities)
 	{
-		std::cout << "Entity : " << i++ << std::endl;
+		Logger::info("Entity : " + std::to_string(i++));
 		for (auto compo : components)
 		{
-			std::cout << "Component : " << i << std::endl;
+			Logger::info("Component : " + std::to_string(i));
 			std::vector<id> compo_id = entity.getComponents();
 			bool found = false;
 			for (auto id : compo_id)
@@ -107,11 +108,11 @@ void ECS::printAll()
 				{
 					found = true;
 					glm::vec3 *pos = (glm::vec3 *)compo->getComponent(id.value);
-					std::cout << "value : " << (*pos).x << " " << (*pos).y << " " << (*pos).z << std::endl;
+					Logger::info("value : " + std::to_string((*pos).x) + " " + std::to_string((*pos).y) + " " + std::to_string((*pos).z));
 				}
 			}
 			if (!found)
-				std::cout << "not found" << std::endl;
+				Logger::warn("not found");
 			i++;
 		}
 	}
@@ -186,7 +187,7 @@ void ECS::update()
 		cycle();
 		if (false && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() >= 1000)
 		{
-			std::cout << "ECS cycles : " << nbr << std::endl;
+			Logger::info("ECS cycles : " + std::to_string(nbr));
 			nbr = 0;
 			begin = std::chrono::steady_clock::now();
 		}
@@ -257,7 +258,7 @@ void ECS::cycle()
 	{
 		if (PROFILER_ON)
 			Profiler::StartTracking(systemeNames[y]);
-		// std::cout << "system : " << y++ << std::endl;
+		// Logger::info("system : " + std::to_string(y++));
 		std::bitset<8> system_flag_compo = system->getFlagCompo();
 		std::bitset<8> system_flag_info = system->getFlagInfo();
 

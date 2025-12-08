@@ -1,4 +1,7 @@
 #include <classes/Tools/Profiler.hpp>
+#include <classes/Tools/Logger.hpp>
+#include <sstream>
+#include <iomanip>
 
 /* *************** ProfilerObject class **************** */
 
@@ -78,11 +81,11 @@ void ProfilerObject::LogData()
 	// std::cout.setf(std::ios::fixed, std::ios::floatfield);
 	// std::cout.precision(4);
 	// std::cout.width(5);
-	std::cout << std::showpoint;
-	std::cout.precision(4);
+	// std::cout << std::showpoint;
+	// std::cout.precision(4);
 	// std::cout.width(5);
 	//
-	std::cout << "---------- " << name << " ----------" << std::endl;
+	Logger::info("---------- " + std::string(name) + " ----------");
 	if (data.size() == 1)
 	{
 		if ((value = Profiler::RetrieveData(name, "Time")))
@@ -90,10 +93,16 @@ void ProfilerObject::LogData()
 			dbValue = std::chrono::nanoseconds(atol(value));
 			resultValue = (best < dbValue) ? (1 - (double)best.count() / (double)dbValue.count()) * 100 : ((double)best.count() / (double)dbValue.count() - 1) * 100;
 			sign = (best < dbValue) ? " -" : " +";
-			std::cout << "Time     : " << best.count() / divider << unit << sign << resultValue << "%" << std::endl;
+			std::stringstream ss;
+			ss << std::showpoint << std::setprecision(4) << "Time     : " << best.count() / divider << unit << sign << resultValue << "%";
+			Logger::info(ss.str());
 		}
 		else
-			std::cout << "Time     : " << best.count() / divider << unit << std::endl;
+		{
+			std::stringstream ss;
+			ss << std::showpoint << std::setprecision(4) << "Time     : " << best.count() / divider << unit;
+			Logger::info(ss.str());
+		}
 		Profiler::InsertData(name, "Time", std::to_string(best.count()).c_str());
 		return;
 	}
@@ -103,30 +112,48 @@ void ProfilerObject::LogData()
 		dbValue = std::chrono::nanoseconds(atol(value));
 		resultValue = (average < dbValue) ? (1 - (double)average.count() / (double)dbValue.count()) * 100 : ((double)average.count() / (double)dbValue.count() - 1) * 100;
 		sign = (average < dbValue) ? " -" : " +";
-		std::cout << "Average  : " << average.count() / divider << unit << sign << resultValue << "%" << std::endl;
+		std::stringstream ss;
+		ss << std::showpoint << std::setprecision(4) << "Average  : " << average.count() / divider << unit << sign << resultValue << "%";
+		Logger::info(ss.str());
 	}
 	else
-		std::cout << "Average  : " << average.count() / divider << unit << std::endl;
+	{
+		std::stringstream ss;
+		ss << std::showpoint << std::setprecision(4) << "Average  : " << average.count() / divider << unit;
+		Logger::info(ss.str());
+	}
 
 	if ((value = Profiler::RetrieveData(name, "Median")))
 	{
 		dbValue = std::chrono::nanoseconds(atol(value));
 		resultValue = (median < dbValue) ? (1 - (double)median.count() / (double)dbValue.count()) * 100 : ((double)median.count() / (double)dbValue.count() - 1) * 100;
 		sign = (median < dbValue) ? " -" : " +";
-		std::cout << "Median   : " << median.count() / divider << unit << sign << resultValue << "%" << std::endl;
+		std::stringstream ss;
+		ss << std::showpoint << std::setprecision(4) << "Median   : " << median.count() / divider << unit << sign << resultValue << "%";
+		Logger::info(ss.str());
 	}
 	else
-		std::cout << "Median   : " << median.count() / divider << unit << std::endl;
+	{
+		std::stringstream ss;
+		ss << std::showpoint << std::setprecision(4) << "Median   : " << median.count() / divider << unit;
+		Logger::info(ss.str());
+	}
 
 	if ((value = Profiler::RetrieveData(name, "Worst")))
 	{
 		dbValue = std::chrono::nanoseconds(atol(value));
 		resultValue = (worst < dbValue) ? (1 - (double)worst.count() / (double)dbValue.count()) * 100 : ((double)worst.count() / (double)dbValue.count() - 1) * 100;
 		sign = (worst < dbValue) ? " -" : " +";
-		std::cout << "Worst    : " << worst.count() / divider << unit << sign << resultValue << "%" << std::endl;
+		std::stringstream ss;
+		ss << std::showpoint << std::setprecision(4) << "Worst    : " << worst.count() / divider << unit << sign << resultValue << "%";
+		Logger::info(ss.str());
 	}
 	else
-		std::cout << "Worst    : " << worst.count() / divider << unit << std::endl;
+	{
+		std::stringstream ss;
+		ss << std::showpoint << std::setprecision(4) << "Worst    : " << worst.count() / divider << unit;
+		Logger::info(ss.str());
+	}
 
 	if (data.size() >= 40)
 	{
@@ -135,10 +162,16 @@ void ProfilerObject::LogData()
 			dbValue = std::chrono::nanoseconds(atol(value));
 			resultValue = (worst5percent < dbValue) ? (1 - (double)worst5percent.count() / (double)dbValue.count()) * 100 : ((double)worst5percent.count() / (double)dbValue.count() - 1) * 100;
 			sign = (worst5percent < dbValue) ? " -" : " +";
-			std::cout << "Worst 5% : " << worst5percent.count() / divider << unit << sign << resultValue << "%" << std::endl;
+			std::stringstream ss;
+			ss << std::showpoint << std::setprecision(4) << "Worst 5% : " << worst5percent.count() / divider << unit << sign << resultValue << "%";
+			Logger::info(ss.str());
 		}
 		else
-			std::cout << "Worst 5% : " << worst5percent.count() / divider << unit << std::endl;
+		{
+			std::stringstream ss;
+			ss << std::showpoint << std::setprecision(4) << "Worst 5% : " << worst5percent.count() / divider << unit;
+			Logger::info(ss.str());
+		}
 	}
 
 	if ((value = Profiler::RetrieveData(name, "Best")))
@@ -146,10 +179,16 @@ void ProfilerObject::LogData()
 		dbValue = std::chrono::nanoseconds(atol(value));
 		resultValue = (best < dbValue) ? (1 - (double)best.count() / (double)dbValue.count()) * 100 : ((double)best.count() / (double)dbValue.count() - 1) * 100;
 		sign = (best < dbValue) ? " -" : " +";
-		std::cout << "Best     : " << best.count() / divider << unit << sign << resultValue << "%" << std::endl;
+		std::stringstream ss;
+		ss << std::showpoint << std::setprecision(4) << "Best     : " << best.count() / divider << unit << sign << resultValue << "%";
+		Logger::info(ss.str());
 	}
 	else
-		std::cout << "Best     : " << best.count() / divider << unit << std::endl;
+	{
+		std::stringstream ss;
+		ss << std::showpoint << std::setprecision(4) << "Best     : " << best.count() / divider << unit;
+		Logger::info(ss.str());
+	}
 
 	if (data.size() >= 40)
 	{
@@ -158,10 +197,16 @@ void ProfilerObject::LogData()
 			dbValue = std::chrono::nanoseconds(atol(value));
 			resultValue = (best5percent < dbValue) ? (1 - (double)best5percent.count() / (double)dbValue.count()) * 100 : ((double)best5percent.count() / (double)dbValue.count() - 1) * 100;
 			sign = (best5percent < dbValue) ? " -" : " +";
-			std::cout << "Best  5% : " << best5percent.count() / divider << unit << sign << resultValue << "%" << std::endl;
+			std::stringstream ss;
+			ss << std::showpoint << std::setprecision(4) << "Best  5% : " << best5percent.count() / divider << unit << sign << resultValue << "%";
+			Logger::info(ss.str());
 		}
 		else
-			std::cout << "Best  5% : " << best5percent.count() / divider << unit << std::endl;
+		{
+			std::stringstream ss;
+			ss << std::showpoint << std::setprecision(4) << "Best  5% : " << best5percent.count() / divider << unit;
+			Logger::info(ss.str());
+		}
 	}
 
 	// Write Data to db
@@ -203,9 +248,9 @@ void Profiler::StopTracking(const char *name)
 
 void Profiler::LogData()
 {
-	std::ofstream out("Profiler.log");
-	std::streambuf *coutbuf = std::cout.rdbuf();
-	std::cout.rdbuf(out.rdbuf());
+	// std::ofstream out("Profiler.log");
+	// std::streambuf *coutbuf = std::cout.rdbuf();
+	// std::cout.rdbuf(out.rdbuf());
 	MDB_txn *txn;
 
 	int rc = mdb_env_create(&env);
@@ -228,7 +273,7 @@ void Profiler::LogData()
 	mdb_dbi_close(env, dbi);
 	mdb_env_close(env);
 
-	std::cout.rdbuf(coutbuf);
+	// std::cout.rdbuf(coutbuf);
 }
 
 void Profiler::InsertData(const char *keyName, const char *keyType, const char *value)

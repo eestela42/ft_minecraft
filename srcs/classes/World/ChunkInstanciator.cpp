@@ -1,4 +1,5 @@
 #include <classes/World/ChunkInstanciator.hpp>
+#include <classes/Tools/Logger.hpp>
 
 ChunkInstanciator::ChunkInstanciator(u_int renderDistance,
 									 glm::vec3 &playerPos, std::mutex &playerPos_mutex,
@@ -19,7 +20,7 @@ ChunkInstanciator::ChunkInstanciator(u_int renderDistance,
 {
 	generationDistance = renderDistance + 1;
 	size_tab = generationDistance * 2 + 1;
-	std::cout << "gen dist : " << generationDistance << std::endl;
+	Logger::info("gen dist : " + std::to_string(generationDistance));
 	tabChunks.resize((size_tab), std::vector<AChunk *>());
 
 	for (u_int i = 0; i < size_tab; i++)
@@ -28,7 +29,7 @@ ChunkInstanciator::ChunkInstanciator(u_int renderDistance,
 	std::srand(std::time(0));
 	_currentSeed = 1722331298;
 	_currentSeed = std::rand();
-	std::cout << "seed " << _currentSeed << std::endl;
+	Logger::info("seed " + std::to_string(_currentSeed));
 	ChunkGenerator::initNoise(_currentSeed);
 }
 
@@ -308,7 +309,7 @@ void ChunkInstanciator::changeSeed(long int seed)
 {
 	if (seed == _currentSeed)
 		return;
-	std::cout << "Changing seed to " << seed << std::endl;
+	Logger::info("Changing seed to " + std::to_string(seed));
 	setKeepUpdating(false);
 
 	_currentSeed = seed;

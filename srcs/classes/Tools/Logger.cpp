@@ -11,28 +11,30 @@ void Logger::log(LogLevel level, const std::string &message)
     std::lock_guard<std::mutex> lock(logMutex);
 
     std::ostream &out = (level == LogLevel::ERROR) ? std::cerr : std::cout;
-
     std::string colorCode;
     switch (level)
     {
     case LogLevel::DEBUG:
-        colorCode = "\033[36m";
-        break; // Cyan
+        colorCode = LogColor().DEBUG;
+        break;
     case LogLevel::INFO:
-        colorCode = "\033[32m";
-        break; // Green
+        colorCode = LogColor().INFO;
+        break;
+    case LogLevel::SUCCESS:
+        colorCode = LogColor().SUCCESS;
+        break;
     case LogLevel::WARNING:
-        colorCode = "\033[33m";
-        break; // Yellow
+        colorCode = LogColor().WARNING;
+        break;
     case LogLevel::ERROR:
-        colorCode = "\033[31m";
-        break; // Red
+        colorCode = LogColor().ERROR;
+        break;
     }
-    std::string resetCode = "\033[0m";
+    std::string resetCode = LogColor().RESET;
 
-    out << "[" << getCurrentTime() << "] "
-        << colorCode << "[" << getLevelString(level) << "] " << resetCode
-        << message << std::endl;
+    out << colorCode << "[" << getCurrentTime() << "] "
+        << "[" << getLevelString(level) << "] "
+        << message << resetCode << std::endl;
 }
 
 void Logger::debug(const std::string &message)

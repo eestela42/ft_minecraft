@@ -19,8 +19,8 @@ struct LogColor
     const std::string ERROR = "\033[31m"; // Red
     const std::string WARNING = "\033[33m"; // Yellow
     const std::string SUCCESS = "\033[32m"; // Green
-    const std::string INFO = "\033[34m"; // Blue
-    const std::string DEBUG = "\033[36m"; // Cyan
+    const std::string INFO = "\033[36m"; // Cyan
+    const std::string DEBUG = "\033[34m"; // Blue
 };
 
 class Logger
