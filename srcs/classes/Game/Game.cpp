@@ -1,6 +1,7 @@
 #include <classes/Game/Game.hpp>
 #include <classes/Tools/Logger.hpp>
 
+
 #include <algorithm>
 #include "../../../imgui/imgui.h"
 #include "../../../imgui/backends/imgui_impl_glfw.h"

@@ -21,6 +21,10 @@ ECS::ECS(std::vector<std::vector<AChunk *>> &tabChunks, std::mutex &tabChunks_mu
 	components.push_back(new Component(0, sizeof(glm::vec3)));
 	components.push_back(new Component(1, sizeof(glm::vec3)));
 	*entityPos = components[0]->getComponents();
+
+
+
+	
 }
 
 void ECS::Initialize(int amount, Shader *entityShader,
